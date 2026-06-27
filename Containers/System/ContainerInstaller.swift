@@ -182,7 +182,7 @@ private nonisolated enum InstallerError: Error {
     case untrustedSource
 }
 
-private nonisolated struct GitHubRelease: Decodable {
+nonisolated struct GitHubRelease: Decodable {
     let tagName: String
     let assets: [Asset]
 
@@ -202,7 +202,7 @@ private nonisolated struct GitHubRelease: Decodable {
     }
 }
 
-private nonisolated final class PackageDownloader: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+nonisolated final class PackageDownloader: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
     private var continuation: CheckedContinuation<URL, any Error>?
     private var progress: (@Sendable (Double) -> Void)?
     private var destinationName = "download.pkg"

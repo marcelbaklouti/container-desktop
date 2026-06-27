@@ -16,6 +16,7 @@ struct ContainersApp: App {
                     Notifier.requestAuthorization()
                     await appModel.system.refresh()
                     appModel.startPolling()
+                    await appModel.updater.checkForUpdates()
                 }
         }
         .windowStyle(.titleBar)
@@ -23,6 +24,11 @@ struct ContainersApp: App {
         .defaultSize(width: 1200, height: 800)
         .windowResizability(.contentMinSize)
         .commands {
+            CommandGroup(after: .appInfo) {
+                SettingsLink {
+                    Text("Check for Updates…")
+                }
+            }
             CommandGroup(replacing: .help) {
                 HelpMenuButton()
             }
@@ -51,6 +57,7 @@ struct ContainersApp: App {
 
         Settings {
             SettingsView()
+                .environment(appModel.updater)
         }
     }
 }

@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "“%@” — requires administrator authorization." : {
+
+    },
     "/etc/hosts" : {
 
     },
@@ -10,33 +13,41 @@
     "/Users/…" : {
 
     },
-    "%@ · %@" : {
+    "%@ CPU · %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$@ · %2$@"
+            "value" : "%1$@ CPU · %2$@"
           }
         }
       }
     },
-    "%lld platform%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld platform%2$@"
-          }
-        }
-      }
+    "%@ is no longer running." : {
+
+    },
+    "%@ platforms" : {
+
     },
     "10.10.0.0/24 (optional)" : {
+
+    },
+    "127.0.0.1 (optional)" : {
 
     },
     "8080:80" : {
 
     },
+    "Add" : {
+
+    },
     "Add Build Arg" : {
+
+    },
+    "Add DNS Domain" : {
+
+    },
+    "Add Domain…" : {
 
     },
     "Add Port" : {
@@ -48,13 +59,28 @@
     "Add Volume" : {
 
     },
+    "Adding…" : {
+
+    },
     "Addressing" : {
+
+    },
+    "All running containers will be stopped." : {
+
+    },
+    "Allocated" : {
+
+    },
+    "alpine:3.22" : {
 
     },
     "alpine:latest" : {
 
     },
     "apiserver" : {
+
+    },
+    "Appearance" : {
 
     },
     "Arguments" : {
@@ -78,6 +104,9 @@
     "Build Image" : {
 
     },
+    "Build Image…" : {
+
+    },
     "Builder" : {
 
     },
@@ -90,10 +119,25 @@
     "Cancel" : {
 
     },
+    "Checking for the latest release…" : {
+
+    },
+    "Checking…" : {
+
+    },
+    "Choose a DNS domain in the Run sheet to give a container a hostname. Its inspector then shows a copyable hostname you can open directly in the browser." : {
+
+    },
+    "Choose a docker-compose.yml file" : {
+
+    },
     "Choose…" : {
 
     },
     "CLI version" : {
+
+    },
+    "Click the + (Run Container) button to choose an image and set ports, environment variables, volumes, and resources. Give it a Project name to group it with related containers." : {
 
     },
     "Close" : {
@@ -102,10 +146,52 @@
     "Command" : {
 
     },
-    "Container path" : {
+    "Compose Stacks" : {
+
+    },
+    "container CLI not found" : {
+
+    },
+    "Container daemon stopped" : {
+
+    },
+    "Container Desktop" : {
+
+    },
+    "Container Desktop can notify you when a container exits unexpectedly or when the system stops. Turn these on or off in Settings → Notifications." : {
+
+    },
+    "Container Desktop Help" : {
+
+    },
+    "Container Desktop is a native macOS interface for Apple’s container runtime. It manages containers, images, networks, volumes, and virtual machines by driving the container command-line tool, so anything you do here matches what the tool does in Terminal." : {
+
+    },
+    "Container Desktop’s version tracks the container runtime release it’s built for. System → Software Update shows the latest release from Apple and installs verified updates after an administrator prompt — Container Desktop only accepts packages signed and notarized by Apple." : {
+
+    },
+    "Container exited" : {
+
+    },
+    "Container exits unexpectedly" : {
+
+    },
+    "Container hostnames" : {
+
+    },
+    "Container Not Running" : {
+
+    },
+    "Container Path" : {
 
     },
     "Containers" : {
+
+    },
+    "Containers are grouped by their Compose project. Each group header shows the combined CPU and memory of its running services, and the overall total appears beneath the Containers title." : {
+
+    },
+    "Containers run under a background system service that keeps them alive even when this app is closed. Use “Start Container System” on the start screen, or Start from the menu bar, to bring it up." : {
 
     },
     "Context directory" : {
@@ -114,13 +200,28 @@
     "Copy" : {
 
     },
+    "Copy Address" : {
+
+    },
+    "Copy address for port %@" : {
+
+    },
     "Copy Files" : {
 
     },
     "Copy Files…" : {
 
     },
+    "Copy hostname" : {
+
+    },
+    "Copy Hostname" : {
+
+    },
     "Copying…" : {
+
+    },
+    "Could not read services from that compose file." : {
 
     },
     "Couldn’t start the container system." : {
@@ -135,28 +236,79 @@
     "Create" : {
 
     },
+    "Create a container machine to get started." : {
+
+    },
+    "Create Machine" : {
+
+    },
+    "Create Machine…" : {
+
+    },
     "Create Network" : {
+
+    },
+    "Create Network…" : {
+
+    },
+    "Create networks to isolate groups of containers so they can reach each other by name. The built-in default network can’t be removed." : {
 
     },
     "Create Volume" : {
 
     },
+    "Create Volume…" : {
+
+    },
     "Created" : {
+
+    },
+    "Creating a local DNS domain requires administrator authorization." : {
 
     },
     "Creating…" : {
 
     },
+    "Daemon stopped" : {
+
+    },
+    "Daemon stops" : {
+
+    },
+    "Dark" : {
+
+    },
     "default" : {
+
+    },
+    "Default" : {
+
+    },
+    "Default container resources" : {
+
+    },
+    "Defaults" : {
 
     },
     "Delete" : {
 
     },
+    "Delete domain %@" : {
+
+    },
+    "Delete Domain %@" : {
+
+    },
     "Delete this container?" : {
 
     },
+    "Delete this DNS domain?" : {
+
+    },
     "Delete this image?" : {
+
+    },
+    "Delete this machine?" : {
 
     },
     "Delete this network?" : {
@@ -174,22 +326,58 @@
     "Direction" : {
 
     },
+    "Disk" : {
+
+    },
     "Disk usage" : {
+
+    },
+    "DNS & Hostnames" : {
+
+    },
+    "DNS domain" : {
+
+    },
+    "docker.io" : {
 
     },
     "Dockerfile" : {
 
     },
+    "Domain" : {
+
+    },
+    "Downloading container… %@%%" : {
+
+    },
+    "Downloading… %@%%" : {
+
+    },
     "Driver" : {
 
     },
+    "e.g. 1G" : {
+
+    },
     "e.g. 2" : {
+
+    },
+    "e.g. 2G (default: half of system)" : {
+
+    },
+    "e.g. 4G" : {
 
     },
     "e.g. 10G (optional)" : {
 
     },
     "e.g. 512M, 1G" : {
+
+    },
+    "Each image shows its size and an “In Use” badge when a container references it. The inspector’s History section lists the build steps. Prune, in the More (⋯) menu, removes every image no container uses." : {
+
+    },
+    "Edit Settings…" : {
 
     },
     "Environment" : {
@@ -201,19 +389,67 @@
     "Export Filesystem…" : {
 
     },
+    "Export…" : {
+
+    },
+    "Filter containers" : {
+
+    },
+    "Filter images" : {
+
+    },
+    "Filter machines" : {
+
+    },
+    "Filter networks" : {
+
+    },
+    "Filter registries" : {
+
+    },
+    "Filter volumes" : {
+
+    },
     "Follow" : {
 
     },
     "Format" : {
 
     },
-    "From container" : {
+    "From Container" : {
+
+    },
+    "General" : {
+
+    },
+    "Getting Started" : {
+
+    },
+    "Grouping and totals" : {
+
+    },
+    "Help" : {
+
+    },
+    "Hide Inspector" : {
+
+    },
+    "History" : {
+
+    },
+    "Home mount" : {
 
     },
     "Host-only (internal)" : {
 
     },
     "Hostname" : {
+
+    },
+    "ID" : {
+
+    },
+    "If the container tool isn’t installed, the start screen offers to download and install Apple’s official, signed release for you, with a single administrator prompt. You can also install it yourself from github.com/apple/container." : {
 
     },
     "Image" : {
@@ -225,13 +461,40 @@
     "Images" : {
 
     },
-    "Inspector" : {
+    "Import Image" : {
+
+    },
+    "Import Image…" : {
+
+    },
+    "In System, create a local DNS domain. This needs administrator approval because it changes how your Mac resolves names. Containers started with that domain become reachable at <name>.<domain>." : {
+
+    },
+    "In Use" : {
 
     },
     "Install Apple’s container command-line tool to manage containers, images, and volumes from here." : {
 
     },
-    "Installation Instructions" : {
+    "Install container %@" : {
+
+    },
+    "Install Manually" : {
+
+    },
+    "Installed" : {
+
+    },
+    "Installing the runtime" : {
+
+    },
+    "Installing…" : {
+
+    },
+    "IP" : {
+
+    },
+    "IP Address" : {
 
     },
     "IPv4" : {
@@ -249,7 +512,7 @@
     "IPv6 subnet" : {
 
     },
-    "KEY" : {
+    "Keeping the runtime current" : {
 
     },
     "Kill" : {
@@ -258,28 +521,112 @@
     "Labels" : {
 
     },
+    "Latest container release" : {
+
+    },
+    "Launch" : {
+
+    },
+    "Launch Compose Stack" : {
+
+    },
+    "Launch Stack" : {
+
+    },
+    "Launching a stack" : {
+
+    },
+    "Launching…" : {
+
+    },
+    "Lifecycle" : {
+
+    },
+    "Light" : {
+
+    },
     "Limit" : {
 
     },
     "Live" : {
 
     },
-    "Local path" : {
+    "Local DNS domain" : {
+
+    },
+    "Local DNS domains" : {
+
+    },
+    "Local Path" : {
+
+    },
+    "localhost:%@" : {
+
+    },
+    "Log In" : {
+
+    },
+    "Log In to a Registry" : {
+
+    },
+    "Log in to a registry to push and pull private images." : {
+
+    },
+    "Log in to a registry under Registries to pull and push private images. Your password is handled securely by the container tool and never passed on the command line." : {
+
+    },
+    "Log In to Registry" : {
+
+    },
+    "Log In to Registry…" : {
+
+    },
+    "Log Out" : {
+
+    },
+    "Log out of this registry?" : {
+
+    },
+    "Logging in…" : {
 
     },
     "Logs" : {
 
     },
+    "Logs, stats, and a shell" : {
+
+    },
     "MAC" : {
+
+    },
+    "Machine" : {
 
     },
     "Machines" : {
 
     },
+    "Machines are the Linux virtual machines that host your containers. Create additional machines with a custom image, CPU, and memory; set a default; open a shell; or edit a machine’s settings." : {
+
+    },
     "Memory" : {
 
     },
+    "Menu bar" : {
+
+    },
+    "Menu Bar & Notifications" : {
+
+    },
     "Mode" : {
+
+    },
+    "More" : {
+
+    },
+    "More Actions" : {
+
+    },
+    "Mounts" : {
 
     },
     "my-network" : {
@@ -312,6 +659,9 @@
     "Networks" : {
 
     },
+    "Networks & Volumes" : {
+
+    },
     "New reference" : {
 
     },
@@ -327,7 +677,22 @@
     "No Images" : {
 
     },
+    "No Live Stats" : {
+
+    },
+    "No Log Output" : {
+
+    },
+    "No Machines" : {
+
+    },
     "No Networks" : {
+
+    },
+    "No Registry Logins" : {
+
+    },
+    "No running containers" : {
 
     },
     "No running containers." : {
@@ -339,7 +704,28 @@
     "No Volumes" : {
 
     },
+    "None" : {
+
+    },
+    "Notifications" : {
+
+    },
+    "of %@" : {
+
+    },
     "OK" : {
+
+    },
+    "Open Container Desktop" : {
+
+    },
+    "Open localhost:%@" : {
+
+    },
+    "Open port %@ in browser" : {
+
+    },
+    "Open Shell" : {
 
     },
     "optional" : {
@@ -360,6 +746,9 @@
     "Output" : {
 
     },
+    "Password" : {
+
+    },
     "Path inside the container" : {
 
     },
@@ -378,22 +767,43 @@
     "Ports" : {
 
     },
+    "Ports appear in the inspector. Click a port to open it in your browser, or copy its address. Running rows offer the same “Open” action in their context menu." : {
+
+    },
     "Processes" : {
 
     },
     "Project" : {
 
     },
-    "Prune" : {
+    "Prune Unused Images" : {
+
+    },
+    "Prune Unused Networks" : {
+
+    },
+    "Prune Unused Volumes" : {
+
+    },
+    "Published ports" : {
 
     },
     "Pull" : {
+
+    },
+    "Pull a pre-built image by reference, or Build one from a Dockerfile with live build output. Import and Export move images as .tar archives." : {
 
     },
     "Pull an image to get started." : {
 
     },
     "Pull Image" : {
+
+    },
+    "Pull Image…" : {
+
+    },
+    "Pulling and building" : {
 
     },
     "Pulling…" : {
@@ -411,7 +821,22 @@
     "Pushing…" : {
 
     },
+    "Quit" : {
+
+    },
+    "Read-only" : {
+
+    },
     "Read-only root filesystem" : {
+
+    },
+    "Read/write" : {
+
+    },
+    "Reconfigure %@" : {
+
+    },
+    "Reconfigure Machine" : {
 
     },
     "Reference" : {
@@ -420,16 +845,58 @@
     "Refresh" : {
 
     },
+    "Refresh Builder Status" : {
+
+    },
     "Registries" : {
 
     },
+    "Registry" : {
+
+    },
+    "Remove all unused images?" : {
+
+    },
+    "Remove all unused networks?" : {
+
+    },
+    "Remove all unused volumes?" : {
+
+    },
+    "Remove Build Argument" : {
+
+    },
     "Remove on exit" : {
+
+    },
+    "Remove Port" : {
+
+    },
+    "Remove Unused Images" : {
+
+    },
+    "Remove Unused Networks" : {
+
+    },
+    "Remove Unused Volumes" : {
+
+    },
+    "Remove Variable" : {
+
+    },
+    "Remove Volume" : {
 
     },
     "Resources" : {
 
     },
     "Restart" : {
+
+    },
+    "Restart %@" : {
+
+    },
+    "Right-click any container to Start, Stop, Restart, Kill, or Delete it. Quitting Container Desktop does not stop your containers — they keep running under the system service until you stop them or the service." : {
 
     },
     "Run" : {
@@ -447,7 +914,10 @@
     "Running" : {
 
     },
-    "Running only" : {
+    "Running a container" : {
+
+    },
+    "Running Only" : {
 
     },
     "Running…" : {
@@ -456,10 +926,25 @@
     "Runtime" : {
 
     },
+    "Save" : {
+
+    },
+    "Saving…" : {
+
+    },
     "Select a container to inspect it." : {
 
     },
+    "Select a container to open the inspector, then switch tabs to follow live logs, watch CPU and memory charts, or open an interactive terminal inside the container." : {
+
+    },
+    "Select a machine to inspect it." : {
+
+    },
     "Select a network to inspect it." : {
+
+    },
+    "Select a Topic" : {
 
     },
     "Select a volume to inspect it." : {
@@ -468,7 +953,40 @@
     "Select an image to inspect it." : {
 
     },
+    "Server" : {
+
+    },
+    "Services" : {
+
+    },
+    "Set as default" : {
+
+    },
+    "Set as Default" : {
+
+    },
+    "Shell" : {
+
+    },
+    "Show Inspector" : {
+
+    },
+    "Show Running Containers Only" : {
+
+    },
+    "Signed in" : {
+
+    },
+    "Signed in as %@" : {
+
+    },
     "Size" : {
+
+    },
+    "Size, usage, and history" : {
+
+    },
+    "Software Update" : {
 
     },
     "Something went wrong" : {
@@ -489,6 +1007,15 @@
     "Start the container system to manage your containers, images, networks, and volumes." : {
 
     },
+    "Start the container to open a shell." : {
+
+    },
+    "Starting" : {
+
+    },
+    "Starting the system" : {
+
+    },
     "Starting…" : {
 
     },
@@ -498,10 +1025,16 @@
     "Stats" : {
 
     },
+    "Stats appear while the container is running." : {
+
+    },
     "Status" : {
 
     },
     "Stop" : {
+
+    },
+    "Stop %@" : {
 
     },
     "Stop Builder" : {
@@ -510,7 +1043,13 @@
     "Stop Container System" : {
 
     },
+    "Stop the container system?" : {
+
+    },
     "Stopped" : {
+
+    },
+    "Stopping" : {
 
     },
     "Subnet" : {
@@ -540,10 +1079,16 @@
     "Terminal" : {
 
     },
+    "test" : {
+
+    },
     "The builder is a Linux container that runs image builds. Building an image starts it automatically if needed." : {
 
     },
     "The container command failed." : {
+
+    },
+    "The container runtime is no longer running." : {
 
     },
     "The container system is not running." : {
@@ -552,34 +1097,91 @@
     "The container system is stopped" : {
 
     },
+    "The container system is stopped." : {
+
+    },
     "The container tool could not be found." : {
 
     },
     "The container tool isn’t installed" : {
 
     },
-    "This area is coming soon." : {
+    "The downloaded installer isn’t signed by Apple, so it wasn’t installed." : {
+
+    },
+    "The menu bar item shows the running-container count and the combined CPU and memory, with quick Stop, Restart, and Open actions per container, plus Start and Stop for the system. It stays available even when the main window is closed." : {
+
+    },
+    "This container hasn’t written any logs yet." : {
+
+    },
+    "This permanently deletes every image not used by a container." : {
+
+    },
+    "This permanently deletes every network with no attached containers." : {
+
+    },
+    "This permanently deletes every volume not used by a container, including its data." : {
 
     },
     "Time" : {
 
     },
-    "To container" : {
+    "To Container" : {
 
     },
     "Tools" : {
 
     },
-    "value" : {
+    "Unavailable" : {
+
+    },
+    "Unchanged" : {
+
+    },
+    "Up to date" : {
+
+    },
+    "Update to %@" : {
+
+    },
+    "Updates" : {
+
+    },
+    "Uptime" : {
+
+    },
+    "Use “Launch Stack” in the Containers toolbar to pick a docker-compose.yml. Container Desktop reads the services, creates the named volumes and a project network, and starts each service in dependency order with live per-service progress." : {
+
+    },
+    "Used" : {
+
+    },
+    "Username" : {
+
+    },
+    "Value" : {
+
+    },
+    "Verifying Apple’s signature…" : {
 
     },
     "View" : {
+
+    },
+    "Virtual machines" : {
 
     },
     "Volume" : {
 
     },
     "Volumes" : {
+
+    },
+    "Volumes store data that outlives a container. Each row shows real disk usage against the allocated size. Deleting a volume permanently deletes its data — this can’t be undone." : {
+
+    },
+    "What Container Desktop is" : {
 
     },
     "Working directory" : {

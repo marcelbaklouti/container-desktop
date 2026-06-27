@@ -8,6 +8,7 @@ final class AppModel {
     let containers = ContainerStore()
     let stats = ContainerStatsStore()
     let installer: ContainerInstaller
+    let updater = AppUpdater()
 
     private var pollTask: Task<Void, Never>?
     private var previousStates: [String: String] = [:]

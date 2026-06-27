@@ -30,7 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		27A310A02FEFC9EB00F92600 /* Containers.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Container Desktop.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		27A310A02FEFC9EB00F92600 /* Container Desktop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Container Desktop.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		27A310AF2FEFC9ED00F92600 /* ContainersTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ContainersTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		27A310B92FEFC9ED00F92600 /* ContainersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ContainersUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -94,7 +94,7 @@
 		27A310A12FEFC9EB00F92600 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				27A310A02FEFC9EB00F92600 /* Containers.app */,
+				27A310A02FEFC9EB00F92600 /* Container Desktop.app */,
 				27A310AF2FEFC9ED00F92600 /* ContainersTests.xctest */,
 				27A310B92FEFC9ED00F92600 /* ContainersUITests.xctest */,
 			);
@@ -126,7 +126,7 @@
 				275EB5132FEFE59C0063BD05 /* termcast */,
 			);
 			productName = Containers;
-			productReference = 27A310A02FEFC9EB00F92600 /* Containers.app */;
+			productReference = 27A310A02FEFC9EB00F92600 /* Container Desktop.app */;
 			productType = "com.apple.product-type.application";
 		};
 		27A310AE2FEFC9ED00F92600 /* ContainersTests */ = {
@@ -407,6 +407,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -438,6 +439,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
