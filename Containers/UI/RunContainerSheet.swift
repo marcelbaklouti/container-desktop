@@ -13,6 +13,7 @@ struct RunContainerSheet: View {
                 Section("Image") {
                     TextField("Image", text: $config.image, prompt: Text("alpine:latest"))
                     TextField("Name", text: $config.name, prompt: Text("optional"))
+                    TextField("Project", text: $config.project, prompt: Text("optional, groups containers"))
                     TextField("Command", text: $config.command, prompt: Text("optional, e.g. sleep 3600"))
                 }
 
@@ -114,6 +115,7 @@ struct RunContainerSheet: View {
 struct RunConfiguration {
     var image = ""
     var name = ""
+    var project = ""
     var command = ""
     var cpus = ""
     var memory = ""
@@ -142,6 +144,9 @@ struct RunConfiguration {
         }
         for volume in volumes where !volume.text.isEmpty {
             arguments += ["--volume", volume.text]
+        }
+        if !project.isEmpty {
+            arguments += ["--label", "\(Container.projectLabelKey)=\(project)"]
         }
         arguments.append(image)
         if !command.isEmpty {

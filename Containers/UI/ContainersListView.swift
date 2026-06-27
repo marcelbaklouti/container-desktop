@@ -14,19 +14,52 @@ struct ContainersListView: View {
         runningOnly ? store.containers.filter { $0.status?.state == "running" } : store.containers
     }
 
+    private struct ContainerGroup: Identifiable {
+        let id: String
+        let title: String?
+        let containers: [Container]
+    }
+
+    private var containerGroups: [ContainerGroup] {
+        let grouped = Dictionary(grouping: visibleContainers) { $0.project ?? "" }
+        var groups: [ContainerGroup] = []
+        for project in grouped.keys.filter({ !$0.isEmpty }).sorted() {
+            let containers = (grouped[project] ?? []).sorted { $0.id < $1.id }
+            groups.append(ContainerGroup(id: project, title: project, containers: containers))
+        }
+        if let standalone = grouped[""], !standalone.isEmpty {
+            let title: String? = groups.isEmpty ? nil : "Standalone"
+            groups.append(ContainerGroup(id: "__standalone__", title: title, containers: standalone.sorted { $0.id < $1.id }))
+        }
+        return groups
+    }
+
+    @ViewBuilder
+    private func row(_ container: Container) -> some View {
+        ContainerRow(container: container)
+            .tag(container.id)
+            .contextMenu { actions(for: container) }
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    pendingDeletion = container
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+    }
+
     var body: some View {
         List(selection: $selectedContainerID) {
-            ForEach(visibleContainers) { container in
-                ContainerRow(container: container)
-                    .tag(container.id)
-                    .contextMenu { actions(for: container) }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            pendingDeletion = container
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
+            ForEach(containerGroups) { group in
+                Section {
+                    ForEach(group.containers) { container in
+                        row(container)
                     }
+                } header: {
+                    if let title = group.title {
+                        Text(title)
+                    }
+                }
             }
         }
         .overlay { emptyState }

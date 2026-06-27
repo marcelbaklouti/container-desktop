@@ -1,9 +1,15 @@
 import Foundation
 
 nonisolated struct Container: Codable, Sendable, Identifiable, Hashable {
+    static let projectLabelKey = "com.docker.compose.project"
+
     let id: String
     let configuration: ContainerConfiguration
     let status: ContainerStatus?
+
+    var project: String? {
+        configuration.labels[Container.projectLabelKey]
+    }
 }
 
 nonisolated struct ContainerConfiguration: Codable, Sendable, Hashable {
