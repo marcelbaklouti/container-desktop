@@ -87,7 +87,14 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
                 let chunk = handle.availableData
                 if !chunk.isEmpty { errorBuffer.appendStandardError(chunk) }
             }
-            process.terminationHandler = { finishedProcess in
+            process.terminationHandler = { [weak self] finishedProcess in
+                self?.standardOutputPipe.fileHandleForReading.readabilityHandler = nil
+                if let self {
+                    let remaining = (try? self.standardOutputPipe.fileHandleForReading.readToEnd()).flatMap { $0 } ?? Data()
+                    for line in output.append(remaining) {
+                        continuation.yield(line)
+                    }
+                }
                 if let trailing = output.flush() {
                     continuation.yield(trailing)
                 }

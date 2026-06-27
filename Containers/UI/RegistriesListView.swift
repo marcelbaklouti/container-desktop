@@ -21,6 +21,7 @@ struct RegistriesListView: View {
                     Spacer()
                 }
                 .padding(.vertical, 4)
+                .accessibilityElement(children: .combine)
                 .contextMenu {
                     Button(role: .destructive) { pendingLogout = login } label: {
                         Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
@@ -59,7 +60,9 @@ struct RegistriesListView: View {
 
     @ViewBuilder
     private var emptyState: some View {
-        if store.hasLoaded && store.logins.isEmpty {
+        if !store.hasLoaded {
+            ProgressView().controlSize(.large)
+        } else if store.logins.isEmpty {
             ContentUnavailableView("No Registry Logins", systemImage: "person.badge.key", description: Text("Log in to a registry to push and pull private images."))
         }
     }

@@ -129,7 +129,9 @@ struct ContainersListView: View {
 
     @ViewBuilder
     private var emptyState: some View {
-        if store.hasLoaded && visibleContainers.isEmpty {
+        if !store.hasLoaded {
+            ProgressView().controlSize(.large)
+        } else if visibleContainers.isEmpty {
             ContentUnavailableView {
                 Label("No Containers", systemImage: "shippingbox")
             } description: {
@@ -205,6 +207,7 @@ struct ContainerRow: View {
             StatusBadge(text: stateText, tint: stateTint)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
     }
 
     private var state: String {

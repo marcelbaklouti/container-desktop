@@ -58,7 +58,9 @@ struct VolumesListView: View {
 
     @ViewBuilder
     private var emptyState: some View {
-        if store.hasLoaded && store.volumes.isEmpty {
+        if !store.hasLoaded {
+            ProgressView().controlSize(.large)
+        } else if store.volumes.isEmpty {
             ContentUnavailableView("No Volumes", systemImage: "externaldrive")
         }
     }
@@ -92,6 +94,7 @@ struct VolumeRow: View {
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
     }
 }
 

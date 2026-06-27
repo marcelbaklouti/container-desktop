@@ -67,7 +67,9 @@ struct MachinesListView: View {
 
     @ViewBuilder
     private var emptyState: some View {
-        if store.hasLoaded && store.machines.isEmpty {
+        if !store.hasLoaded {
+            ProgressView().controlSize(.large)
+        } else if store.machines.isEmpty {
             ContentUnavailableView("No Machines", systemImage: "server.rack", description: Text("Create a container machine to get started."))
         }
     }
@@ -105,6 +107,7 @@ struct MachineRow: View {
             StatusBadge(text: LocalizedStringKey(machine.status.capitalized), tint: machine.isRunning ? .green : .gray)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -72,7 +72,9 @@ struct ImagesListView: View {
 
     @ViewBuilder
     private var emptyState: some View {
-        if store.hasLoaded && store.images.isEmpty {
+        if !store.hasLoaded {
+            ProgressView().controlSize(.large)
+        } else if store.images.isEmpty {
             ContentUnavailableView("No Images", systemImage: "square.stack.3d.up", description: Text("Pull an image to get started."))
         }
     }
@@ -106,6 +108,7 @@ struct ImageRow: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
     }
 }
 

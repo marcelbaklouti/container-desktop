@@ -60,7 +60,9 @@ struct NetworksListView: View {
 
     @ViewBuilder
     private var emptyState: some View {
-        if store.hasLoaded && store.networks.isEmpty {
+        if !store.hasLoaded {
+            ProgressView().controlSize(.large)
+        } else if store.networks.isEmpty {
             ContentUnavailableView("No Networks", systemImage: "network")
         }
     }
@@ -94,6 +96,7 @@ struct NetworkRow: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
     }
 }
 
