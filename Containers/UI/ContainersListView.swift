@@ -202,6 +202,7 @@ struct ContainersListView: View {
 
 struct ContainerRow: View {
     let container: Container
+    @Environment(ContainerStatsStore.self) private var stats
 
     var body: some View {
         HStack(spacing: 12) {
@@ -216,10 +217,17 @@ struct ContainerRow: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            if let uptime {
-                Text(uptime)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .trailing, spacing: 1) {
+                if let liveStats {
+                    Text(liveStats)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                if let uptime {
+                    Text(uptime)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
             }
             StatusBadge(text: stateText, tint: stateTint)
         }
@@ -238,6 +246,13 @@ struct ContainerRow: View {
     private var uptime: String? {
         guard state == "running", let started = container.status?.startedDate else { return nil }
         return DateText.uptime(since: started).map { "Up \($0)" }
+    }
+
+    private var liveStats: String? {
+        guard state == "running", let cpu = stats.cpu(for: container.id) else { return nil }
+        let cpuText = String(format: "%.0f%%", cpu)
+        guard let mem = stats.memory(for: container.id) else { return cpuText }
+        return "\(cpuText) · \(ByteCountFormatStyle(style: .memory).format(Int64(mem)))"
     }
 
     private var state: String {

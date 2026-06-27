@@ -10,6 +10,7 @@ struct ContainersApp: App {
                 .environment(appModel)
                 .environment(appModel.system)
                 .environment(appModel.containers)
+                .environment(appModel.stats)
                 .task {
                     await appModel.system.refresh()
                     appModel.startPolling()
@@ -23,6 +24,7 @@ struct ContainersApp: App {
                 .environment(appModel)
                 .environment(appModel.system)
                 .environment(appModel.containers)
+                .environment(appModel.stats)
         } label: {
             Label("\(appModel.runningCount)", systemImage: appModel.daemonRunning ? "shippingbox.fill" : "shippingbox")
                 .labelStyle(.titleAndIcon)

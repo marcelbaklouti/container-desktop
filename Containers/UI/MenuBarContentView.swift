@@ -110,12 +110,21 @@ private struct MenuBarContainerRow: View {
     let container: Container
     let store: ContainerStore
     let openURL: OpenURLAction
+    @Environment(ContainerStatsStore.self) private var stats
+
+    private var subtitle: String {
+        let image = ImageName.short(container.configuration.image.reference)
+        guard let cpu = stats.cpu(for: container.id) else { return image }
+        let cpuText = String(format: "%.0f%%", cpu)
+        guard let mem = stats.memory(for: container.id) else { return "\(image) · \(cpuText)" }
+        return "\(image) · \(cpuText) · \(ByteCountFormatStyle(style: .memory).format(Int64(mem)))"
+    }
 
     var body: some View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
                 Text(container.id).font(.callout).lineLimit(1)
-                Text(ImageName.short(container.configuration.image.reference))
+                Text(subtitle)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

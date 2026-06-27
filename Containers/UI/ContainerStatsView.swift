@@ -3,11 +3,10 @@ import Charts
 
 struct ContainerStatsView: View {
     let containerID: String
+    @Environment(ContainerStatsStore.self) private var stats
 
-    @State private var client = ContainerCLI()
-    @State private var points: [StatsPoint] = []
-    @State private var latest: ContainerStatsSample?
-    @State private var errorMessage: String?
+    private var points: [StatsPoint] { stats.points(for: containerID) }
+    private var latest: ContainerStatsSample? { stats.samples[containerID] }
 
     var body: some View {
         ScrollView {
@@ -17,15 +16,9 @@ struct ContainerStatsView: View {
                 if let latest {
                     summary(latest)
                 }
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
             }
             .padding()
         }
-        .task(id: containerID) { await poll() }
     }
 
     private func chart(_ title: LocalizedStringKey, unit: String, value: @escaping (StatsPoint) -> Double) -> some View {
@@ -42,7 +35,11 @@ struct ContainerStatsView: View {
             .frame(height: 140)
             .overlay {
                 if points.isEmpty {
-                    ProgressView()
+                    ContentUnavailableView {
+                        Label("No Live Stats", systemImage: "chart.xyaxis.line")
+                    } description: {
+                        Text("Stats appear while the container is running.")
+                    }
                 }
             }
         }
@@ -72,51 +69,4 @@ struct ContainerStatsView: View {
                 .monospacedDigit()
         }
     }
-
-    private func poll() async {
-        points = []
-        latest = nil
-        errorMessage = nil
-        var previous: (usec: Int, time: Date)?
-        while !Task.isCancelled {
-            do {
-                let samples = try await client.decode(
-                    [ContainerStatsSample].self,
-                    from: ["stats", containerID, "--format", "json", "--no-stream"]
-                )
-                if let sample = samples.first(where: { $0.id == containerID }) ?? samples.first {
-                    let now = Date()
-                    var cpuPercent = 0.0
-                    if let previous {
-                        let deltaUsec = Double(sample.cpuUsageUsec - previous.usec)
-                        let deltaTime = now.timeIntervalSince(previous.time)
-                        if deltaTime > 0 {
-                            cpuPercent = max(0, deltaUsec / (deltaTime * 1_000_000) * 100)
-                        }
-                    }
-                    previous = (sample.cpuUsageUsec, now)
-                    latest = sample
-                    points.append(StatsPoint(time: now, memoryBytes: sample.memoryUsageBytes, cpuPercent: cpuPercent))
-                    if points.count > 120 {
-                        points.removeFirst(points.count - 120)
-                    }
-                }
-                errorMessage = nil
-            } catch {
-                errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
-            }
-            do {
-                try await Task.sleep(for: .seconds(2))
-            } catch {
-                return
-            }
-        }
-    }
-}
-
-struct StatsPoint: Identifiable {
-    let id = UUID()
-    let time: Date
-    let memoryBytes: Int
-    let cpuPercent: Double
 }
