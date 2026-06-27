@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 struct ContainersListView: View {
-    @State private var store = ContainerStore()
+    @Environment(ContainerStore.self) private var store
     @State private var searchText = ""
     @State private var runningOnly = false
     @State private var pendingDeletion: Container?
@@ -100,7 +100,6 @@ struct ContainersListView: View {
                 }
             }
         }
-        .task { await store.poll(every: .seconds(3)) }
         .confirmationDialog(
             "Delete this container?",
             isPresented: deletionBinding,
