@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @Environment(SystemController.self) private var system
     @State private var selectedArea: Area? = .containers
+    @AppStorage("appearance") private var appearance = Appearance.system
 
     var body: some View {
         NavigationSplitView {
@@ -26,6 +27,7 @@ struct ContentView: View {
         } detail: {
             detail
         }
+        .preferredColorScheme(appearance.colorScheme)
     }
 
     @ViewBuilder

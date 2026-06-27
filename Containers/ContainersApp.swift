@@ -12,5 +12,9 @@ struct ContainersApp: App {
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
+
+        Settings {
+            SettingsView()
+        }
     }
 }

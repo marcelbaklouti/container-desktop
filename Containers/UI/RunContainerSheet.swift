@@ -6,6 +6,8 @@ struct RunContainerSheet: View {
     @State private var config = RunConfiguration()
     @State private var isRunning = false
     @State private var error: String?
+    @AppStorage("defaultCPUs") private var defaultCPUs = ""
+    @AppStorage("defaultMemory") private var defaultMemory = ""
 
     var body: some View {
         NavigationStack {
@@ -81,6 +83,10 @@ struct RunContainerSheet: View {
                     .disabled(config.image.isEmpty || isRunning)
                 }
             }
+        }
+        .onAppear {
+            if config.cpus.isEmpty { config.cpus = defaultCPUs }
+            if config.memory.isEmpty { config.memory = defaultMemory }
         }
         .frame(minWidth: 540, minHeight: 620)
     }
