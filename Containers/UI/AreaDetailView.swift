@@ -19,6 +19,8 @@ struct AreaDetailView: View {
             BuilderView()
         case .machines:
             MachinesListView()
+        case .registries:
+            RegistriesListView()
         default:
             AreaPlaceholderView(area: area)
         }

@@ -11,10 +11,20 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
     private let standardOutputPipe = Pipe()
     private let standardErrorPipe = Pipe()
 
-    init(executableURL: URL, arguments: [String]) {
+    private let input: Data?
+    private let inputPipe: Pipe?
+
+    init(executableURL: URL, arguments: [String], input: Data? = nil) {
+        self.input = input
+        let pipe: Pipe? = input == nil ? nil : Pipe()
+        self.inputPipe = pipe
         process.executableURL = executableURL
         process.arguments = arguments
-        process.standardInput = FileHandle.nullDevice
+        if let pipe {
+            process.standardInput = pipe
+        } else {
+            process.standardInput = FileHandle.nullDevice
+        }
         process.standardOutput = standardOutputPipe
         process.standardError = standardErrorPipe
     }
@@ -46,6 +56,10 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
                 }
                 do {
                     try process.run()
+                    if let input, let inputPipe {
+                        try? inputPipe.fileHandleForWriting.write(contentsOf: input)
+                        try? inputPipe.fileHandleForWriting.close()
+                    }
                 } catch {
                     continuation.resume(throwing: RuntimeError.binaryNotFound)
                 }

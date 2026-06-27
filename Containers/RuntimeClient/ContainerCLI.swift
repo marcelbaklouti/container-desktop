@@ -16,8 +16,8 @@ actor ContainerCLI: RuntimeClient {
         return directories
     }
 
-    func data(for arguments: [String]) async throws -> Data {
-        let result = try await invocation(for: arguments).run()
+    func data(for arguments: [String], input: Data?) async throws -> Data {
+        let result = try await ProcessInvocation(executableURL: try binaryURL(), arguments: arguments, input: input).run()
         guard result.exitCode == 0 else {
             throw ContainerCLI.failure(arguments: arguments, result: result)
         }
