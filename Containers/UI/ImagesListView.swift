@@ -6,7 +6,9 @@ struct ImagesListView: View {
     @State private var showInspector = false
     @State private var showPull = false
     @State private var tagging: ContainerImage?
+    @State private var pushing: ContainerImage?
     @State private var pendingDeletion: ContainerImage?
+    @State private var showBuild = false
 
     var body: some View {
         List(selection: $selectedID) {
@@ -31,6 +33,9 @@ struct ImagesListView: View {
             ToolbarItem {
                 Button { showPull = true } label: { Label("Pull Image", systemImage: "arrow.down.circle") }
             }
+            ToolbarItem {
+                Button { showBuild = true } label: { Label("Build Image", systemImage: "hammer") }
+            }
         }
         .task { await store.poll(every: .seconds(5)) }
         .inspector(isPresented: $showInspector) {
@@ -42,7 +47,9 @@ struct ImagesListView: View {
         }
         .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showPull) { PullImageSheet(store: store) }
+        .sheet(isPresented: $showBuild) { BuildImageSheet(store: store) }
         .sheet(item: $tagging) { image in TagImageSheet(store: store, image: image) }
+        .sheet(item: $pushing) { image in PushImageSheet(reference: image.configuration.name) }
         .confirmationDialog("Delete this image?", isPresented: deletionBinding, presenting: pendingDeletion) { image in
             Button("Delete", role: .destructive) { Task { await store.delete(image) } }
         } message: { image in
@@ -58,6 +65,7 @@ struct ImagesListView: View {
     @ViewBuilder
     private func actions(for image: ContainerImage) -> some View {
         Button { tagging = image } label: { Label("Tag…", systemImage: "tag") }
+        Button { pushing = image } label: { Label("Push…", systemImage: "arrow.up.circle") }
         Divider()
         Button(role: .destructive) { pendingDeletion = image } label: { Label("Delete", systemImage: "trash") }
     }

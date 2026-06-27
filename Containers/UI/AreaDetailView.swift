@@ -15,6 +15,8 @@ struct AreaDetailView: View {
             VolumesListView()
         case .images:
             ImagesListView()
+        case .builder:
+            BuilderView()
         default:
             AreaPlaceholderView(area: area)
         }
