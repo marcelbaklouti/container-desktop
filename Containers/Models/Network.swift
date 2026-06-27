@@ -4,6 +4,10 @@ nonisolated struct Network: Codable, Sendable, Identifiable, Hashable {
     let id: String
     let configuration: NetworkConfiguration
     let status: NetworkStatus?
+
+    var isBuiltin: Bool {
+        configuration.labels["com.apple.container.resource.role"] == "builtin"
+    }
 }
 
 nonisolated struct NetworkConfiguration: Codable, Sendable, Hashable {
