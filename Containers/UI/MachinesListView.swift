@@ -40,7 +40,7 @@ struct MachinesListView: View {
                     ContentUnavailableView("No Selection", systemImage: "server.rack", description: Text("Select a machine to inspect it."))
                 }
             }
-            .inspectorColumnWidth(min: 320, ideal: 380, max: 600)
+            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
         .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showCreate) { CreateMachineSheet(store: store) }
@@ -142,6 +142,7 @@ struct MachineDetailView: View {
     var body: some View {
         Form {
             Section {
+                LabeledContent("ID", value: machine.id)
                 LabeledContent("Status") {
                     StatusBadge(text: machineStatusLabel(machine.status), tint: machine.isRunning ? .green : .gray)
                 }

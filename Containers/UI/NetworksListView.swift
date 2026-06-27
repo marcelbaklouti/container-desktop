@@ -48,7 +48,7 @@ struct NetworksListView: View {
                     ContentUnavailableView("No Selection", systemImage: "network", description: Text("Select a network to inspect it."))
                 }
             }
-            .inspectorColumnWidth(min: 320, ideal: 380, max: 600)
+            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
         .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showCreate) { CreateNetworkSheet(store: store) }
@@ -127,6 +127,7 @@ struct NetworkDetailView: View {
     var body: some View {
         Form {
             Section {
+                LabeledContent("ID", value: network.id)
                 LabeledContent("Name", value: network.configuration.name)
                 LabeledContent("Mode", value: network.configuration.mode)
                 LabeledContent("Plugin", value: network.configuration.plugin)

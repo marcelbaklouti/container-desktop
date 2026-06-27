@@ -58,7 +58,7 @@ struct ImagesListView: View {
                     ContentUnavailableView("No Selection", systemImage: "square.stack.3d.up", description: Text("Select an image to inspect it."))
                 }
             }
-            .inspectorColumnWidth(min: 320, ideal: 380, max: 600)
+            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
         .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showPull) { PullImageSheet(store: store) }
@@ -201,6 +201,7 @@ struct ImageDetailView: View {
     var body: some View {
         Form {
             Section {
+                LabeledContent("ID", value: image.id)
                 LabeledContent("Reference", value: ImageName.short(image.configuration.name))
                 LabeledContent("Digest", value: image.shortDigest)
                 LabeledContent("Size") {

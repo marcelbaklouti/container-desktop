@@ -20,6 +20,8 @@ struct ContainersApp: App {
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
+        .defaultSize(width: 1200, height: 800)
+        .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .help) {
                 HelpMenuButton()

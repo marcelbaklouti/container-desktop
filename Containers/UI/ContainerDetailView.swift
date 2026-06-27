@@ -8,6 +8,7 @@ struct ContainerDetailView: View {
     var body: some View {
         Form {
             Section {
+                LabeledContent("ID", value: container.id)
                 LabeledContent("Image", value: ImageName.short(container.configuration.image.reference))
                 LabeledContent("Created", value: DateText.relative(container.configuration.creationDate))
                 if let started = container.status?.startedDate, let uptime = DateText.uptime(since: started) {

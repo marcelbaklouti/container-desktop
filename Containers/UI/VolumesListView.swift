@@ -48,7 +48,7 @@ struct VolumesListView: View {
                     ContentUnavailableView("No Selection", systemImage: "externaldrive", description: Text("Select a volume to inspect it."))
                 }
             }
-            .inspectorColumnWidth(min: 320, ideal: 380, max: 600)
+            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
         .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showCreate) { CreateVolumeSheet(store: store) }
@@ -143,6 +143,7 @@ struct VolumeDetailView: View {
     var body: some View {
         Form {
             Section {
+                LabeledContent("ID", value: volume.id)
                 LabeledContent("Name", value: volume.configuration.name)
                 LabeledContent("Driver", value: volume.configuration.driver)
                 LabeledContent("Format", value: volume.configuration.format)

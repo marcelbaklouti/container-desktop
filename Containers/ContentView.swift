@@ -27,6 +27,7 @@ struct ContentView: View {
         } detail: {
             detail
         }
+        .frame(minWidth: 960, minHeight: 600)
         .preferredColorScheme(appearance.colorScheme)
     }
 

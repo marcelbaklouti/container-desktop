@@ -154,7 +154,7 @@ struct ContainersListView: View {
                     ContentUnavailableView("No Selection", systemImage: "shippingbox", description: Text("Select a container to inspect it."))
                 }
             }
-            .inspectorColumnWidth(min: 340, ideal: 420, max: 680)
+            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
         .onChange(of: selectedContainerID) { _, value in
             if value != nil { showInspector = true }
@@ -272,9 +272,11 @@ struct ContainerRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(container.id)
                     .font(.headline)
+                    .lineLimit(1)
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 1) {
