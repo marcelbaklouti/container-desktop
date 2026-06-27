@@ -7,6 +7,7 @@ final class VolumeStore {
     private(set) var volumes: [Volume] = []
     private(set) var hasLoaded = false
     var errorMessage: String?
+    private(set) var usedSizes: [String: Int] = [:]
 
     private let client: any RuntimeClient
 
@@ -20,6 +21,9 @@ final class VolumeStore {
             if updated != volumes {
                 volumes = updated
             }
+            usedSizes = Dictionary(uniqueKeysWithValues: updated.compactMap { volume in
+                VolumeStore.usedBytes(path: volume.configuration.source).map { (volume.id, $0) }
+            })
             errorMessage = nil
         } catch {
             errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
@@ -52,5 +56,11 @@ final class VolumeStore {
         } catch {
             errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
         }
+    }
+
+    nonisolated static func usedBytes(path: String) -> Int? {
+        var info = stat()
+        guard lstat(path, &info) == 0 else { return nil }
+        return Int(info.st_blocks) * 512
     }
 }

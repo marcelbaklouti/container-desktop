@@ -11,7 +11,7 @@ struct VolumesListView: View {
     var body: some View {
         List(selection: $selectedID) {
             ForEach(store.volumes.filter { searchText.isEmpty || $0.configuration.name.localizedCaseInsensitiveContains(searchText) }) { volume in
-                VolumeRow(volume: volume)
+                VolumeRow(volume: volume, usedBytes: store.usedSizes[volume.id])
                     .tag(volume.id)
                     .contextMenu { deleteButton(volume) }
                     .swipeActions(edge: .trailing) { deleteButton(volume) }
@@ -34,7 +34,7 @@ struct VolumesListView: View {
         .task { await store.poll(every: .seconds(4)) }
         .inspector(isPresented: $showInspector) {
             if let selected = store.volumes.first(where: { $0.id == selectedID }) {
-                VolumeDetailView(volume: selected)
+                VolumeDetailView(volume: selected, usedBytes: store.usedSizes[selected.id])
             } else {
                 ContentUnavailableView("No Selection", systemImage: "externaldrive", description: Text("Select a volume to inspect it."))
             }
@@ -78,6 +78,7 @@ struct VolumesListView: View {
 
 struct VolumeRow: View {
     let volume: Volume
+    let usedBytes: Int?
 
     var body: some View {
         HStack(spacing: 12) {
@@ -91,9 +92,16 @@ struct VolumeRow: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Text(Int64(volume.configuration.sizeInBytes), format: .byteCount(style: .file))
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+            VStack(alignment: .trailing, spacing: 1) {
+                if let usedBytes {
+                    Text(Int64(usedBytes), format: .byteCount(style: .file))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                Text("of \(ByteCountFormatStyle(style: .file).format(Int64(volume.configuration.sizeInBytes)))")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
@@ -102,6 +110,7 @@ struct VolumeRow: View {
 
 struct VolumeDetailView: View {
     let volume: Volume
+    let usedBytes: Int?
 
     var body: some View {
         Form {
@@ -109,7 +118,13 @@ struct VolumeDetailView: View {
                 LabeledContent("Name", value: volume.configuration.name)
                 LabeledContent("Driver", value: volume.configuration.driver)
                 LabeledContent("Format", value: volume.configuration.format)
-                LabeledContent("Size") {
+                if let usedBytes {
+                    LabeledContent("Used") {
+                        Text(Int64(usedBytes), format: .byteCount(style: .file))
+                    }
+                    ProgressView(value: Double(usedBytes), total: Double(max(volume.configuration.sizeInBytes, 1)))
+                }
+                LabeledContent("Allocated") {
                     Text(Int64(volume.configuration.sizeInBytes), format: .byteCount(style: .file))
                 }
                 LabeledContent("Created", value: DateText.relative(volume.configuration.creationDate))

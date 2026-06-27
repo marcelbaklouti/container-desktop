@@ -45,6 +45,16 @@ struct ContainerDetailView: View {
                 }
             }
 
+            if !container.configuration.mounts.isEmpty {
+                Section("Mounts") {
+                    ForEach(container.configuration.mounts, id: \.self) { mount in
+                        LabeledContent(mount.destination) {
+                            Text(mount.sourceLabel).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+
             if let networks = container.status?.networks, !networks.isEmpty {
                 Section("Network") {
                     ForEach(networks, id: \.network) { network in

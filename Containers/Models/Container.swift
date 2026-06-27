@@ -20,6 +20,7 @@ nonisolated struct ContainerConfiguration: Codable, Sendable, Hashable {
     let resources: ContainerResources
     let networks: [ContainerNetworkAttachment]
     let publishedPorts: [PublishedPort]
+    let mounts: [ContainerMount]
     let labels: [String: String]
     let platform: Platform
     let runtimeHandler: String
@@ -68,6 +69,31 @@ nonisolated struct PublishedPort: Codable, Sendable, Hashable {
 
     var display: String { "\(hostPort):\(containerPort)/\(proto)" }
 }
+
+nonisolated struct ContainerMount: Codable, Sendable, Hashable {
+    let destination: String
+    let source: String
+    let options: [String]
+    let type: MountType
+
+    var sourceLabel: String {
+        if let name = type.volume?.name { return "volume: \(name)" }
+        return source
+    }
+}
+
+nonisolated struct MountType: Codable, Sendable, Hashable {
+    let volume: MountVolume?
+    let bind: MountEmpty?
+    let tmpfs: MountEmpty?
+}
+
+nonisolated struct MountVolume: Codable, Sendable, Hashable {
+    let name: String
+    let format: String?
+}
+
+nonisolated struct MountEmpty: Codable, Sendable, Hashable {}
 
 nonisolated struct ContainerStatus: Codable, Sendable, Hashable {
     let state: String
