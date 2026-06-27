@@ -2,6 +2,7 @@ import Testing
 import Foundation
 @testable import Containers
 
+@Suite(.serialized)
 struct RuntimeClientTests {
 
     @Test func processRunCapturesStandardOutput() async throws {

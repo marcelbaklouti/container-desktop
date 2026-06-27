@@ -31,29 +31,43 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
 
     func run() async throws -> ProcessResult {
         let buffer = OutputBuffer()
-        standardOutputPipe.fileHandleForReading.readabilityHandler = { handle in
-            let chunk = handle.availableData
-            if !chunk.isEmpty { buffer.appendStandardOutput(chunk) }
-        }
-        standardErrorPipe.fileHandleForReading.readabilityHandler = { handle in
-            let chunk = handle.availableData
-            if !chunk.isEmpty { buffer.appendStandardError(chunk) }
-        }
+        // Exactly one thread reads each pipe (its readability handler); the termination handler never
+        // reads, so there is no concurrent access to a file handle. We complete once stdout and stderr
+        // have both reached EOF and the process has terminated.
+        let gate = CompletionGate(required: 3)
+        let termination = TerminationBox()
+
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<ProcessResult, any Error>) in
-                process.terminationHandler = { [weak self] finishedProcess in
-                    guard let self else {
-                        continuation.resume(returning: buffer.result(exitCode: finishedProcess.terminationStatus))
-                        return
-                    }
-                    self.standardOutputPipe.fileHandleForReading.readabilityHandler = nil
-                    self.standardErrorPipe.fileHandleForReading.readabilityHandler = nil
-                    let outputTail = (try? self.standardOutputPipe.fileHandleForReading.readToEnd()).flatMap { $0 } ?? Data()
-                    if !outputTail.isEmpty { buffer.appendStandardOutput(outputTail) }
-                    let errorTail = (try? self.standardErrorPipe.fileHandleForReading.readToEnd()).flatMap { $0 } ?? Data()
-                    if !errorTail.isEmpty { buffer.appendStandardError(errorTail) }
-                    continuation.resume(returning: buffer.result(exitCode: finishedProcess.terminationStatus))
+                let complete: @Sendable () -> Void = {
+                    continuation.resume(returning: buffer.result(exitCode: termination.status))
                 }
+
+                standardOutputPipe.fileHandleForReading.readabilityHandler = { handle in
+                    let chunk = handle.availableData
+                    if chunk.isEmpty {
+                        handle.readabilityHandler = nil
+                        if gate.signal() { complete() }
+                    } else {
+                        buffer.appendStandardOutput(chunk)
+                    }
+                }
+                standardErrorPipe.fileHandleForReading.readabilityHandler = { handle in
+                    let chunk = handle.availableData
+                    if chunk.isEmpty {
+                        handle.readabilityHandler = nil
+                        if gate.signal() { complete() }
+                    } else {
+                        buffer.appendStandardError(chunk)
+                    }
+                }
+                process.terminationHandler = { finishedProcess in
+                    termination.set(status: finishedProcess.terminationStatus,
+                                    reason: finishedProcess.terminationReason,
+                                    arguments: finishedProcess.arguments ?? [])
+                    if gate.signal() { complete() }
+                }
+
                 do {
                     try process.run()
                     if let input, let inputPipe {
@@ -61,6 +75,9 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
                         try? inputPipe.fileHandleForWriting.close()
                     }
                 } catch {
+                    standardOutputPipe.fileHandleForReading.readabilityHandler = nil
+                    standardErrorPipe.fileHandleForReading.readabilityHandler = nil
+                    process.terminationHandler = nil
                     continuation.resume(throwing: RuntimeError.binaryNotFound)
                 }
             }
@@ -73,48 +90,55 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
         AsyncThrowingStream { continuation in
             let output = LineAccumulator()
             let errorBuffer = OutputBuffer()
-            standardOutputPipe.fileHandleForReading.readabilityHandler = { handle in
-                let chunk = handle.availableData
-                if chunk.isEmpty {
-                    handle.readabilityHandler = nil
-                    return
-                }
-                for line in output.append(chunk) {
-                    continuation.yield(line)
-                }
-            }
-            standardErrorPipe.fileHandleForReading.readabilityHandler = { handle in
-                let chunk = handle.availableData
-                if !chunk.isEmpty { errorBuffer.appendStandardError(chunk) }
-            }
-            process.terminationHandler = { [weak self] finishedProcess in
-                self?.standardOutputPipe.fileHandleForReading.readabilityHandler = nil
-                if let self {
-                    let remaining = (try? self.standardOutputPipe.fileHandleForReading.readToEnd()).flatMap { $0 } ?? Data()
-                    for line in output.append(remaining) {
-                        continuation.yield(line)
-                    }
-                }
-                if let trailing = output.flush() {
-                    continuation.yield(trailing)
-                }
-                switch finishedProcess.terminationReason {
+            let gate = CompletionGate(required: 3)
+            let termination = TerminationBox()
+
+            let complete: @Sendable () -> Void = {
+                if let trailing = output.flush() { continuation.yield(trailing) }
+                let outcome = termination.outcome
+                switch outcome.reason {
                 case .uncaughtSignal:
                     continuation.finish()
-                case .exit where finishedProcess.terminationStatus == 0:
+                case .exit where outcome.status == 0:
                     continuation.finish()
                 default:
                     let message = String(decoding: errorBuffer.standardErrorData, as: UTF8.self)
                         .trimmingCharacters(in: .whitespacesAndNewlines)
                     continuation.finish(throwing: RuntimeError.commandFailed(
-                        arguments: finishedProcess.arguments ?? [],
-                        exitCode: finishedProcess.terminationStatus,
+                        arguments: outcome.arguments,
+                        exitCode: outcome.status,
                         message: message))
                 }
+            }
+
+            standardOutputPipe.fileHandleForReading.readabilityHandler = { handle in
+                let chunk = handle.availableData
+                if chunk.isEmpty {
+                    handle.readabilityHandler = nil
+                    if gate.signal() { complete() }
+                } else {
+                    for line in output.append(chunk) { continuation.yield(line) }
+                }
+            }
+            standardErrorPipe.fileHandleForReading.readabilityHandler = { handle in
+                let chunk = handle.availableData
+                if chunk.isEmpty {
+                    handle.readabilityHandler = nil
+                    if gate.signal() { complete() }
+                } else {
+                    errorBuffer.appendStandardError(chunk)
+                }
+            }
+            process.terminationHandler = { finishedProcess in
+                termination.set(status: finishedProcess.terminationStatus,
+                                reason: finishedProcess.terminationReason,
+                                arguments: finishedProcess.arguments ?? [])
+                if gate.signal() { complete() }
             }
             continuation.onTermination = { _ in
                 self.cleanup()
             }
+
             do {
                 try process.run()
             } catch {
@@ -132,6 +156,49 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
         standardErrorPipe.fileHandleForReading.readabilityHandler = nil
         process.terminationHandler = nil
         if process.isRunning { process.terminate() }
+    }
+}
+
+/// Fires exactly once, when the final required signal arrives. Used to complete a process only after
+/// stdout EOF, stderr EOF, and termination have all been observed.
+private nonisolated final class CompletionGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private let required: Int
+    private var count = 0
+    private var fired = false
+
+    init(required: Int) { self.required = required }
+
+    func signal() -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        count += 1
+        guard count >= required, !fired else { return false }
+        fired = true
+        return true
+    }
+}
+
+private nonisolated final class TerminationBox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storedStatus: Int32 = 0
+    private var storedReason: Process.TerminationReason = .exit
+    private var storedArguments: [String] = []
+
+    func set(status: Int32, reason: Process.TerminationReason, arguments: [String]) {
+        lock.lock(); defer { lock.unlock() }
+        storedStatus = status
+        storedReason = reason
+        storedArguments = arguments
+    }
+
+    var status: Int32 {
+        lock.lock(); defer { lock.unlock() }
+        return storedStatus
+    }
+
+    var outcome: (status: Int32, reason: Process.TerminationReason, arguments: [String]) {
+        lock.lock(); defer { lock.unlock() }
+        return (storedStatus, storedReason, storedArguments)
     }
 }
 
