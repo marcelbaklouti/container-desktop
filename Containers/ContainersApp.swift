@@ -20,6 +20,16 @@ struct ContainersApp: App {
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
+        .commands {
+            CommandGroup(replacing: .help) {
+                HelpMenuButton()
+            }
+        }
+
+        Window("Container Desktop Help", id: "help") {
+            HelpView()
+        }
+        .windowResizability(.contentMinSize)
 
         MenuBarExtra {
             MenuBarContentView()
@@ -40,5 +50,16 @@ struct ContainersApp: App {
         Settings {
             SettingsView()
         }
+    }
+}
+
+private struct HelpMenuButton: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Container Desktop Help") {
+            openWindow(id: "help")
+        }
+        .keyboardShortcut("?", modifiers: .command)
     }
 }
