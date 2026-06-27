@@ -10,6 +10,11 @@ nonisolated struct Container: Codable, Sendable, Identifiable, Hashable {
     var project: String? {
         configuration.labels[Container.projectLabelKey]
     }
+
+    var hostname: String? {
+        guard let domain = configuration.dns?.domain, !domain.isEmpty else { return nil }
+        return "\(id).\(domain)"
+    }
 }
 
 nonisolated struct ContainerConfiguration: Codable, Sendable, Hashable {
@@ -21,6 +26,7 @@ nonisolated struct ContainerConfiguration: Codable, Sendable, Hashable {
     let networks: [ContainerNetworkAttachment]
     let publishedPorts: [PublishedPort]
     let mounts: [ContainerMount]
+    let dns: ContainerDNS?
     let labels: [String: String]
     let platform: Platform
     let runtimeHandler: String
@@ -94,6 +100,10 @@ nonisolated struct MountVolume: Codable, Sendable, Hashable {
 }
 
 nonisolated struct MountEmpty: Codable, Sendable, Hashable {}
+
+nonisolated struct ContainerDNS: Codable, Sendable, Hashable {
+    let domain: String?
+}
 
 nonisolated struct ContainerStatus: Codable, Sendable, Hashable {
     let state: String

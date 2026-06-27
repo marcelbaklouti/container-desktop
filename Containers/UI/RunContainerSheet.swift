@@ -6,6 +6,7 @@ struct RunContainerSheet: View {
     @State private var config = RunConfiguration()
     @State private var isRunning = false
     @State private var error: String?
+    @State private var dnsDomains: [String] = []
     @AppStorage("defaultCPUs") private var defaultCPUs = ""
     @AppStorage("defaultMemory") private var defaultMemory = ""
 
@@ -23,6 +24,14 @@ struct RunContainerSheet: View {
                     TextField("CPUs", text: $config.cpus, prompt: Text("e.g. 2"))
                     TextField("Memory", text: $config.memory, prompt: Text("e.g. 512M, 1G"))
                     TextField("Network", text: $config.network, prompt: Text("default"))
+                    if !dnsDomains.isEmpty {
+                        Picker("DNS domain", selection: $config.dnsDomain) {
+                            Text("None").tag("")
+                            ForEach(dnsDomains, id: \.self) { domain in
+                                Text(domain).tag(domain)
+                            }
+                        }
+                    }
                 }
 
                 Section("Environment") {
@@ -88,6 +97,7 @@ struct RunContainerSheet: View {
             if config.cpus.isEmpty { config.cpus = defaultCPUs }
             if config.memory.isEmpty { config.memory = defaultMemory }
         }
+        .task { await loadDomains() }
         .frame(minWidth: 540, minHeight: 620)
     }
 
@@ -103,6 +113,12 @@ struct RunContainerSheet: View {
         Button(action: action) {
             Label(title, systemImage: "plus.circle")
         }
+    }
+
+    private func loadDomains() async {
+        let dns = DNSStore()
+        await dns.refresh()
+        dnsDomains = dns.domains
     }
 
     private func run() async {
@@ -126,6 +142,7 @@ struct RunConfiguration {
     var cpus = ""
     var memory = ""
     var network = ""
+    var dnsDomain = ""
     var environment: [KeyValue] = []
     var ports: [TextItem] = []
     var volumes: [TextItem] = []
@@ -142,6 +159,7 @@ struct RunConfiguration {
         if !cpus.isEmpty { arguments += ["--cpus", cpus] }
         if !memory.isEmpty { arguments += ["--memory", memory] }
         if !network.isEmpty { arguments += ["--network", network] }
+        if !dnsDomain.isEmpty { arguments += ["--dns-domain", dnsDomain] }
         for variable in environment where !variable.key.isEmpty {
             arguments += ["--env", "\(variable.key)=\(variable.value)"]
         }

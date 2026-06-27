@@ -20,6 +20,24 @@ struct ContainerDetailView: View {
                         StatusBadge(text: LocalizedStringKey(state.capitalized), tint: state == "running" ? .green : .gray)
                     }
                 }
+                if let hostname = container.hostname {
+                    LabeledContent("Hostname") {
+                        HStack(spacing: 10) {
+                            Button(hostname) {
+                                if let url = hostnameURL { openURL(url) }
+                            }
+                            .buttonStyle(.link)
+                            Button {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(hostname, forType: .string)
+                            } label: {
+                                Image(systemName: "doc.on.doc")
+                            }
+                            .buttonStyle(.borderless)
+                            .help("Copy hostname")
+                        }
+                    }
+                }
             }
 
             if !container.configuration.publishedPorts.isEmpty {
@@ -109,5 +127,13 @@ struct ContainerDetailView: View {
         }
         .formStyle(.grouped)
         .navigationTitle(container.id)
+    }
+
+    private var hostnameURL: URL? {
+        guard let hostname = container.hostname else { return nil }
+        if let port = container.configuration.publishedPorts.first?.containerPort {
+            return URL(string: "http://\(hostname):\(port)")
+        }
+        return URL(string: "http://\(hostname)")
     }
 }
