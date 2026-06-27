@@ -22,6 +22,14 @@ final class ContainerStatsStore {
 
     func points(for id: String) -> [StatsPoint] { history[id] ?? [] }
 
+    func totalCPU(for ids: [String]) -> Double {
+        ids.reduce(0) { $0 + (cpuPercents[$1] ?? 0) }
+    }
+
+    func totalMemory(for ids: [String]) -> Int {
+        ids.reduce(0) { $0 + (samples[$1]?.memoryUsageBytes ?? 0) }
+    }
+
     func start() {
         guard streamTask == nil else { return }
         streamTask = Task { [weak self] in

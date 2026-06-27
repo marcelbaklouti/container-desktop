@@ -5,6 +5,7 @@ struct MenuBarContentView: View {
     @Environment(AppModel.self) private var appModel
     @Environment(SystemController.self) private var system
     @Environment(ContainerStore.self) private var store
+    @Environment(ContainerStatsStore.self) private var stats
     @Environment(\.openURL) private var openURL
     @Environment(\.openWindow) private var openWindow
 
@@ -42,10 +43,15 @@ struct MenuBarContentView: View {
 
     private var statusText: String {
         switch system.state {
-        case .running: "\(appModel.runningCount) running · \(store.containers.count) total"
-        case .daemonStopped: "Daemon stopped"
-        case .binaryMissing: "container CLI not found"
-        case .unknown: "Checking…"
+        case .running:
+            let running = appModel.runningContainers.map(\.id)
+            guard !running.isEmpty else { return String(localized: "No running containers") }
+            let cpu = String(format: "%.0f%%", stats.totalCPU(for: running))
+            let mem = ByteCountFormatStyle(style: .memory).format(Int64(stats.totalMemory(for: running)))
+            return "\(running.count) running · \(cpu) · \(mem)"
+        case .daemonStopped: return String(localized: "Daemon stopped")
+        case .binaryMissing: return String(localized: "container CLI not found")
+        case .unknown: return String(localized: "Checking…")
         }
     }
 

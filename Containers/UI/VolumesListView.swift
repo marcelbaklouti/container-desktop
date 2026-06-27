@@ -41,12 +41,16 @@ struct VolumesListView: View {
         }
         .task { await store.poll(every: .seconds(4)) }
         .inspector(isPresented: $showInspector) {
-            if let selected = store.volumes.first(where: { $0.id == selectedID }) {
-                VolumeDetailView(volume: selected, usedBytes: store.usedSizes[selected.id])
-            } else {
-                ContentUnavailableView("No Selection", systemImage: "externaldrive", description: Text("Select a volume to inspect it."))
+            Group {
+                if let selected = store.volumes.first(where: { $0.id == selectedID }) {
+                    VolumeDetailView(volume: selected, usedBytes: store.usedSizes[selected.id])
+                } else {
+                    ContentUnavailableView("No Selection", systemImage: "externaldrive", description: Text("Select a volume to inspect it."))
+                }
             }
+            .inspectorColumnWidth(min: 320, ideal: 380, max: 600)
         }
+        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showCreate) { CreateVolumeSheet(store: store) }
         .confirmationDialog("Delete this volume?", isPresented: deletionBinding, presenting: pendingDeletion) { volume in
             Button("Delete", role: .destructive) { Task { await store.delete(volume) } }

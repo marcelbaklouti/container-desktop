@@ -51,12 +51,16 @@ struct ImagesListView: View {
         }
         .task { await store.poll(every: .seconds(5)) }
         .inspector(isPresented: $showInspector) {
-            if let selected = store.images.first(where: { $0.id == selectedID }) {
-                ImageDetailView(image: selected, isInUse: store.inUseReferences.contains(selected.configuration.name))
-            } else {
-                ContentUnavailableView("No Selection", systemImage: "square.stack.3d.up", description: Text("Select an image to inspect it."))
+            Group {
+                if let selected = store.images.first(where: { $0.id == selectedID }) {
+                    ImageDetailView(image: selected, isInUse: store.inUseReferences.contains(selected.configuration.name))
+                } else {
+                    ContentUnavailableView("No Selection", systemImage: "square.stack.3d.up", description: Text("Select an image to inspect it."))
+                }
             }
+            .inspectorColumnWidth(min: 320, ideal: 380, max: 600)
         }
+        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showPull) { PullImageSheet(store: store) }
         .sheet(isPresented: $showBuild) { BuildImageSheet(store: store) }
         .sheet(item: $tagging) { image in TagImageSheet(store: store, image: image) }

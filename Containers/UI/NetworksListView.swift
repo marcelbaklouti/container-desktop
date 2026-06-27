@@ -41,12 +41,16 @@ struct NetworksListView: View {
         }
         .task { await store.poll(every: .seconds(4)) }
         .inspector(isPresented: $showInspector) {
-            if let selected = store.networks.first(where: { $0.id == selectedID }) {
-                NetworkDetailView(network: selected)
-            } else {
-                ContentUnavailableView("No Selection", systemImage: "network", description: Text("Select a network to inspect it."))
+            Group {
+                if let selected = store.networks.first(where: { $0.id == selectedID }) {
+                    NetworkDetailView(network: selected)
+                } else {
+                    ContentUnavailableView("No Selection", systemImage: "network", description: Text("Select a network to inspect it."))
+                }
             }
+            .inspectorColumnWidth(min: 320, ideal: 380, max: 600)
         }
+        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showCreate) { CreateNetworkSheet(store: store) }
         .confirmationDialog("Delete this network?", isPresented: deletionBinding, presenting: pendingDeletion) { network in
             Button("Delete", role: .destructive) { Task { await store.delete(network) } }

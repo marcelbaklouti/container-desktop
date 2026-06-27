@@ -3,6 +3,7 @@ import AppKit
 
 struct ContainersListView: View {
     @Environment(ContainerStore.self) private var store
+    @Environment(ContainerStatsStore.self) private var stats
     @State private var searchText = ""
     @State private var runningOnly = false
     @State private var pendingDeletion: Container?
@@ -65,13 +66,22 @@ struct ContainersListView: View {
                     }
                 } header: {
                     if let title = group.title {
-                        Text(title)
+                        HStack {
+                            Text(title)
+                            Spacer()
+                            if let summary = groupSummary(group) {
+                                Text(summary)
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
             }
         }
         .overlay { emptyState }
         .navigationTitle("Containers")
+        .navigationSubtitle(overallSummary)
         .searchable(text: $searchText, prompt: "Filter containers")
         .toolbar {
             ToolbarItemGroup {
@@ -137,12 +147,34 @@ struct ContainersListView: View {
             ComposeLaunchSheet(project: project)
         }
         .inspector(isPresented: $showInspector) {
-            if let selected = store.containers.first(where: { $0.id == selectedContainerID }) {
-                ContainerInspector(container: selected)
-            } else {
-                ContentUnavailableView("No Selection", systemImage: "shippingbox", description: Text("Select a container to inspect it."))
+            Group {
+                if let selected = store.containers.first(where: { $0.id == selectedContainerID }) {
+                    ContainerInspector(container: selected)
+                } else {
+                    ContentUnavailableView("No Selection", systemImage: "shippingbox", description: Text("Select a container to inspect it."))
+                }
             }
+            .inspectorColumnWidth(min: 340, ideal: 420, max: 680)
         }
+        .onChange(of: selectedContainerID) { _, value in
+            if value != nil { showInspector = true }
+        }
+    }
+
+    private var overallSummary: String {
+        let runningIDs = store.containers.filter { $0.status?.state == "running" }.map(\.id)
+        guard !runningIDs.isEmpty else { return "" }
+        let cpu = String(format: "%.0f%%", stats.totalCPU(for: runningIDs))
+        let mem = ByteCountFormatStyle(style: .memory).format(Int64(stats.totalMemory(for: runningIDs)))
+        return "\(runningIDs.count) running · \(cpu) CPU · \(mem)"
+    }
+
+    private func groupSummary(_ group: ContainerGroup) -> String? {
+        let runningIDs = group.containers.filter { $0.status?.state == "running" }.map(\.id)
+        guard !runningIDs.isEmpty else { return nil }
+        let cpu = String(format: "%.0f%%", stats.totalCPU(for: runningIDs))
+        let mem = ByteCountFormatStyle(style: .memory).format(Int64(stats.totalMemory(for: runningIDs)))
+        return "\(cpu) · \(mem)"
     }
 
     @ViewBuilder
