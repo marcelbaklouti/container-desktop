@@ -43,6 +43,11 @@ final class ContainerStore {
     func kill(_ container: Container) async { await perform(["kill", container.id]) }
     func delete(_ container: Container) async { await perform(["delete", container.id]) }
 
+    func create(arguments: [String]) async throws {
+        _ = try await client.data(for: arguments)
+        await refresh()
+    }
+
     func restart(_ container: Container) async {
         await perform(["stop", container.id])
         await perform(["start", container.id])
@@ -58,18 +63,6 @@ final class ContainerStore {
     }
 
     private nonisolated static func describe(_ error: any Error) -> String {
-        guard let runtimeError = error as? RuntimeError else {
-            return error.localizedDescription
-        }
-        switch runtimeError {
-        case .binaryNotFound:
-            return String(localized: "The container tool could not be found.")
-        case .daemonNotRunning:
-            return String(localized: "The container system is not running.")
-        case let .commandFailed(_, _, message):
-            return message.isEmpty ? String(localized: "The container command failed.") : message
-        case let .decodingFailed(_, message):
-            return message
-        }
+        (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
     }
 }

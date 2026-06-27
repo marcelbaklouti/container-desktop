@@ -4,6 +4,7 @@ struct ContainersListView: View {
     @State private var store = ContainerStore()
     @State private var runningOnly = false
     @State private var pendingDeletion: Container?
+    @State private var showRunSheet = false
 
     private var visibleContainers: [Container] {
         runningOnly ? store.containers.filter { $0.status?.state == "running" } : store.containers
@@ -38,6 +39,13 @@ struct ContainersListView: View {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
             }
+            ToolbarItem {
+                Button {
+                    showRunSheet = true
+                } label: {
+                    Label("Run Container", systemImage: "plus")
+                }
+            }
         }
         .task { await store.poll(every: .seconds(3)) }
         .confirmationDialog(
@@ -55,6 +63,9 @@ struct ContainersListView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(store.errorMessage ?? "")
+        }
+        .sheet(isPresented: $showRunSheet) {
+            RunContainerSheet(store: store)
         }
     }
 
