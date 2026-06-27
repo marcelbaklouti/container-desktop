@@ -41,19 +41,26 @@ actor ContainerCLI: RuntimeClient {
         ProcessInvocation(executableURL: try binaryURL(), arguments: arguments)
     }
 
+    nonisolated static func locateBinary(in directories: [String] = ContainerCLI.defaultSearchDirectories) -> URL? {
+        let fileManager = FileManager.default
+        for directory in directories {
+            let candidate = URL(fileURLWithPath: directory).appendingPathComponent("container")
+            if fileManager.isExecutableFile(atPath: candidate.path) {
+                return candidate
+            }
+        }
+        return nil
+    }
+
     private func binaryURL() throws -> URL {
         if let cachedBinary {
             return cachedBinary
         }
-        let fileManager = FileManager.default
-        for directory in searchDirectories {
-            let candidate = URL(fileURLWithPath: directory).appendingPathComponent("container")
-            if fileManager.isExecutableFile(atPath: candidate.path) {
-                cachedBinary = candidate
-                return candidate
-            }
+        guard let url = ContainerCLI.locateBinary(in: searchDirectories) else {
+            throw RuntimeError.binaryNotFound
         }
-        throw RuntimeError.binaryNotFound
+        cachedBinary = url
+        return url
     }
 
     private nonisolated static func failure(arguments: [String], result: ProcessResult) -> RuntimeError {

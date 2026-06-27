@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		275EB5102FEFE59C0063BD05 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 275EB50F2FEFE59C0063BD05 /* SwiftTerm */; };
+		275EB5122FEFE59C0063BD05 /* SwiftTermFuzz in Frameworks */ = {isa = PBXBuildFile; productRef = 275EB5112FEFE59C0063BD05 /* SwiftTermFuzz */; };
+		275EB5142FEFE59C0063BD05 /* termcast in Frameworks */ = {isa = PBXBuildFile; productRef = 275EB5132FEFE59C0063BD05 /* termcast */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		27A310B02FEFC9ED00F92600 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +58,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				275EB5102FEFE59C0063BD05 /* SwiftTerm in Frameworks */,
+				275EB5122FEFE59C0063BD05 /* SwiftTermFuzz in Frameworks */,
+				275EB5142FEFE59C0063BD05 /* termcast in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +121,9 @@
 			);
 			name = Containers;
 			packageProductDependencies = (
+				275EB50F2FEFE59C0063BD05 /* SwiftTerm */,
+				275EB5112FEFE59C0063BD05 /* SwiftTermFuzz */,
+				275EB5132FEFE59C0063BD05 /* termcast */,
 			);
 			productName = Containers;
 			productReference = 27A310A02FEFC9EB00F92600 /* Containers.app */;
@@ -195,6 +207,9 @@
 			);
 			mainGroup = 27A310972FEFC9EB00F92600;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				275EB50E2FEFE59C0063BD05 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 27A310A12FEFC9EB00F92600 /* Products */;
 			projectDirPath = "";
@@ -561,6 +576,35 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		275EB50E2FEFE59C0063BD05 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		275EB50F2FEFE59C0063BD05 /* SwiftTerm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 275EB50E2FEFE59C0063BD05 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
+			productName = SwiftTerm;
+		};
+		275EB5112FEFE59C0063BD05 /* SwiftTermFuzz */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 275EB50E2FEFE59C0063BD05 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
+			productName = SwiftTermFuzz;
+		};
+		275EB5132FEFE59C0063BD05 /* termcast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 275EB50E2FEFE59C0063BD05 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
+			productName = termcast;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 27A310982FEFC9EB00F92600 /* Project object */;
 }

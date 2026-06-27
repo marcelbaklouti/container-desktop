@@ -24,6 +24,9 @@ struct ContainerInspector: View {
                 ContainerLogsView(containerID: container.id)
             case .stats:
                 ContainerStatsView(containerID: container.id)
+            case .terminal:
+                ContainerTerminalView(containerID: container.id)
+                    .frame(minHeight: 320)
             }
         }
     }
@@ -33,6 +36,7 @@ enum InspectorTab: String, CaseIterable, Identifiable {
     case details
     case logs
     case stats
+    case terminal
 
     var id: String { rawValue }
 
@@ -41,6 +45,7 @@ enum InspectorTab: String, CaseIterable, Identifiable {
         case .details: "Details"
         case .logs: "Logs"
         case .stats: "Stats"
+        case .terminal: "Terminal"
         }
     }
 }
