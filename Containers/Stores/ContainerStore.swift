@@ -48,6 +48,14 @@ final class ContainerStore {
         await refresh()
     }
 
+    func export(_ container: Container, to url: URL) async throws {
+        _ = try await client.data(for: ["export", container.id, "--output", url.path])
+    }
+
+    func copyFiles(source: String, destination: String) async throws {
+        _ = try await client.data(for: ["copy", source, destination])
+    }
+
     func restart(_ container: Container) async {
         await perform(["stop", container.id])
         await perform(["start", container.id])

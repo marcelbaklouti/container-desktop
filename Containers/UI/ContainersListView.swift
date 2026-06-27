@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ContainersListView: View {
     @State private var store = ContainerStore()
@@ -7,6 +8,7 @@ struct ContainersListView: View {
     @State private var showRunSheet = false
     @State private var selectedContainerID: String?
     @State private var showInspector = false
+    @State private var pendingCopy: Container?
 
     private var visibleContainers: [Container] {
         runningOnly ? store.containers.filter { $0.status?.state == "running" } : store.containers
@@ -77,6 +79,9 @@ struct ContainersListView: View {
         .sheet(isPresented: $showRunSheet) {
             RunContainerSheet(store: store)
         }
+        .sheet(item: $pendingCopy) { container in
+            CopyFilesSheet(store: store, container: container)
+        }
         .inspector(isPresented: $showInspector) {
             if let selected = store.containers.first(where: { $0.id == selectedContainerID }) {
                 ContainerInspector(container: selected)
@@ -110,10 +115,27 @@ struct ContainersListView: View {
             Button { Task { await store.start(container) } } label: { Label("Start", systemImage: "play.fill") }
         }
         Divider()
+        Button { pendingCopy = container } label: { Label("Copy Files…", systemImage: "doc.on.doc") }
+        Button { exportFilesystem(container) } label: { Label("Export Filesystem…", systemImage: "arrow.down.doc") }
+        Divider()
         Button(role: .destructive) {
             pendingDeletion = container
         } label: {
             Label("Delete", systemImage: "trash")
+        }
+    }
+
+    private func exportFilesystem(_ container: Container) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "\(container.id).tar"
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task {
+            do {
+                try await store.export(container, to: url)
+            } catch {
+                store.errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            }
         }
     }
 
