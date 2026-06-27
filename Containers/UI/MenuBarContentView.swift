@@ -134,10 +134,11 @@ private struct MenuBarContainerRow: View {
                 Button {
                     if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
                 } label: {
-                    Image(systemName: "safari")
+                    Image(systemName: "arrow.up.right")
                 }
                 .buttonStyle(.borderless)
-                .help("Open localhost:\(port.hostPort)")
+                .help("Open localhost:\(String(port.hostPort))")
+                .accessibilityLabel("Open port \(String(port.hostPort)) in browser")
             }
             Button {
                 Task { await store.restart(container) }

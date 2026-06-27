@@ -45,10 +45,11 @@ struct ContainerDetailView: View {
                     ForEach(container.configuration.publishedPorts, id: \.self) { port in
                         LabeledContent(port.display) {
                             HStack(spacing: 10) {
-                                Button("localhost:\(port.hostPort)") {
+                                Button("localhost:\(String(port.hostPort))") {
                                     if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
                                 }
                                 .buttonStyle(.link)
+                                .accessibilityLabel("Open port \(String(port.hostPort)) in browser")
                                 Button {
                                     NSPasteboard.general.clearContents()
                                     NSPasteboard.general.setString("localhost:\(port.hostPort)", forType: .string)

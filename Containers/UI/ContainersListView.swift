@@ -173,7 +173,7 @@ struct ContainersListView: View {
                 Button {
                     if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
                 } label: {
-                    Label("Open localhost:\(port.hostPort)", systemImage: "safari")
+                    Label("Open localhost:\(String(port.hostPort))", systemImage: "arrow.up.right")
                 }
             }
         }

@@ -98,7 +98,7 @@ struct MachineRow: View {
                     Text(machine.id).font(.headline)
                     if machine.isDefault { StatusBadge(text: "Default", tint: .blue) }
                 }
-                Text("\(machine.cpus) CPU · \(ByteCountFormatStyle(style: .memory).format(Int64(machine.memory)))")
+                Text("\(machine.cpus.formatted(.number.grouping(.never))) CPU · \(ByteCountFormatStyle(style: .memory).format(Int64(machine.memory)))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

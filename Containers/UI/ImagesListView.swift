@@ -160,7 +160,7 @@ struct ImageRow: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
                 if image.realPlatforms.count > 1 {
-                    Text("\(image.realPlatforms.count) platforms")
+                    Text("\(String(image.realPlatforms.count)) platforms")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }

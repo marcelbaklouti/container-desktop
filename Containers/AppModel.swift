@@ -1,4 +1,4 @@
-import AppKit
+import Foundation
 import Observation
 
 @Observable
@@ -36,17 +36,11 @@ final class AppModel {
                 guard let self else { return }
                 await self.containers.refresh()
                 if tick.isMultiple(of: 3) { await self.system.refresh() }
-                self.updateDockBadge()
                 self.processTransitions()
                 tick += 1
                 do { try await Task.sleep(for: interval) } catch { return }
             }
         }
-    }
-
-    private func updateDockBadge() {
-        let count = runningCount
-        NSApp.dockTile.badgeLabel = count > 0 ? String(count) : nil
     }
 
     private func processTransitions() {

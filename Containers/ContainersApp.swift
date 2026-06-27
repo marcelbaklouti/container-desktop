@@ -27,8 +27,12 @@ struct ContainersApp: App {
                 .environment(appModel.containers)
                 .environment(appModel.stats)
         } label: {
-            Label("\(appModel.runningCount)", systemImage: appModel.daemonRunning ? "shippingbox.fill" : "shippingbox")
-                .labelStyle(.titleAndIcon)
+            if appModel.runningCount > 0 {
+                Label(String(appModel.runningCount), systemImage: appModel.daemonRunning ? "shippingbox.fill" : "shippingbox")
+                    .labelStyle(.titleAndIcon)
+            } else {
+                Image(systemName: appModel.daemonRunning ? "shippingbox.fill" : "shippingbox")
+            }
         }
         .menuBarExtraStyle(.window)
 
