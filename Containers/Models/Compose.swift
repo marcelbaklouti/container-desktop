@@ -25,12 +25,37 @@ nonisolated struct ComposeService: Equatable, Identifiable {
     var id: String { name }
 
     var displayName: String { containerName ?? name }
+
+    func containerIdentifier(in project: ComposeProject) -> String {
+        containerName ?? name
+    }
+
+    func runArguments(in project: ComposeProject) -> [String] {
+        var args = ["run", "-d", "--name", containerIdentifier(in: project), "--network", project.networkName]
+        args += ["--label", "\(Container.projectLabelKey)=\(project.name)"]
+        args += ["--label", "com.docker.compose.service=\(name)"]
+        for (key, value) in labels.sorted(by: { $0.key < $1.key }) {
+            args += ["--label", "\(key)=\(value)"]
+        }
+        for variable in environment { args += ["-e", variable] }
+        for port in ports { args += ["-p", port] }
+        for volume in volumes { args += ["-v", volume] }
+        if let image { args.append(image) }
+        args += command
+        return args
+    }
 }
 
-nonisolated struct ComposeProject: Equatable {
+nonisolated struct ComposeProject: Equatable, Identifiable {
     let name: String
     let services: [ComposeService]
     let namedVolumes: [String]
+
+    var id: String { name }
+
+    var networkName: String {
+        String(name.lowercased().map { $0.isLetter || $0.isNumber ? $0 : "-" })
+    }
 
     static func parse(_ source: String, defaultName: String) -> ComposeProject? {
         var parser = ComposeParser(source)

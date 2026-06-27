@@ -10,6 +10,7 @@ struct ContainersListView: View {
     @State private var selectedContainerID: String?
     @State private var showInspector = false
     @State private var pendingCopy: Container?
+    @State private var launchProject: ComposeProject?
     @Environment(\.openURL) private var openURL
 
     private var visibleContainers: [Container] {
@@ -87,6 +88,13 @@ struct ContainersListView: View {
             }
             ToolbarItem {
                 Button {
+                    pickComposeFile()
+                } label: {
+                    Label("Launch Stack", systemImage: "square.stack.3d.up")
+                }
+            }
+            ToolbarItem {
+                Button {
                     showRunSheet = true
                 } label: {
                     Label("Run Container", systemImage: "plus")
@@ -121,6 +129,9 @@ struct ContainersListView: View {
         }
         .sheet(item: $pendingCopy) { container in
             CopyFilesSheet(store: store, container: container)
+        }
+        .sheet(item: $launchProject) { project in
+            ComposeLaunchSheet(project: project)
         }
         .inspector(isPresented: $showInspector) {
             if let selected = store.containers.first(where: { $0.id == selectedContainerID }) {
@@ -175,6 +186,22 @@ struct ContainersListView: View {
         } label: {
             Label("Delete", systemImage: "trash")
         }
+    }
+
+    private func pickComposeFile() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.message = String(localized: "Choose a docker-compose.yml file")
+        guard panel.runModal() == .OK,
+              let url = panel.url,
+              let text = try? String(contentsOf: url, encoding: .utf8) else { return }
+        let fallback = url.deletingLastPathComponent().lastPathComponent
+        guard let project = ComposeProject.parse(text, defaultName: fallback) else {
+            store.errorMessage = String(localized: "Could not read services from that compose file.")
+            return
+        }
+        launchProject = project
     }
 
     private func exportFilesystem(_ container: Container) {
