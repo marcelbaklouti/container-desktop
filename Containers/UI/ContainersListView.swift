@@ -79,7 +79,7 @@ struct ContainersListView: View {
         }
         .inspector(isPresented: $showInspector) {
             if let selected = store.containers.first(where: { $0.id == selectedContainerID }) {
-                ContainerDetailView(container: selected)
+                ContainerInspector(container: selected)
             } else {
                 ContentUnavailableView("No Selection", systemImage: "shippingbox", description: Text("Select a container to inspect it."))
             }
