@@ -43,6 +43,15 @@ final class ImageStore {
         await refresh()
     }
 
+    func save(_ image: ContainerImage, to url: URL) async throws {
+        _ = try await client.data(for: ["image", "save", image.configuration.name, "-o", url.path])
+    }
+
+    func load(from url: URL) async throws {
+        _ = try await client.data(for: ["image", "load", "-i", url.path])
+        await refresh()
+    }
+
     func delete(_ image: ContainerImage) async { await perform(["image", "delete", image.configuration.name]) }
     func prune() async { await perform(["image", "prune"]) }
 

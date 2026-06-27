@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ImagesListView: View {
     @State private var store = ImageStore()
@@ -31,6 +32,9 @@ struct ImagesListView: View {
             }
             ToolbarItem {
                 Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.trailing") }
+            }
+            ToolbarItem {
+                Button { importImage() } label: { Label("Import Image", systemImage: "arrow.up.doc") }
             }
             ToolbarItem {
                 Button { showPull = true } label: { Label("Pull Image", systemImage: "arrow.down.circle") }
@@ -73,8 +77,40 @@ struct ImagesListView: View {
     private func actions(for image: ContainerImage) -> some View {
         Button { tagging = image } label: { Label("Tag…", systemImage: "tag") }
         Button { pushing = image } label: { Label("Push…", systemImage: "arrow.up.circle") }
+        Button { exportImage(image) } label: { Label("Export…", systemImage: "arrow.down.doc") }
         Divider()
         Button(role: .destructive) { pendingDeletion = image } label: { Label("Delete", systemImage: "trash") }
+    }
+
+    private func exportImage(_ image: ContainerImage) {
+        let panel = NSSavePanel()
+        let safeName = ImageName.short(image.configuration.name)
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: ":", with: "_")
+        panel.nameFieldStringValue = "\(safeName).tar"
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task {
+            do {
+                try await store.save(image, to: url)
+            } catch {
+                store.errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            }
+        }
+    }
+
+    private func importImage() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task {
+            do {
+                try await store.load(from: url)
+            } catch {
+                store.errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            }
+        }
     }
 
     @ViewBuilder
@@ -161,6 +197,18 @@ struct ImageDetailView: View {
                     }
                 }
             }
+            if !image.hostHistory.isEmpty {
+                Section("History") {
+                    ForEach(Array(image.hostHistory.enumerated()), id: \.offset) { _, entry in
+                        if let command = entry.createdBy {
+                            Text(historyText(command))
+                                .font(.caption.monospaced())
+                                .textSelection(.enabled)
+                                .lineLimit(4)
+                        }
+                    }
+                }
+            }
         }
         .formStyle(.grouped)
         .navigationTitle(ImageName.short(image.configuration.name))
@@ -170,6 +218,12 @@ struct ImageDetailView: View {
         var label = "\(variant.platform.os)/\(variant.platform.architecture)"
         if let v = variant.platform.variant { label += " (\(v))" }
         return label
+    }
+
+    private func historyText(_ raw: String) -> String {
+        raw.replacingOccurrences(of: "/bin/sh -c #(nop) ", with: "")
+            .replacingOccurrences(of: "/bin/sh -c ", with: "RUN ")
+            .trimmingCharacters(in: .whitespaces)
     }
 }
 

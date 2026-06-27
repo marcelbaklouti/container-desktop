@@ -14,11 +14,16 @@ nonisolated struct ContainerImage: Codable, Sendable, Identifiable, Hashable {
         variants.filter { $0.platform.os != "unknown" }
     }
 
+    var hostVariant: ImageVariant? {
+        realPlatforms.first(where: { $0.platform.architecture == "arm64" }) ?? realPlatforms.first
+    }
+
     var displaySize: Int {
-        if let host = realPlatforms.first(where: { $0.platform.architecture == "arm64" }) {
-            return host.size
-        }
-        return realPlatforms.first?.size ?? 0
+        hostVariant?.size ?? 0
+    }
+
+    var hostHistory: [ImageHistoryEntry] {
+        hostVariant?.config?.history ?? []
     }
 }
 
@@ -32,4 +37,22 @@ nonisolated struct ImageVariant: Codable, Sendable, Hashable {
     let digest: String
     let platform: Platform
     let size: Int
+    let config: ImageVariantConfig?
+}
+
+nonisolated struct ImageVariantConfig: Codable, Sendable, Hashable {
+    let history: [ImageHistoryEntry]?
+}
+
+nonisolated struct ImageHistoryEntry: Codable, Sendable, Hashable {
+    let created: String?
+    let createdBy: String?
+    let comment: String?
+    let emptyLayer: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case created, comment
+        case createdBy = "created_by"
+        case emptyLayer = "empty_layer"
+    }
 }
