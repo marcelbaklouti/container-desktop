@@ -1,7 +1,590 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "/etc/hosts" : {
 
+    },
+    "/path/to/context" : {
+
+    },
+    "/Users/…" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%lld platform%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld platform%2$@"
+          }
+        }
+      }
+    },
+    "10.10.0.0/24 (optional)" : {
+
+    },
+    "8080:80" : {
+
+    },
+    "Add Build Arg" : {
+
+    },
+    "Add Port" : {
+
+    },
+    "Add Variable" : {
+
+    },
+    "Add Volume" : {
+
+    },
+    "Addressing" : {
+
+    },
+    "alpine:latest" : {
+
+    },
+    "apiserver" : {
+
+    },
+    "Arguments" : {
+
+    },
+    "Block read" : {
+
+    },
+    "Boot" : {
+
+    },
+    "Browse…" : {
+
+    },
+    "Build" : {
+
+    },
+    "Build args" : {
+
+    },
+    "Build Image" : {
+
+    },
+    "Builder" : {
+
+    },
+    "Building…" : {
+
+    },
+    "Built-in" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Choose…" : {
+
+    },
+    "CLI version" : {
+
+    },
+    "Close" : {
+
+    },
+    "Command" : {
+
+    },
+    "Container path" : {
+
+    },
+    "Containers" : {
+
+    },
+    "Context directory" : {
+
+    },
+    "Copy" : {
+
+    },
+    "Copy Files" : {
+
+    },
+    "Copy Files…" : {
+
+    },
+    "Copying…" : {
+
+    },
+    "Couldn’t start the container system." : {
+
+    },
+    "CPU" : {
+
+    },
+    "CPUs" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create Network" : {
+
+    },
+    "Create Volume" : {
+
+    },
+    "Created" : {
+
+    },
+    "Creating…" : {
+
+    },
+    "default" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Delete this container?" : {
+
+    },
+    "Delete this image?" : {
+
+    },
+    "Delete this network?" : {
+
+    },
+    "Delete this volume?" : {
+
+    },
+    "Details" : {
+
+    },
+    "Digest" : {
+
+    },
+    "Direction" : {
+
+    },
+    "Disk usage" : {
+
+    },
+    "Dockerfile" : {
+
+    },
+    "Driver" : {
+
+    },
+    "e.g. 2" : {
+
+    },
+    "e.g. 10G (optional)" : {
+
+    },
+    "e.g. 512M, 1G" : {
+
+    },
+    "Environment" : {
+
+    },
+    "Executable" : {
+
+    },
+    "Export Filesystem…" : {
+
+    },
+    "Follow" : {
+
+    },
+    "Format" : {
+
+    },
+    "From container" : {
+
+    },
+    "Host-only (internal)" : {
+
+    },
+    "Hostname" : {
+
+    },
+    "Image" : {
+
+    },
+    "Image reference" : {
+
+    },
+    "Images" : {
+
+    },
+    "Inspector" : {
+
+    },
+    "Install Apple’s container command-line tool to manage containers, images, and volumes from here." : {
+
+    },
+    "Installation Instructions" : {
+
+    },
+    "IPv4" : {
+
+    },
+    "IPv4 gateway" : {
+
+    },
+    "IPv4 subnet" : {
+
+    },
+    "IPv6" : {
+
+    },
+    "IPv6 subnet" : {
+
+    },
+    "KEY" : {
+
+    },
+    "Kill" : {
+
+    },
+    "Labels" : {
+
+    },
+    "Limit" : {
+
+    },
+    "Live" : {
+
+    },
+    "Local path" : {
+
+    },
+    "Logs" : {
+
+    },
+    "MAC" : {
+
+    },
+    "Machines" : {
+
+    },
+    "Memory" : {
+
+    },
+    "Mode" : {
+
+    },
+    "my-network" : {
+
+    },
+    "my-volume" : {
+
+    },
+    "myimage:latest" : {
+
+    },
+    "myrepo/name:tag" : {
+
+    },
+    "Name" : {
+
+    },
+    "name:/path" : {
+
+    },
+    "Net RX" : {
+
+    },
+    "Net TX" : {
+
+    },
+    "Network" : {
+
+    },
+    "Networks" : {
+
+    },
+    "New reference" : {
+
+    },
+    "nginx:latest" : {
+
+    },
+    "No cache" : {
+
+    },
+    "No Containers" : {
+
+    },
+    "No Images" : {
+
+    },
+    "No Networks" : {
+
+    },
+    "No running containers." : {
+
+    },
+    "No Selection" : {
+
+    },
+    "No Volumes" : {
+
+    },
+    "OK" : {
+
+    },
+    "optional" : {
+
+    },
+    "optional (defaults to ./Dockerfile)" : {
+
+    },
+    "optional, e.g. sleep 3600" : {
+
+    },
+    "optional, groups containers" : {
+
+    },
+    "Options" : {
+
+    },
+    "Output" : {
+
+    },
+    "Path inside the container" : {
+
+    },
+    "Path on this Mac" : {
+
+    },
+    "Platform" : {
+
+    },
+    "Platforms" : {
+
+    },
+    "Plugin" : {
+
+    },
+    "Ports" : {
+
+    },
+    "Processes" : {
+
+    },
+    "Project" : {
+
+    },
+    "Prune" : {
+
+    },
+    "Pull" : {
+
+    },
+    "Pull an image to get started." : {
+
+    },
+    "Pull Image" : {
+
+    },
+    "Pulling…" : {
+
+    },
+    "Push" : {
+
+    },
+    "Push Image" : {
+
+    },
+    "Push…" : {
+
+    },
+    "Pushing…" : {
+
+    },
+    "Read-only root filesystem" : {
+
+    },
+    "Reference" : {
+
+    },
+    "Refresh" : {
+
+    },
+    "Registries" : {
+
+    },
+    "Remove on exit" : {
+
+    },
+    "Resources" : {
+
+    },
+    "Restart" : {
+
+    },
+    "Run" : {
+
+    },
+    "Run a container to see it here." : {
+
+    },
+    "Run Container" : {
+
+    },
+    "Run detached" : {
+
+    },
+    "Running" : {
+
+    },
+    "Running only" : {
+
+    },
+    "Running…" : {
+
+    },
+    "Runtime" : {
+
+    },
+    "Select a container to inspect it." : {
+
+    },
+    "Select a network to inspect it." : {
+
+    },
+    "Select a volume to inspect it." : {
+
+    },
+    "Select an image to inspect it." : {
+
+    },
+    "Size" : {
+
+    },
+    "Something went wrong" : {
+
+    },
+    "Source" : {
+
+    },
+    "Start" : {
+
+    },
+    "Start Builder" : {
+
+    },
+    "Start Container System" : {
+
+    },
+    "Start the container system to manage your containers, images, networks, and volumes." : {
+
+    },
+    "Starting…" : {
+
+    },
+    "State" : {
+
+    },
+    "Stats" : {
+
+    },
+    "Status" : {
+
+    },
+    "Stop" : {
+
+    },
+    "Stop Builder" : {
+
+    },
+    "Stop Container System" : {
+
+    },
+    "Stopped" : {
+
+    },
+    "Subnet" : {
+
+    },
+    "System" : {
+
+    },
+    "Tag" : {
+
+    },
+    "Tag Image" : {
+
+    },
+    "Tag…" : {
+
+    },
+    "Tagging…" : {
+
+    },
+    "Target" : {
+
+    },
+    "Target stage" : {
+
+    },
+    "Terminal" : {
+
+    },
+    "The builder is a Linux container that runs image builds. Building an image starts it automatically if needed." : {
+
+    },
+    "The container command failed." : {
+
+    },
+    "The container system is not running." : {
+
+    },
+    "The container system is stopped" : {
+
+    },
+    "The container tool could not be found." : {
+
+    },
+    "The container tool isn’t installed" : {
+
+    },
+    "This area is coming soon." : {
+
+    },
+    "Time" : {
+
+    },
+    "To container" : {
+
+    },
+    "Tools" : {
+
+    },
+    "value" : {
+
+    },
+    "View" : {
+
+    },
+    "Volume" : {
+
+    },
+    "Volumes" : {
+
+    },
+    "Working directory" : {
+
+    }
   },
   "version" : "1.0"
 }
