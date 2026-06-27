@@ -4,6 +4,15 @@ nonisolated struct ContainerImage: Codable, Sendable, Identifiable, Hashable {
     let id: String
     let configuration: ImageConfiguration
     let variants: [ImageVariant]
+
+    var shortDigest: String {
+        let hex = configuration.descriptor.digest.split(separator: ":").last.map(String.init) ?? configuration.descriptor.digest
+        return String(hex.prefix(12))
+    }
+
+    var realPlatforms: [ImageVariant] {
+        variants.filter { $0.platform.os != "unknown" }
+    }
 }
 
 nonisolated struct ImageConfiguration: Codable, Sendable, Hashable {

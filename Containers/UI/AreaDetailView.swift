@@ -13,6 +13,8 @@ struct AreaDetailView: View {
             NetworksListView()
         case .volumes:
             VolumesListView()
+        case .images:
+            ImagesListView()
         default:
             AreaPlaceholderView(area: area)
         }
