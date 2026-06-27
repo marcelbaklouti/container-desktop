@@ -104,6 +104,7 @@ struct MachineRow: View {
             Image(systemName: "server.rack")
                 .foregroundStyle(.tint)
                 .font(.title3)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(machine.id).font(.headline)
@@ -120,7 +121,14 @@ struct MachineRow: View {
             StatusBadge(text: machineStatusLabel(machine.status), tint: machine.isRunning ? .green : .gray)
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(machine.id)
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var accessibilityValue: String {
+        let mem = ByteCountFormatStyle(style: .memory).format(Int64(machine.memory))
+        return "\(machine.status.capitalized), \(machine.cpus) CPU, \(mem)"
     }
 }
 

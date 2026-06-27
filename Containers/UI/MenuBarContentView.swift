@@ -29,6 +29,7 @@ struct MenuBarContentView: View {
             Circle()
                 .fill(appModel.daemonRunning ? Color.green : Color.secondary)
                 .frame(width: 8, height: 8)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
                 Text("Container Desktop").font(.headline)
                 Text(statusText).font(.caption).foregroundStyle(.secondary)
@@ -147,6 +148,7 @@ private struct MenuBarContainerRow: View {
             }
             .buttonStyle(.borderless)
             .help("Restart")
+            .accessibilityLabel("Restart \(container.id)")
             Button {
                 Task { await store.stop(container) }
             } label: {
@@ -154,6 +156,7 @@ private struct MenuBarContainerRow: View {
             }
             .buttonStyle(.borderless)
             .help("Stop")
+            .accessibilityLabel("Stop \(container.id)")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 7)

@@ -97,6 +97,7 @@ struct VolumeRow: View {
             Image(systemName: "externaldrive.fill")
                 .foregroundStyle(.tint)
                 .font(.title3)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(volume.configuration.name).font(.headline)
                 Text("\(volume.configuration.driver) · \(volume.configuration.format)")
@@ -116,7 +117,18 @@ struct VolumeRow: View {
             }
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(volume.configuration.name)
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var accessibilityValue: String {
+        let allocated = ByteCountFormatStyle(style: .file).format(Int64(volume.configuration.sizeInBytes))
+        if let usedBytes {
+            let used = ByteCountFormatStyle(style: .file).format(Int64(usedBytes))
+            return "\(used) of \(allocated) used"
+        }
+        return allocated
     }
 }
 

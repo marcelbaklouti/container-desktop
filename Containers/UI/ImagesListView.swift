@@ -150,6 +150,7 @@ struct ImageRow: View {
             Image(systemName: "square.stack.3d.up.fill")
                 .foregroundStyle(.tint)
                 .font(.title3)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(ImageName.short(image.configuration.name)).font(.headline)
@@ -177,7 +178,15 @@ struct ImageRow: View {
             }
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(ImageName.short(image.configuration.name))
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var accessibilityValue: String {
+        let usage = isInUse ? "In use" : "Not in use"
+        let size = ByteCountFormatStyle(style: .file).format(Int64(image.displaySize))
+        return "\(usage), \(size)"
     }
 }
 

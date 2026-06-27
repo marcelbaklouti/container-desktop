@@ -39,7 +39,7 @@ struct RunContainerSheet: View {
                         HStack {
                             TextField("KEY", text: $variable.key)
                             TextField("value", text: $variable.value)
-                            removeButton { config.environment.removeAll { $0.id == variable.id } }
+                            removeButton("Remove Variable") { config.environment.removeAll { $0.id == variable.id } }
                         }
                     }
                     addButton("Add Variable") { config.environment.append(KeyValue()) }
@@ -49,7 +49,7 @@ struct RunContainerSheet: View {
                     ForEach($config.ports) { $port in
                         HStack {
                             TextField("8080:80", text: $port.text)
-                            removeButton { config.ports.removeAll { $0.id == port.id } }
+                            removeButton("Remove Port") { config.ports.removeAll { $0.id == port.id } }
                         }
                     }
                     addButton("Add Port") { config.ports.append(TextItem()) }
@@ -59,7 +59,7 @@ struct RunContainerSheet: View {
                     ForEach($config.volumes) { $volume in
                         HStack {
                             TextField("name:/path", text: $volume.text)
-                            removeButton { config.volumes.removeAll { $0.id == volume.id } }
+                            removeButton("Remove Volume") { config.volumes.removeAll { $0.id == volume.id } }
                         }
                     }
                     addButton("Add Volume") { config.volumes.append(TextItem()) }
@@ -101,12 +101,14 @@ struct RunContainerSheet: View {
         .frame(minWidth: 540, minHeight: 620)
     }
 
-    private func removeButton(_ action: @escaping () -> Void) -> some View {
+    private func removeButton(_ label: LocalizedStringKey, _ action: @escaping () -> Void) -> some View {
         Button(role: .destructive, action: action) {
             Image(systemName: "minus.circle.fill")
         }
         .buttonStyle(.borderless)
         .foregroundStyle(.secondary)
+        .help(label)
+        .accessibilityLabel(label)
     }
 
     private func addButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {

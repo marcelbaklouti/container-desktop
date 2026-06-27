@@ -98,6 +98,7 @@ struct NetworkRow: View {
             Image(systemName: "network")
                 .foregroundStyle(.tint)
                 .font(.title3)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(network.configuration.name).font(.headline)
                 Text(network.status?.ipv4Subnet ?? network.configuration.mode)
@@ -110,7 +111,9 @@ struct NetworkRow: View {
             }
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(network.configuration.name)
+        .accessibilityValue(network.isBuiltin ? "Built-in" : (network.status?.ipv4Subnet ?? network.configuration.mode))
     }
 }
 

@@ -13,6 +13,7 @@ struct RegistriesListView: View {
                     Image(systemName: "person.badge.key.fill")
                         .foregroundStyle(.tint)
                         .font(.title3)
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(login.hostname).font(.headline)
                         if let username = login.username {
@@ -22,7 +23,9 @@ struct RegistriesListView: View {
                     Spacer()
                 }
                 .padding(.vertical, 4)
-                .accessibilityElement(children: .combine)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(login.hostname)
+                .accessibilityValue(login.username.map { "Signed in as \($0)" } ?? "Signed in")
                 .contextMenu {
                     Button(role: .destructive) { pendingLogout = login } label: {
                         Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")

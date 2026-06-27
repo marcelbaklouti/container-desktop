@@ -236,6 +236,7 @@ struct ContainerRow: View {
             Image(systemName: "shippingbox.fill")
                 .foregroundStyle(.tint)
                 .font(.title3)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(container.id)
                     .font(.headline)
@@ -259,7 +260,15 @@ struct ContainerRow: View {
             StatusBadge(text: stateText, tint: stateTint)
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(container.id)
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var accessibilityValue: String {
+        var parts = [state.capitalized, ImageName.short(container.configuration.image.reference)]
+        if let liveStats { parts.append(liveStats) }
+        return parts.joined(separator: ", ")
     }
 
     private var subtitle: String {

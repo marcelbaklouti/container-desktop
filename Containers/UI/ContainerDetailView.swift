@@ -34,7 +34,8 @@ struct ContainerDetailView: View {
                                 Image(systemName: "doc.on.doc")
                             }
                             .buttonStyle(.borderless)
-                            .help("Copy hostname")
+                            .help("Copy Hostname")
+                            .accessibilityLabel("Copy hostname")
                         }
                     }
                 }
@@ -57,7 +58,8 @@ struct ContainerDetailView: View {
                                     Image(systemName: "doc.on.doc")
                                 }
                                 .buttonStyle(.borderless)
-                                .help("Copy address")
+                                .help("Copy Address")
+                                .accessibilityLabel("Copy address for port \(String(port.hostPort))")
                             }
                         }
                     }
