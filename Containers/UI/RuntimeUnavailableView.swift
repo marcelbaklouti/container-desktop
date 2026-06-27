@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RuntimeUnavailableView: View {
     @Environment(SystemController.self) private var system
+    @Environment(ContainerInstaller.self) private var installer
     @State private var isWorking = false
     @State private var errorMessage: String?
 
@@ -20,6 +21,11 @@ struct RuntimeUnavailableView: View {
             }
         }
         .navigationTitle("Container Desktop")
+        .task {
+            if case .binaryMissing = system.state {
+                await installer.checkForUpdates()
+            }
+        }
     }
 
     @ViewBuilder
@@ -34,13 +40,56 @@ struct RuntimeUnavailableView: View {
             .buttonStyle(.glassProminent)
             .disabled(isWorking)
         case .binaryMissing:
-            Link(destination: URL(string: "https://github.com/apple/container")!) {
-                Label("Installation Instructions", systemImage: "arrow.up.right.square")
+            VStack(spacing: 10) {
+                installAction
+                Link(destination: releaseURL) {
+                    Label("Install Manually", systemImage: "arrow.up.right.square")
+                }
+                .buttonStyle(.glass)
+                if case let .failed(message) = installer.phase {
+                    Text(message)
+                        .font(.callout)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                }
             }
-            .buttonStyle(.glass)
         default:
             EmptyView()
         }
+    }
+
+    @ViewBuilder
+    private var installAction: some View {
+        switch installer.phase {
+        case .idle, .failed:
+            Button {
+                Task { await installer.installOrUpdate() }
+            } label: {
+                Label("Install container \(installer.targetVersion)", systemImage: "arrow.down.circle")
+            }
+            .buttonStyle(.glassProminent)
+        case .downloading(let fraction):
+            VStack(spacing: 4) {
+                ProgressView(value: fraction).frame(width: 240)
+                Text("Downloading container… \(String(Int(fraction * 100)))%")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        case .finished:
+            Label("Installed", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+        default:
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text(installer.phaseDescription)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var releaseURL: URL {
+        URL(string: "https://github.com/apple/container/releases") ?? URL(fileURLWithPath: "/")
     }
 
     private var symbol: String {

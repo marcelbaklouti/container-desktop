@@ -7,12 +7,14 @@ final class AppModel {
     let system = SystemController()
     let containers = ContainerStore()
     let stats = ContainerStatsStore()
+    let installer: ContainerInstaller
 
     private var pollTask: Task<Void, Never>?
     private var previousStates: [String: String] = [:]
     private var wasDaemonRunning = false
 
     init() {
+        installer = ContainerInstaller(system: system)
         UserDefaults.standard.register(defaults: ["notifyExits": true, "notifyDaemon": true])
     }
 

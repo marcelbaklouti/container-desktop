@@ -11,6 +11,7 @@ struct ContainersApp: App {
                 .environment(appModel.system)
                 .environment(appModel.containers)
                 .environment(appModel.stats)
+                .environment(appModel.installer)
                 .task {
                     Notifier.requestAuthorization()
                     await appModel.system.refresh()

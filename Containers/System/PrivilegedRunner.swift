@@ -5,7 +5,12 @@ nonisolated enum PrivilegedRunner {
         guard let binary = ContainerCLI.locateBinary() else {
             throw RuntimeError.binaryNotFound
         }
-        let shellCommand = ([binary.path] + arguments).map { "'\($0)'" }.joined(separator: " ")
+        try await runCommand([binary.path] + arguments)
+    }
+
+    /// Runs an arbitrary command (absolute executable path + arguments) with administrator privileges.
+    static func runCommand(_ command: [String]) async throws {
+        let shellCommand = command.map { "'\($0)'" }.joined(separator: " ")
         let appleScript = "do shell script \"\(shellCommand)\" with administrator privileges"
         let invocation = ProcessInvocation(
             executableURL: URL(fileURLWithPath: "/usr/bin/osascript"),
@@ -18,7 +23,7 @@ nonisolated enum PrivilegedRunner {
             if message.contains("-128") || message.localizedCaseInsensitiveContains("cancel") {
                 throw CancellationError()
             }
-            throw RuntimeError.commandFailed(arguments: arguments, exitCode: result.exitCode, message: message)
+            throw RuntimeError.commandFailed(arguments: command, exitCode: result.exitCode, message: message)
         }
     }
 }

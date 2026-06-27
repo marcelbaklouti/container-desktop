@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SystemAreaView: View {
     @Environment(SystemController.self) private var system
+    @Environment(ContainerInstaller.self) private var installer
     @State private var dnsStore = DNSStore()
     @State private var isRefreshing = false
     @State private var showAddDNS = false
@@ -24,6 +25,13 @@ struct SystemAreaView: View {
                     Label(warning, systemImage: "exclamationmark.triangle")
                         .foregroundStyle(.orange)
                 }
+            }
+
+            Section("Software Update") {
+                if let latest = installer.latestVersion {
+                    LabeledContent("Latest container release", value: latest)
+                }
+                cliUpdateRow
             }
 
             if let usage = system.diskUsage {
@@ -67,6 +75,7 @@ struct SystemAreaView: View {
         .formStyle(.grouped)
         .navigationTitle("System")
         .task { await dnsStore.refresh() }
+        .task { await installer.checkForUpdates() }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -91,6 +100,39 @@ struct SystemAreaView: View {
         }
     }
 
+    @ViewBuilder
+    private var cliUpdateRow: some View {
+        switch installer.phase {
+        case .downloading(let fraction):
+            VStack(alignment: .leading, spacing: 4) {
+                ProgressView(value: fraction)
+                Text("Downloading… \(String(Int(fraction * 100)))%")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        case .checking, .verifying, .installing:
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text(installer.phaseDescription).foregroundStyle(.secondary)
+            }
+        case .failed(let message):
+            Label(message, systemImage: "exclamationmark.triangle")
+                .font(.callout)
+                .foregroundStyle(.red)
+        default:
+            if installer.isUpdateAvailable {
+                Button {
+                    Task { await installer.installOrUpdate() }
+                } label: {
+                    Label("Update to \(installer.targetVersion)", systemImage: "arrow.down.circle")
+                }
+            } else {
+                Label("Up to date", systemImage: "checkmark.circle")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     private var dnsRemovalBinding: Binding<Bool> {
         Binding(get: { pendingDNSRemoval != nil }, set: { if !$0 { pendingDNSRemoval = nil } })
     }
@@ -107,6 +149,7 @@ struct SystemAreaView: View {
         isRefreshing = true
         await system.refresh()
         await dnsStore.refresh()
+        await installer.checkForUpdates()
         isRefreshing = false
     }
 
