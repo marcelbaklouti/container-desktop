@@ -2,7 +2,10 @@ import SwiftUI
 
 struct SystemAreaView: View {
     @Environment(SystemController.self) private var system
+    @State private var dnsStore = DNSStore()
     @State private var isRefreshing = false
+    @State private var showAddDNS = false
+    @State private var pendingDNSRemoval: String?
 
     var body: some View {
         Form {
@@ -30,6 +33,27 @@ struct SystemAreaView: View {
                 }
             }
 
+            Section("Local DNS domains") {
+                ForEach(dnsStore.domains, id: \.self) { domain in
+                    HStack {
+                        Text(domain).monospaced()
+                        Spacer()
+                        Button(role: .destructive) { pendingDNSRemoval = domain } label: {
+                            Image(systemName: "minus.circle.fill")
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("Delete domain \(domain)")
+                    }
+                }
+                Button { showAddDNS = true } label: { Label("Add Domain…", systemImage: "plus.circle") }
+                if let dnsError = dnsStore.errorMessage {
+                    Label(dnsError, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+
             Section {
                 Button(role: .destructive) {
                     Task { await stop() }
@@ -40,6 +64,7 @@ struct SystemAreaView: View {
         }
         .formStyle(.grouped)
         .navigationTitle("System")
+        .task { await dnsStore.refresh() }
         .toolbar {
             Button {
                 Task { await refresh() }
@@ -48,6 +73,16 @@ struct SystemAreaView: View {
             }
             .disabled(isRefreshing)
         }
+        .sheet(isPresented: $showAddDNS) { AddDNSDomainSheet(store: dnsStore) }
+        .confirmationDialog("Delete this DNS domain?", isPresented: dnsRemovalBinding, presenting: pendingDNSRemoval) { domain in
+            Button("Delete", role: .destructive) { Task { await dnsStore.remove(domain: domain) } }
+        } message: { domain in
+            Text("“\(domain)” — requires administrator authorization.")
+        }
+    }
+
+    private var dnsRemovalBinding: Binding<Bool> {
+        Binding(get: { pendingDNSRemoval != nil }, set: { if !$0 { pendingDNSRemoval = nil } })
     }
 
     private func diskRow(_ title: LocalizedStringKey, entry: DiskUsageEntry) -> some View {
@@ -61,10 +96,53 @@ struct SystemAreaView: View {
     private func refresh() async {
         isRefreshing = true
         await system.refresh()
+        await dnsStore.refresh()
         isRefreshing = false
     }
 
     private func stop() async {
         try? await system.stop()
+    }
+}
+
+struct AddDNSDomainSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let store: DNSStore
+
+    @State private var domain = ""
+    @State private var localhost = ""
+    @State private var isWorking = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Local DNS domain") {
+                    TextField("Domain", text: $domain, prompt: Text("test"))
+                    TextField("Localhost address", text: $localhost, prompt: Text("optional, e.g. 127.0.0.1"))
+                }
+                Section {
+                    Text("Creating a local DNS domain requires administrator authorization.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .formStyle(.grouped)
+            .navigationTitle("Add DNS Domain")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(isWorking ? "Adding…" : "Add") {
+                        Task {
+                            isWorking = true
+                            await store.add(domain: domain, localhost: localhost)
+                            isWorking = false
+                            dismiss()
+                        }
+                    }
+                    .disabled(domain.isEmpty || isWorking)
+                }
+            }
+        }
+        .frame(minWidth: 440, minHeight: 300)
     }
 }
