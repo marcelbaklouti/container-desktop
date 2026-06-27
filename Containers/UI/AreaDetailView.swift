@@ -7,6 +7,8 @@ struct AreaDetailView: View {
         switch area {
         case .system:
             SystemAreaView()
+        case .containers:
+            ContainersListView()
         default:
             AreaPlaceholderView(area: area)
         }
