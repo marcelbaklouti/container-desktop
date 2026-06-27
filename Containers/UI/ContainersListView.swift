@@ -5,15 +5,18 @@ struct ContainersListView: View {
     @State private var runningOnly = false
     @State private var pendingDeletion: Container?
     @State private var showRunSheet = false
+    @State private var selectedContainerID: String?
+    @State private var showInspector = false
 
     private var visibleContainers: [Container] {
         runningOnly ? store.containers.filter { $0.status?.state == "running" } : store.containers
     }
 
     var body: some View {
-        List {
+        List(selection: $selectedContainerID) {
             ForEach(visibleContainers) { container in
                 ContainerRow(container: container)
+                    .tag(container.id)
                     .contextMenu { actions(for: container) }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
@@ -46,6 +49,13 @@ struct ContainersListView: View {
                     Label("Run Container", systemImage: "plus")
                 }
             }
+            ToolbarItem {
+                Button {
+                    showInspector.toggle()
+                } label: {
+                    Label("Inspector", systemImage: "sidebar.trailing")
+                }
+            }
         }
         .task { await store.poll(every: .seconds(3)) }
         .confirmationDialog(
@@ -66,6 +76,16 @@ struct ContainersListView: View {
         }
         .sheet(isPresented: $showRunSheet) {
             RunContainerSheet(store: store)
+        }
+        .inspector(isPresented: $showInspector) {
+            if let selected = store.containers.first(where: { $0.id == selectedContainerID }) {
+                ContainerDetailView(container: selected)
+            } else {
+                ContentUnavailableView("No Selection", systemImage: "shippingbox", description: Text("Select a container to inspect it."))
+            }
+        }
+        .onChange(of: selectedContainerID) { _, newValue in
+            if newValue != nil { showInspector = true }
         }
     }
 
