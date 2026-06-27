@@ -28,6 +28,8 @@ struct SettingsView: View {
     @AppStorage("appearance") private var appearance = Appearance.system
     @AppStorage("defaultCPUs") private var defaultCPUs = ""
     @AppStorage("defaultMemory") private var defaultMemory = ""
+    @AppStorage("notifyExits") private var notifyExits = true
+    @AppStorage("notifyDaemon") private var notifyDaemon = true
 
     var body: some View {
         TabView {
@@ -49,7 +51,16 @@ struct SettingsView: View {
             }
             .formStyle(.grouped)
             .tabItem { Label("Defaults", systemImage: "shippingbox") }
+
+            Form {
+                Section("Notifications") {
+                    Toggle("Container exits unexpectedly", isOn: $notifyExits)
+                    Toggle("Daemon stops", isOn: $notifyDaemon)
+                }
+            }
+            .formStyle(.grouped)
+            .tabItem { Label("Notifications", systemImage: "bell") }
         }
-        .frame(width: 480, height: 300)
+        .frame(width: 480, height: 320)
     }
 }

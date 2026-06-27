@@ -12,6 +12,7 @@ struct ContainersApp: App {
                 .environment(appModel.containers)
                 .environment(appModel.stats)
                 .task {
+                    Notifier.requestAuthorization()
                     await appModel.system.refresh()
                     appModel.startPolling()
                 }

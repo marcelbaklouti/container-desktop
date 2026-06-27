@@ -7,6 +7,7 @@ final class ContainerStore {
     private(set) var containers: [Container] = []
     private(set) var hasLoaded = false
     var errorMessage: String?
+    private(set) var recentlyManaged: Set<String> = []
 
     private let client: any RuntimeClient
 
@@ -39,9 +40,15 @@ final class ContainerStore {
     }
 
     func start(_ container: Container) async { await perform(["start", container.id]) }
-    func stop(_ container: Container) async { await perform(["stop", container.id]) }
-    func kill(_ container: Container) async { await perform(["kill", container.id]) }
+    func stop(_ container: Container) async { markManaged(container.id); await perform(["stop", container.id]) }
+    func kill(_ container: Container) async { markManaged(container.id); await perform(["kill", container.id]) }
     func delete(_ container: Container) async { await perform(["delete", container.id]) }
+
+    func markManaged(_ id: String) { recentlyManaged.insert(id) }
+
+    func consumeManaged(_ id: String) -> Bool {
+        recentlyManaged.remove(id) != nil
+    }
 
     func create(arguments: [String]) async throws {
         _ = try await client.data(for: arguments)
@@ -57,6 +64,7 @@ final class ContainerStore {
     }
 
     func restart(_ container: Container) async {
+        markManaged(container.id)
         await perform(["stop", container.id])
         await perform(["start", container.id])
     }
