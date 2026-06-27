@@ -3,6 +3,7 @@ import AppKit
 
 struct ContainersListView: View {
     @State private var store = ContainerStore()
+    @State private var searchText = ""
     @State private var runningOnly = false
     @State private var pendingDeletion: Container?
     @State private var showRunSheet = false
@@ -11,7 +12,12 @@ struct ContainersListView: View {
     @State private var pendingCopy: Container?
 
     private var visibleContainers: [Container] {
-        runningOnly ? store.containers.filter { $0.status?.state == "running" } : store.containers
+        let base = runningOnly ? store.containers.filter { $0.status?.state == "running" } : store.containers
+        guard !searchText.isEmpty else { return base }
+        return base.filter {
+            $0.id.localizedCaseInsensitiveContains(searchText)
+                || $0.configuration.image.reference.localizedCaseInsensitiveContains(searchText)
+        }
     }
 
     private struct ContainerGroup: Identifiable {
@@ -64,6 +70,7 @@ struct ContainersListView: View {
         }
         .overlay { emptyState }
         .navigationTitle("Containers")
+        .searchable(text: $searchText, prompt: "Filter containers")
         .toolbar {
             ToolbarItem {
                 Toggle(isOn: $runningOnly) {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MachinesListView: View {
     @State private var store = MachineStore()
+    @State private var searchText = ""
     @State private var selectedID: String?
     @State private var showInspector = false
     @State private var showCreate = false
@@ -11,7 +12,7 @@ struct MachinesListView: View {
 
     var body: some View {
         List(selection: $selectedID) {
-            ForEach(store.machines) { machine in
+            ForEach(store.machines.filter { searchText.isEmpty || $0.id.localizedCaseInsensitiveContains(searchText) }) { machine in
                 MachineRow(machine: machine)
                     .tag(machine.id)
                     .contextMenu { actions(for: machine) }
@@ -19,6 +20,7 @@ struct MachinesListView: View {
         }
         .overlay { emptyState }
         .navigationTitle("Machines")
+        .searchable(text: $searchText, prompt: "Filter machines")
         .toolbar {
             ToolbarItem {
                 Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.trailing") }

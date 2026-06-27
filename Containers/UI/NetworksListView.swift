@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NetworksListView: View {
     @State private var store = NetworkStore()
+    @State private var searchText = ""
     @State private var selectedID: String?
     @State private var showInspector = false
     @State private var showCreate = false
@@ -9,7 +10,7 @@ struct NetworksListView: View {
 
     var body: some View {
         List(selection: $selectedID) {
-            ForEach(store.networks) { network in
+            ForEach(store.networks.filter { searchText.isEmpty || $0.configuration.name.localizedCaseInsensitiveContains(searchText) }) { network in
                 NetworkRow(network: network)
                     .tag(network.id)
                     .contextMenu { deleteButton(network) }
@@ -18,6 +19,7 @@ struct NetworksListView: View {
         }
         .overlay { emptyState }
         .navigationTitle("Networks")
+        .searchable(text: $searchText, prompt: "Filter networks")
         .toolbar {
             ToolbarItem {
                 Button { Task { await store.prune() } } label: { Label("Prune", systemImage: "wand.and.rays") }

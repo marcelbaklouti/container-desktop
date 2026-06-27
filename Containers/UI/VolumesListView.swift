@@ -2,6 +2,7 @@ import SwiftUI
 
 struct VolumesListView: View {
     @State private var store = VolumeStore()
+    @State private var searchText = ""
     @State private var selectedID: String?
     @State private var showInspector = false
     @State private var showCreate = false
@@ -9,7 +10,7 @@ struct VolumesListView: View {
 
     var body: some View {
         List(selection: $selectedID) {
-            ForEach(store.volumes) { volume in
+            ForEach(store.volumes.filter { searchText.isEmpty || $0.configuration.name.localizedCaseInsensitiveContains(searchText) }) { volume in
                 VolumeRow(volume: volume)
                     .tag(volume.id)
                     .contextMenu { deleteButton(volume) }
@@ -18,6 +19,7 @@ struct VolumesListView: View {
         }
         .overlay { emptyState }
         .navigationTitle("Volumes")
+        .searchable(text: $searchText, prompt: "Filter volumes")
         .toolbar {
             ToolbarItem {
                 Button { Task { await store.prune() } } label: { Label("Prune", systemImage: "wand.and.rays") }

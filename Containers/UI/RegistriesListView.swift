@@ -2,12 +2,13 @@ import SwiftUI
 
 struct RegistriesListView: View {
     @State private var store = RegistryStore()
+    @State private var searchText = ""
     @State private var showLogin = false
     @State private var pendingLogout: RegistryLogin?
 
     var body: some View {
         List {
-            ForEach(store.logins) { login in
+            ForEach(store.logins.filter { searchText.isEmpty || $0.hostname.localizedCaseInsensitiveContains(searchText) }) { login in
                 HStack(spacing: 12) {
                     Image(systemName: "person.badge.key.fill")
                         .foregroundStyle(.tint)
@@ -36,6 +37,7 @@ struct RegistriesListView: View {
         }
         .overlay { emptyState }
         .navigationTitle("Registries")
+        .searchable(text: $searchText, prompt: "Filter registries")
         .toolbar {
             ToolbarItem {
                 Button { Task { await store.refresh() } } label: { Label("Refresh", systemImage: "arrow.clockwise") }

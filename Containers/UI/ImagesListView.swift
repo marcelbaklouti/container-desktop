@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ImagesListView: View {
     @State private var store = ImageStore()
+    @State private var searchText = ""
     @State private var selectedID: String?
     @State private var showInspector = false
     @State private var showPull = false
@@ -12,7 +13,7 @@ struct ImagesListView: View {
 
     var body: some View {
         List(selection: $selectedID) {
-            ForEach(store.images) { image in
+            ForEach(filteredImages) { image in
                 ImageRow(image: image)
                     .tag(image.id)
                     .contextMenu { actions(for: image) }
@@ -23,6 +24,7 @@ struct ImagesListView: View {
         }
         .overlay { emptyState }
         .navigationTitle("Images")
+        .searchable(text: $searchText, prompt: "Filter images")
         .toolbar {
             ToolbarItem {
                 Button { Task { await store.prune() } } label: { Label("Prune", systemImage: "wand.and.rays") }
@@ -60,6 +62,11 @@ struct ImagesListView: View {
         } message: {
             Text(store.errorMessage ?? "")
         }
+    }
+
+    private var filteredImages: [ContainerImage] {
+        guard !searchText.isEmpty else { return store.images }
+        return store.images.filter { ImageName.short($0.configuration.name).localizedCaseInsensitiveContains(searchText) }
     }
 
     @ViewBuilder
