@@ -129,6 +129,7 @@ struct ContainerDetailView: View {
             }
         }
         .formStyle(.grouped)
+        .textSelection(.enabled)
         .navigationTitle(container.id)
     }
 

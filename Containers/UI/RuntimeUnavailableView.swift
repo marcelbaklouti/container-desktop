@@ -6,19 +6,12 @@ struct RuntimeUnavailableView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        VStack(spacing: 18) {
-            Image(systemName: symbol)
-                .font(.system(size: 52))
-                .foregroundStyle(.secondary)
-            Text(title)
-                .font(.title2.weight(.semibold))
+        ContentUnavailableView {
+            Label(title, systemImage: symbol)
+        } description: {
             Text(message)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
-
+        } actions: {
             action
-
             if let errorMessage {
                 Text(errorMessage)
                     .font(.callout)
@@ -26,8 +19,6 @@ struct RuntimeUnavailableView: View {
                     .multilineTextAlignment(.center)
             }
         }
-        .padding(48)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Container Desktop")
     }
 
@@ -54,8 +45,8 @@ struct RuntimeUnavailableView: View {
 
     private var symbol: String {
         switch system.state {
-        case .binaryMissing: "exclamationmark.triangle"
-        default: "pause.circle"
+        case .binaryMissing: "exclamationmark.triangle.fill"
+        default: "stop.circle"
         }
     }
 

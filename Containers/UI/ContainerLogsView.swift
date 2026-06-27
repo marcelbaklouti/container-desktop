@@ -28,6 +28,11 @@ struct ContainerLogsView: View {
                     guard follow, let last = lines.last else { return }
                     proxy.scrollTo(last.id, anchor: .bottom)
                 }
+                .overlay {
+                    if lines.isEmpty && errorMessage == nil {
+                        ContentUnavailableView("No Log Output", systemImage: "text.alignleft", description: Text("This container hasn’t written any logs yet."))
+                    }
+                }
             }
 
             if let errorMessage {

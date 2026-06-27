@@ -16,7 +16,7 @@ struct MenuBarContentView: View {
             Divider()
             footer
         }
-        .frame(width: 320)
+        .frame(minWidth: 320)
     }
 
     private var running: [Container] {
@@ -67,12 +67,16 @@ struct MenuBarContentView: View {
     @ViewBuilder
     private var content: some View {
         if !appModel.daemonRunning {
-            Label("The container daemon is not running.", systemImage: "exclamationmark.triangle")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 18)
-                .padding(.horizontal, 12)
+            VStack(spacing: 10) {
+                Label("The container system is stopped.", systemImage: "stop.circle")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Button("Start") { Task { try? await system.start() } }
+                    .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .padding(.horizontal, 12)
         } else if running.isEmpty {
             Label("No running containers", systemImage: "shippingbox")
                 .font(.callout)
@@ -101,7 +105,6 @@ struct MenuBarContentView: View {
             }
             Spacer()
             Button("Quit") { NSApp.terminate(nil) }
-                .foregroundStyle(.secondary)
         }
         .padding(12)
     }

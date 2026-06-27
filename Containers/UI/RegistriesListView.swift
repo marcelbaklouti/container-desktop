@@ -99,8 +99,11 @@ struct RegistryLoginSheet: View {
             Form {
                 Section("Registry") {
                     TextField("Server", text: $server, prompt: Text("docker.io"))
+                        .textContentType(.URL)
                     TextField("Username", text: $username)
+                        .textContentType(.username)
                     SecureField("Password", text: $password)
+                        .textContentType(.password)
                 }
                 if let error {
                     Section { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }

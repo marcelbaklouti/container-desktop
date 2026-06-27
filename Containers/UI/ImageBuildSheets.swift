@@ -32,13 +32,15 @@ struct BuildImageSheet: View {
                 Section("Build args") {
                     ForEach($buildArgs) { $arg in
                         HStack {
-                            TextField("KEY", text: $arg.key)
-                            TextField("value", text: $arg.value)
+                            TextField("Name", text: $arg.key)
+                            TextField("Value", text: $arg.value)
                             Button(role: .destructive) { buildArgs.removeAll { $0.id == arg.id } } label: {
                                 Image(systemName: "minus.circle.fill")
                             }
                             .buttonStyle(.borderless)
                             .foregroundStyle(.secondary)
+                            .help("Remove Build Argument")
+                            .accessibilityLabel("Remove Build Argument")
                         }
                     }
                     Button { buildArgs.append(KeyValue()) } label: { Label("Add Build Arg", systemImage: "plus.circle") }

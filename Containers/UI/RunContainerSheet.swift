@@ -37,8 +37,8 @@ struct RunContainerSheet: View {
                 Section("Environment") {
                     ForEach($config.environment) { $variable in
                         HStack {
-                            TextField("KEY", text: $variable.key)
-                            TextField("value", text: $variable.value)
+                            TextField("Name", text: $variable.key)
+                            TextField("Value", text: $variable.value)
                             removeButton("Remove Variable") { config.environment.removeAll { $0.id == variable.id } }
                         }
                     }

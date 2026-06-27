@@ -144,6 +144,7 @@ struct NetworkDetailView: View {
             }
         }
         .formStyle(.grouped)
+        .textSelection(.enabled)
         .navigationTitle(network.configuration.name)
     }
 }

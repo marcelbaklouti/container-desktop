@@ -34,9 +34,11 @@ struct SettingsView: View {
     var body: some View {
         TabView {
             Form {
-                Picker("Appearance", selection: $appearance) {
-                    ForEach(Appearance.allCases) { appearance in
-                        Text(appearance.label).tag(appearance)
+                Section("Appearance") {
+                    Picker("Appearance", selection: $appearance) {
+                        ForEach(Appearance.allCases) { appearance in
+                            Text(appearance.label).tag(appearance)
+                        }
                     }
                 }
             }
@@ -50,7 +52,7 @@ struct SettingsView: View {
                 }
             }
             .formStyle(.grouped)
-            .tabItem { Label("Defaults", systemImage: "shippingbox") }
+            .tabItem { Label("Defaults", systemImage: "slider.horizontal.3") }
 
             Form {
                 Section("Notifications") {
@@ -61,6 +63,6 @@ struct SettingsView: View {
             .formStyle(.grouped)
             .tabItem { Label("Notifications", systemImage: "bell") }
         }
-        .frame(width: 480, height: 320)
+        .frame(minWidth: 480, minHeight: 360)
     }
 }

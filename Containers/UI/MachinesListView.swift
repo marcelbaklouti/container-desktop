@@ -152,6 +152,7 @@ struct MachineDetailView: View {
             }
         }
         .formStyle(.grouped)
+        .textSelection(.enabled)
         .navigationTitle(machine.id)
     }
 }

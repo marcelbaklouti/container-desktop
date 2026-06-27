@@ -25,8 +25,12 @@ struct ContainerInspector: View {
             case .stats:
                 ContainerStatsView(containerID: container.id)
             case .terminal:
-                ContainerTerminalView(containerID: container.id)
-                    .frame(minHeight: 320)
+                if container.status?.state == "running" {
+                    ContainerTerminalView(containerID: container.id)
+                        .frame(minHeight: 320)
+                } else {
+                    ContentUnavailableView("Container Not Running", systemImage: "terminal", description: Text("Start the container to open a shell."))
+                }
             }
         }
     }

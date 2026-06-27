@@ -21,16 +21,16 @@ struct CopyFilesSheet: View {
         NavigationStack {
             Form {
                 Picker("Direction", selection: $direction) {
-                    Text("From container").tag(Direction.fromContainer)
-                    Text("To container").tag(Direction.toContainer)
+                    Text("From Container").tag(Direction.fromContainer)
+                    Text("To Container").tag(Direction.toContainer)
                 }
                 .pickerStyle(.segmented)
 
-                Section("Container path") {
+                Section("Container Path") {
                     TextField("Path inside the container", text: $containerPath, prompt: Text("/etc/hosts"))
                 }
 
-                Section("Local path") {
+                Section("Local Path") {
                     HStack {
                         TextField("Path on this Mac", text: $localPath, prompt: Text("/Users/…"))
                         Button("Browse…") { browse() }

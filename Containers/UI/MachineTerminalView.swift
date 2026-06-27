@@ -28,7 +28,8 @@ struct MachineTerminalSheet: View {
     var body: some View {
         NavigationStack {
             MachineTerminalView(machineID: machineID)
-                .navigationTitle("Shell — \(machineID)")
+                .navigationTitle("Shell")
+                .navigationSubtitle(machineID)
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) { Button("Close") { dismiss() } }
                 }

@@ -5,13 +5,18 @@ struct BuilderView: View {
     @State private var client = ContainerCLI()
     @State private var isRunning = false
     @State private var isWorking = false
+    @State private var unreachable = false
     @State private var errorMessage: String?
 
     var body: some View {
         Form {
             Section("Builder") {
                 LabeledContent("Status") {
-                    StatusBadge(text: isRunning ? "Running" : "Stopped", tint: isRunning ? .green : .gray)
+                    if unreachable {
+                        StatusBadge(text: "Unavailable", tint: .orange)
+                    } else {
+                        StatusBadge(text: isRunning ? "Running" : "Stopped", tint: isRunning ? .green : .gray)
+                    }
                 }
                 Text("The builder is a Linux container that runs image builds. Building an image starts it automatically if needed.")
                     .font(.callout)
@@ -58,8 +63,10 @@ struct BuilderView: View {
             let data = try await client.data(for: ["builder", "status", "--format", "json"])
             let array = (try? JSONSerialization.jsonObject(with: data)) as? [Any]
             isRunning = (array?.isEmpty == false)
+            unreachable = false
         } catch {
             isRunning = false
+            unreachable = true
         }
     }
 

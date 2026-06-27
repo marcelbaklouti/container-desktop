@@ -230,6 +230,7 @@ struct ImageDetailView: View {
             }
         }
         .formStyle(.grouped)
+        .textSelection(.enabled)
         .navigationTitle(ImageName.short(image.configuration.name))
     }
 

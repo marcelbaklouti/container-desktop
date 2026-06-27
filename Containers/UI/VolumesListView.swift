@@ -167,6 +167,7 @@ struct VolumeDetailView: View {
             }
         }
         .formStyle(.grouped)
+        .textSelection(.enabled)
         .navigationTitle(volume.configuration.name)
     }
 }
