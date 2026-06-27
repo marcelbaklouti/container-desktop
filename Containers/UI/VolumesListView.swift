@@ -110,7 +110,7 @@ struct VolumeDetailView: View {
                 LabeledContent("Size") {
                     Text(Int64(volume.configuration.sizeInBytes), format: .byteCount(style: .file))
                 }
-                LabeledContent("Created", value: volume.configuration.creationDate)
+                LabeledContent("Created", value: DateText.relative(volume.configuration.creationDate))
             }
             Section("Source") {
                 Text(volume.configuration.source)

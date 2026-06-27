@@ -7,12 +7,25 @@ struct ContainerDetailView: View {
         Form {
             Section {
                 LabeledContent("Image", value: container.configuration.image.reference)
-                LabeledContent("Created", value: container.configuration.creationDate)
+                LabeledContent("Created", value: DateText.relative(container.configuration.creationDate))
+                if let started = container.status?.startedDate, let uptime = DateText.uptime(since: started) {
+                    LabeledContent("Uptime", value: uptime)
+                }
                 LabeledContent("Platform", value: "\(container.configuration.platform.os)/\(container.configuration.platform.architecture)")
                 LabeledContent("Runtime", value: container.configuration.runtimeHandler)
                 if let state = container.status?.state {
                     LabeledContent("State") {
                         StatusBadge(text: LocalizedStringKey(state.capitalized), tint: state == "running" ? .green : .gray)
+                    }
+                }
+            }
+
+            if !container.configuration.publishedPorts.isEmpty {
+                Section("Ports") {
+                    ForEach(container.configuration.publishedPorts, id: \.self) { port in
+                        LabeledContent(port.display) {
+                            Text(port.hostAddress).foregroundStyle(.secondary)
+                        }
                     }
                 }
             }

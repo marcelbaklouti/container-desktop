@@ -28,7 +28,7 @@ struct RuntimeUnavailableView: View {
         }
         .padding(48)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle("Containers")
+        .navigationTitle("Container Desktop")
     }
 
     @ViewBuilder

@@ -122,7 +122,7 @@ struct MachineDetailView: View {
                 }
                 LabeledContent("Default", value: machine.isDefault ? "Yes" : "No")
                 if let ip = machine.ipAddress { LabeledContent("IP", value: ip) }
-                LabeledContent("Created", value: machine.createdDate)
+                LabeledContent("Created", value: DateText.relative(machine.createdDate))
             }
             Section("Resources") {
                 LabeledContent("CPUs", value: machine.cpus.formatted())

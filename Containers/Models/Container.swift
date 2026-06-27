@@ -19,6 +19,7 @@ nonisolated struct ContainerConfiguration: Codable, Sendable, Hashable {
     let initProcess: ContainerProcess
     let resources: ContainerResources
     let networks: [ContainerNetworkAttachment]
+    let publishedPorts: [PublishedPort]
     let labels: [String: String]
     let platform: Platform
     let runtimeHandler: String
@@ -57,6 +58,15 @@ nonisolated struct ContainerResources: Codable, Sendable, Hashable {
 
 nonisolated struct ContainerNetworkAttachment: Codable, Sendable, Hashable {
     let network: String
+}
+
+nonisolated struct PublishedPort: Codable, Sendable, Hashable {
+    let hostAddress: String
+    let hostPort: Int
+    let containerPort: Int
+    let proto: String
+
+    var display: String { "\(hostPort):\(containerPort)/\(proto)" }
 }
 
 nonisolated struct ContainerStatus: Codable, Sendable, Hashable {

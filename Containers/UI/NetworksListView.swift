@@ -109,7 +109,7 @@ struct NetworkDetailView: View {
                 LabeledContent("Name", value: network.configuration.name)
                 LabeledContent("Mode", value: network.configuration.mode)
                 LabeledContent("Plugin", value: network.configuration.plugin)
-                LabeledContent("Created", value: network.configuration.creationDate)
+                LabeledContent("Created", value: DateText.relative(network.configuration.creationDate))
             }
             if let status = network.status {
                 Section("Addressing") {

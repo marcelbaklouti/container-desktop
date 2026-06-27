@@ -120,7 +120,7 @@ struct ImageDetailView: View {
             Section {
                 LabeledContent("Reference", value: image.configuration.name)
                 LabeledContent("Digest", value: image.shortDigest)
-                LabeledContent("Created", value: image.configuration.creationDate)
+                LabeledContent("Created", value: DateText.relative(image.configuration.creationDate))
             }
             Section("Platforms") {
                 ForEach(image.realPlatforms, id: \.digest) { variant in

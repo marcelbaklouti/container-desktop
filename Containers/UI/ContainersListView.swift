@@ -194,20 +194,33 @@ struct ContainerRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(container.id)
                     .font(.headline)
-                Text(container.configuration.image.reference)
+                Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            if let address = container.status?.networks.first?.ipv4Address {
-                Text(address)
-                    .font(.caption.monospaced())
+            if let uptime {
+                Text(uptime)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
             StatusBadge(text: stateText, tint: stateTint)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
+    }
+
+    private var subtitle: String {
+        let image = container.configuration.image.reference
+        let ports = container.configuration.publishedPorts
+        guard !ports.isEmpty else { return image }
+        let portText = ports.map { "\($0.hostPort)→\($0.containerPort)" }.joined(separator: ", ")
+        return "\(image) · \(portText)"
+    }
+
+    private var uptime: String? {
+        guard state == "running", let started = container.status?.startedDate else { return nil }
+        return DateText.uptime(since: started).map { "Up \($0)" }
     }
 
     private var state: String {

@@ -23,7 +23,7 @@ struct ContentView: View {
                 }
             }
             .navigationSplitViewColumnWidth(min: 200, ideal: 220)
-            .navigationTitle("Containers")
+            .navigationTitle("Container Desktop")
         } detail: {
             detail
         }
