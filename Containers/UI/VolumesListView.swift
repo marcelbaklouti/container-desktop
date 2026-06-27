@@ -100,7 +100,7 @@ struct VolumeRow: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(volume.configuration.name).font(.headline)
-                Text("\(volume.configuration.driver) · \(volume.configuration.format)")
+                Text(verbatim: "\(volume.configuration.driver) · \(volume.configuration.format)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
