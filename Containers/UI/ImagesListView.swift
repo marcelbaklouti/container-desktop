@@ -11,6 +11,7 @@ struct ImagesListView: View {
     @State private var pushing: ContainerImage?
     @State private var pendingDeletion: ContainerImage?
     @State private var showBuild = false
+    @State private var confirmingPrune = false
 
     var body: some View {
         List(selection: $selectedID) {
@@ -27,20 +28,25 @@ struct ImagesListView: View {
         .navigationTitle("Images")
         .searchable(text: $searchText, prompt: "Filter images")
         .toolbar {
-            ToolbarItem {
-                Button { Task { await store.prune() } } label: { Label("Prune", systemImage: "wand.and.rays") }
-            }
-            ToolbarItem {
-                Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.trailing") }
-            }
-            ToolbarItem {
-                Button { importImage() } label: { Label("Import Image", systemImage: "arrow.up.doc") }
-            }
-            ToolbarItem {
+            ToolbarItemGroup {
                 Button { showPull = true } label: { Label("Pull Image", systemImage: "arrow.down.circle") }
+                    .help("Pull Image…")
+                Button { showBuild = true } label: { Label("Build Image", systemImage: "hammer") }
+                    .help("Build Image…")
+                Button { importImage() } label: { Label("Import Image", systemImage: "arrow.up.doc") }
+                    .help("Import Image…")
             }
             ToolbarItem {
-                Button { showBuild = true } label: { Label("Build Image", systemImage: "hammer") }
+                Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
+                    .help(showInspector ? "Hide Inspector" : "Show Inspector")
+            }
+            ToolbarItem {
+                Menu {
+                    Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Images", systemImage: "trash") }
+                } label: {
+                    Label("More", systemImage: "ellipsis.circle")
+                }
+                .help("More Actions")
             }
         }
         .task { await store.poll(every: .seconds(5)) }
@@ -51,7 +57,6 @@ struct ImagesListView: View {
                 ContentUnavailableView("No Selection", systemImage: "square.stack.3d.up", description: Text("Select an image to inspect it."))
             }
         }
-        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showPull) { PullImageSheet(store: store) }
         .sheet(isPresented: $showBuild) { BuildImageSheet(store: store) }
         .sheet(item: $tagging) { image in TagImageSheet(store: store, image: image) }
@@ -60,6 +65,11 @@ struct ImagesListView: View {
             Button("Delete", role: .destructive) { Task { await store.delete(image) } }
         } message: { image in
             Text(image.configuration.name)
+        }
+        .confirmationDialog("Remove all unused images?", isPresented: $confirmingPrune) {
+            Button("Remove Unused Images", role: .destructive) { Task { await store.prune() } }
+        } message: {
+            Text("This permanently deletes every image not used by a container.")
         }
         .alert("Something went wrong", isPresented: errorBinding) {
             Button("OK", role: .cancel) {}

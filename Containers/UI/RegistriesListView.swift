@@ -41,9 +41,12 @@ struct RegistriesListView: View {
         .toolbar {
             ToolbarItem {
                 Button { Task { await store.refresh() } } label: { Label("Refresh", systemImage: "arrow.clockwise") }
+                    .help("Refresh")
             }
             ToolbarItem {
                 Button { showLogin = true } label: { Label("Log In", systemImage: "plus") }
+                    .help("Log In to Registry…")
+                    .accessibilityLabel("Log In to a Registry")
             }
         }
         .task { await store.refresh() }

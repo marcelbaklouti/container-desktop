@@ -46,7 +46,10 @@ struct BuilderView: View {
         .navigationTitle("Builder")
         .task { await refresh() }
         .toolbar {
-            Button { Task { await refresh() } } label: { Label("Refresh", systemImage: "arrow.clockwise") }
+            ToolbarItem(placement: .primaryAction) {
+                Button { Task { await refresh() } } label: { Label("Refresh", systemImage: "arrow.clockwise") }
+                    .help("Refresh Builder Status")
+            }
         }
     }
 

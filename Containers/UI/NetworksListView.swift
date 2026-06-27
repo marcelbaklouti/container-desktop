@@ -7,6 +7,7 @@ struct NetworksListView: View {
     @State private var showInspector = false
     @State private var showCreate = false
     @State private var pendingDeletion: Network?
+    @State private var confirmingPrune = false
 
     var body: some View {
         List(selection: $selectedID) {
@@ -22,13 +23,20 @@ struct NetworksListView: View {
         .searchable(text: $searchText, prompt: "Filter networks")
         .toolbar {
             ToolbarItem {
-                Button { Task { await store.prune() } } label: { Label("Prune", systemImage: "wand.and.rays") }
-            }
-            ToolbarItem {
-                Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.trailing") }
-            }
-            ToolbarItem {
                 Button { showCreate = true } label: { Label("Create Network", systemImage: "plus") }
+                    .help("Create Network…")
+            }
+            ToolbarItem {
+                Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
+                    .help(showInspector ? "Hide Inspector" : "Show Inspector")
+            }
+            ToolbarItem {
+                Menu {
+                    Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Networks", systemImage: "trash") }
+                } label: {
+                    Label("More", systemImage: "ellipsis.circle")
+                }
+                .help("More Actions")
             }
         }
         .task { await store.poll(every: .seconds(4)) }
@@ -39,12 +47,16 @@ struct NetworksListView: View {
                 ContentUnavailableView("No Selection", systemImage: "network", description: Text("Select a network to inspect it."))
             }
         }
-        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showCreate) { CreateNetworkSheet(store: store) }
         .confirmationDialog("Delete this network?", isPresented: deletionBinding, presenting: pendingDeletion) { network in
             Button("Delete", role: .destructive) { Task { await store.delete(network) } }
         } message: { network in
             Text(network.id)
+        }
+        .confirmationDialog("Remove all unused networks?", isPresented: $confirmingPrune) {
+            Button("Remove Unused Networks", role: .destructive) { Task { await store.prune() } }
+        } message: {
+            Text("This permanently deletes every network with no attached containers.")
         }
         .alert("Something went wrong", isPresented: errorBinding) {
             Button("OK", role: .cancel) {}

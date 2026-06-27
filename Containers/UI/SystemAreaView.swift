@@ -6,6 +6,7 @@ struct SystemAreaView: View {
     @State private var isRefreshing = false
     @State private var showAddDNS = false
     @State private var pendingDNSRemoval: String?
+    @State private var confirmingStop = false
 
     var body: some View {
         Form {
@@ -44,6 +45,7 @@ struct SystemAreaView: View {
                         .buttonStyle(.borderless)
                         .foregroundStyle(.secondary)
                         .accessibilityLabel("Delete domain \(domain)")
+                        .help("Delete Domain \(domain)")
                     }
                 }
                 Button { showAddDNS = true } label: { Label("Add Domain…", systemImage: "plus.circle") }
@@ -56,7 +58,7 @@ struct SystemAreaView: View {
 
             Section {
                 Button(role: .destructive) {
-                    Task { await stop() }
+                    confirmingStop = true
                 } label: {
                     Label("Stop Container System", systemImage: "stop.fill")
                 }
@@ -66,18 +68,26 @@ struct SystemAreaView: View {
         .navigationTitle("System")
         .task { await dnsStore.refresh() }
         .toolbar {
-            Button {
-                Task { await refresh() }
-            } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await refresh() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .help("Refresh")
+                .disabled(isRefreshing)
             }
-            .disabled(isRefreshing)
         }
         .sheet(isPresented: $showAddDNS) { AddDNSDomainSheet(store: dnsStore) }
         .confirmationDialog("Delete this DNS domain?", isPresented: dnsRemovalBinding, presenting: pendingDNSRemoval) { domain in
             Button("Delete", role: .destructive) { Task { await dnsStore.remove(domain: domain) } }
         } message: { domain in
             Text("“\(domain)” — requires administrator authorization.")
+        }
+        .confirmationDialog("Stop the container system?", isPresented: $confirmingStop) {
+            Button("Stop", role: .destructive) { Task { await stop() } }
+        } message: {
+            Text("All running containers will be stopped.")
         }
     }
 
@@ -118,7 +128,7 @@ struct AddDNSDomainSheet: View {
             Form {
                 Section("Local DNS domain") {
                     TextField("Domain", text: $domain, prompt: Text("test"))
-                    TextField("Localhost address", text: $localhost, prompt: Text("optional, e.g. 127.0.0.1"))
+                    TextField("IP Address", text: $localhost, prompt: Text("127.0.0.1 (optional)"))
                 }
                 Section {
                     Text("Creating a local DNS domain requires administrator authorization.")

@@ -7,6 +7,7 @@ struct VolumesListView: View {
     @State private var showInspector = false
     @State private var showCreate = false
     @State private var pendingDeletion: Volume?
+    @State private var confirmingPrune = false
 
     var body: some View {
         List(selection: $selectedID) {
@@ -22,13 +23,20 @@ struct VolumesListView: View {
         .searchable(text: $searchText, prompt: "Filter volumes")
         .toolbar {
             ToolbarItem {
-                Button { Task { await store.prune() } } label: { Label("Prune", systemImage: "wand.and.rays") }
-            }
-            ToolbarItem {
-                Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.trailing") }
-            }
-            ToolbarItem {
                 Button { showCreate = true } label: { Label("Create Volume", systemImage: "plus") }
+                    .help("Create Volume…")
+            }
+            ToolbarItem {
+                Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
+                    .help(showInspector ? "Hide Inspector" : "Show Inspector")
+            }
+            ToolbarItem {
+                Menu {
+                    Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Volumes", systemImage: "trash") }
+                } label: {
+                    Label("More", systemImage: "ellipsis.circle")
+                }
+                .help("More Actions")
             }
         }
         .task { await store.poll(every: .seconds(4)) }
@@ -39,12 +47,16 @@ struct VolumesListView: View {
                 ContentUnavailableView("No Selection", systemImage: "externaldrive", description: Text("Select a volume to inspect it."))
             }
         }
-        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showCreate) { CreateVolumeSheet(store: store) }
         .confirmationDialog("Delete this volume?", isPresented: deletionBinding, presenting: pendingDeletion) { volume in
             Button("Delete", role: .destructive) { Task { await store.delete(volume) } }
         } message: { volume in
             Text(volume.id)
+        }
+        .confirmationDialog("Remove all unused volumes?", isPresented: $confirmingPrune) {
+            Button("Remove Unused Volumes", role: .destructive) { Task { await store.prune() } }
+        } message: {
+            Text("This permanently deletes every volume not used by a container, including its data.")
         }
         .alert("Something went wrong", isPresented: errorBinding) {
             Button("OK", role: .cancel) {}

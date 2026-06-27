@@ -23,10 +23,12 @@ struct MachinesListView: View {
         .searchable(text: $searchText, prompt: "Filter machines")
         .toolbar {
             ToolbarItem {
-                Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.trailing") }
+                Button { showCreate = true } label: { Label("Create Machine", systemImage: "plus") }
+                    .help("Create Machine…")
             }
             ToolbarItem {
-                Button { showCreate = true } label: { Label("Create Machine", systemImage: "plus") }
+                Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
+                    .help(showInspector ? "Hide Inspector" : "Show Inspector")
             }
         }
         .task { await store.poll(every: .seconds(4)) }
@@ -37,7 +39,6 @@ struct MachinesListView: View {
                 ContentUnavailableView("No Selection", systemImage: "server.rack", description: Text("Select a machine to inspect it."))
             }
         }
-        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
         .sheet(isPresented: $showCreate) { CreateMachineSheet(store: store) }
         .sheet(item: $reconfiguring) { machine in ReconfigureMachineSheet(store: store, machine: machine) }
         .sheet(item: $shellMachine) { machine in MachineTerminalSheet(machineID: machine.id) }
@@ -57,9 +58,9 @@ struct MachinesListView: View {
     private func actions(for machine: Machine) -> some View {
         Button { shellMachine = machine } label: { Label("Open Shell", systemImage: "terminal") }
         if !machine.isDefault {
-            Button { Task { await store.setDefault(machine) } } label: { Label("Set as Default", systemImage: "star") }
+            Button { Task { await store.setDefault(machine) } } label: { Label("Set as Default", systemImage: "checkmark.circle") }
         }
-        Button { reconfiguring = machine } label: { Label("Reconfigure…", systemImage: "slider.horizontal.3") }
+        Button { reconfiguring = machine } label: { Label("Edit Settings…", systemImage: "gearshape") }
         if machine.isRunning {
             Button { Task { await store.stop(machine) } } label: { Label("Stop", systemImage: "stop.fill") }
         }
@@ -85,6 +86,16 @@ struct MachinesListView: View {
     }
 }
 
+func machineStatusLabel(_ status: String) -> LocalizedStringKey {
+    switch status {
+    case "running": "Running"
+    case "stopped": "Stopped"
+    case "starting": "Starting"
+    case "stopping": "Stopping"
+    default: LocalizedStringKey(status.capitalized)
+    }
+}
+
 struct MachineRow: View {
     let machine: Machine
 
@@ -106,7 +117,7 @@ struct MachineRow: View {
             if let ip = machine.ipAddress {
                 Text(ip).font(.caption.monospaced()).foregroundStyle(.secondary)
             }
-            StatusBadge(text: LocalizedStringKey(machine.status.capitalized), tint: machine.isRunning ? .green : .gray)
+            StatusBadge(text: machineStatusLabel(machine.status), tint: machine.isRunning ? .green : .gray)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
@@ -120,7 +131,7 @@ struct MachineDetailView: View {
         Form {
             Section {
                 LabeledContent("Status") {
-                    StatusBadge(text: LocalizedStringKey(machine.status.capitalized), tint: machine.isRunning ? .green : .gray)
+                    StatusBadge(text: machineStatusLabel(machine.status), tint: machine.isRunning ? .green : .gray)
                 }
                 LabeledContent("Default", value: machine.isDefault ? "Yes" : "No")
                 if let ip = machine.ipAddress { LabeledContent("IP", value: ip) }

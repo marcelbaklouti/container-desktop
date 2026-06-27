@@ -74,38 +74,41 @@ struct ContainersListView: View {
         .navigationTitle("Containers")
         .searchable(text: $searchText, prompt: "Filter containers")
         .toolbar {
-            ToolbarItem {
+            ToolbarItemGroup {
                 Toggle(isOn: $runningOnly) {
-                    Label("Running only", systemImage: "line.3.horizontal.decrease.circle")
+                    Label("Running Only", systemImage: "line.3.horizontal.decrease.circle")
                 }
-            }
-            ToolbarItem {
+                .help("Show Running Containers Only")
+
                 Button {
                     Task { await store.refresh() }
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
+                .help("Refresh")
             }
-            ToolbarItem {
+            ToolbarItemGroup {
                 Button {
                     pickComposeFile()
                 } label: {
                     Label("Launch Stack", systemImage: "square.stack.3d.up")
                 }
-            }
-            ToolbarItem {
+                .help("Launch Compose Stack")
+
                 Button {
                     showRunSheet = true
                 } label: {
                     Label("Run Container", systemImage: "plus")
                 }
+                .help("Run Container")
             }
             ToolbarItem {
                 Button {
                     showInspector.toggle()
                 } label: {
-                    Label("Inspector", systemImage: "sidebar.trailing")
+                    Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right")
                 }
+                .help(showInspector ? "Hide Inspector" : "Show Inspector")
             }
         }
         .confirmationDialog(
@@ -139,9 +142,6 @@ struct ContainersListView: View {
             } else {
                 ContentUnavailableView("No Selection", systemImage: "shippingbox", description: Text("Select a container to inspect it."))
             }
-        }
-        .onChange(of: selectedContainerID) { _, newValue in
-            if newValue != nil { showInspector = true }
         }
     }
 
