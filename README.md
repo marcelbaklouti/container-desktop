@@ -1,6 +1,6 @@
 # Apple Container UI — Project Documents
 
-A native macOS GUI for [`apple/container`](https://github.com/apple/container) — a Docker Desktop alternative built on ContainerClient (the apple/container Swift library) over XPC, with the `container` CLI as a fallback. Built in SwiftUI, Apple Silicon only.
+A native macOS GUI for [`apple/container`](https://github.com/apple/container) — a Docker Desktop alternative that drives the `container` CLI (`--format json` reads, spawned processes for streaming, SwiftTerm for the PTY). Built in SwiftUI, Apple Silicon only.
 
 Product name: Containers. The app ships with a visible "not affiliated with Apple" notice and does not use Apple's logo or trade dress. Document language: English (can be regenerated in German on request).
 
@@ -55,7 +55,6 @@ The canonical convention list lives in `Memory.md`. In short: production-complet
 - Metal what's new: https://developer.apple.com/metal/whats-new/
 
 ### Tooling and dependencies
-- XcodeGen: https://github.com/yonaskolb/XcodeGen
 - SwiftTerm (embedded PTY terminal): https://github.com/migueldeicaza/SwiftTerm
 - Swift Charts: https://developer.apple.com/documentation/charts
 - Observation framework: https://developer.apple.com/documentation/observation
