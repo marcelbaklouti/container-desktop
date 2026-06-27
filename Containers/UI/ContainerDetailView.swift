@@ -1,7 +1,9 @@
 import SwiftUI
+import AppKit
 
 struct ContainerDetailView: View {
     let container: Container
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         Form {
@@ -24,7 +26,20 @@ struct ContainerDetailView: View {
                 Section("Ports") {
                     ForEach(container.configuration.publishedPorts, id: \.self) { port in
                         LabeledContent(port.display) {
-                            Text(port.hostAddress).foregroundStyle(.secondary)
+                            HStack(spacing: 10) {
+                                Button("localhost:\(port.hostPort)") {
+                                    if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
+                                }
+                                .buttonStyle(.link)
+                                Button {
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString("localhost:\(port.hostPort)", forType: .string)
+                                } label: {
+                                    Image(systemName: "doc.on.doc")
+                                }
+                                .buttonStyle(.borderless)
+                                .help("Copy address")
+                            }
                         }
                     }
                 }

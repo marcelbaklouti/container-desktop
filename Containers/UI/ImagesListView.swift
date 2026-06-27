@@ -14,7 +14,7 @@ struct ImagesListView: View {
     var body: some View {
         List(selection: $selectedID) {
             ForEach(filteredImages) { image in
-                ImageRow(image: image)
+                ImageRow(image: image, isInUse: store.inUseReferences.contains(image.configuration.name))
                     .tag(image.id)
                     .contextMenu { actions(for: image) }
                     .swipeActions(edge: .trailing) {
@@ -42,7 +42,7 @@ struct ImagesListView: View {
         .task { await store.poll(every: .seconds(5)) }
         .inspector(isPresented: $showInspector) {
             if let selected = store.images.first(where: { $0.id == selectedID }) {
-                ImageDetailView(image: selected)
+                ImageDetailView(image: selected, isInUse: store.inUseReferences.contains(selected.configuration.name))
             } else {
                 ContentUnavailableView("No Selection", systemImage: "square.stack.3d.up", description: Text("Select an image to inspect it."))
             }
@@ -97,6 +97,7 @@ struct ImagesListView: View {
 
 struct ImageRow: View {
     let image: ContainerImage
+    let isInUse: Bool
 
     var body: some View {
         HStack(spacing: 12) {
@@ -104,14 +105,29 @@ struct ImageRow: View {
                 .foregroundStyle(.tint)
                 .font(.title3)
             VStack(alignment: .leading, spacing: 2) {
-                Text(ImageName.short(image.configuration.name)).font(.headline)
+                HStack(spacing: 6) {
+                    Text(ImageName.short(image.configuration.name)).font(.headline)
+                    if isInUse {
+                        Text("In Use")
+                            .font(.caption2.weight(.medium))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
+                            .background(.green.opacity(0.18), in: Capsule())
+                            .foregroundStyle(.green)
+                    }
+                }
                 Text(image.shortDigest).font(.caption.monospaced()).foregroundStyle(.secondary)
             }
             Spacer()
-            if !image.realPlatforms.isEmpty {
-                Text("\(image.realPlatforms.count) platform\(image.realPlatforms.count == 1 ? "" : "s")")
-                    .font(.caption)
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(Int64(image.displaySize), format: .byteCount(style: .file))
+                    .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
+                if image.realPlatforms.count > 1 {
+                    Text("\(image.realPlatforms.count) platforms")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
             }
         }
         .padding(.vertical, 4)
@@ -121,12 +137,21 @@ struct ImageRow: View {
 
 struct ImageDetailView: View {
     let image: ContainerImage
+    let isInUse: Bool
 
     var body: some View {
         Form {
             Section {
                 LabeledContent("Reference", value: ImageName.short(image.configuration.name))
                 LabeledContent("Digest", value: image.shortDigest)
+                LabeledContent("Size") {
+                    Text(Int64(image.displaySize), format: .byteCount(style: .file))
+                }
+                if isInUse {
+                    LabeledContent("Status") {
+                        StatusBadge(text: "In Use", tint: .green)
+                    }
+                }
                 LabeledContent("Created", value: DateText.relative(image.configuration.creationDate))
             }
             Section("Platforms") {

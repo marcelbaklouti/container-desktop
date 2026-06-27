@@ -13,6 +13,13 @@ nonisolated struct ContainerImage: Codable, Sendable, Identifiable, Hashable {
     var realPlatforms: [ImageVariant] {
         variants.filter { $0.platform.os != "unknown" }
     }
+
+    var displaySize: Int {
+        if let host = realPlatforms.first(where: { $0.platform.architecture == "arm64" }) {
+            return host.size
+        }
+        return realPlatforms.first?.size ?? 0
+    }
 }
 
 nonisolated struct ImageConfiguration: Codable, Sendable, Hashable {

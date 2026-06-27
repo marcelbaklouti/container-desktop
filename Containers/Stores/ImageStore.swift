@@ -6,6 +6,7 @@ import Observation
 final class ImageStore {
     private(set) var images: [ContainerImage] = []
     private(set) var hasLoaded = false
+    private(set) var inUseReferences: Set<String> = []
     var errorMessage: String?
 
     private let client: any RuntimeClient
@@ -19,6 +20,9 @@ final class ImageStore {
             let updated = try await client.decode([ContainerImage].self, from: ["image", "ls", "--format", "json"])
             if updated != images {
                 images = updated
+            }
+            if let containers = try? await client.decode([Container].self, from: ["ls", "--all", "--format", "json"]) {
+                inUseReferences = Set(containers.map { $0.configuration.image.reference })
             }
             errorMessage = nil
         } catch {

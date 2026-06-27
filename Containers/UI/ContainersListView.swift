@@ -10,6 +10,7 @@ struct ContainersListView: View {
     @State private var selectedContainerID: String?
     @State private var showInspector = false
     @State private var pendingCopy: Container?
+    @Environment(\.openURL) private var openURL
 
     private var visibleContainers: [Container] {
         let base = runningOnly ? store.containers.filter { $0.status?.state == "running" } : store.containers
@@ -155,6 +156,16 @@ struct ContainersListView: View {
             Button { Task { await store.kill(container) } } label: { Label("Kill", systemImage: "bolt.fill") }
         } else {
             Button { Task { await store.start(container) } } label: { Label("Start", systemImage: "play.fill") }
+        }
+        if !container.configuration.publishedPorts.isEmpty {
+            Divider()
+            ForEach(container.configuration.publishedPorts, id: \.self) { port in
+                Button {
+                    if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
+                } label: {
+                    Label("Open localhost:\(port.hostPort)", systemImage: "safari")
+                }
+            }
         }
         Divider()
         Button { pendingCopy = container } label: { Label("Copy Files…", systemImage: "doc.on.doc") }
