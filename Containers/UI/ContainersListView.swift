@@ -211,7 +211,7 @@ struct ContainerRow: View {
     }
 
     private var subtitle: String {
-        let image = container.configuration.image.reference
+        let image = ImageName.short(container.configuration.image.reference)
         let ports = container.configuration.publishedPorts
         guard !ports.isEmpty else { return image }
         let portText = ports.map { "\($0.hostPort)→\($0.containerPort)" }.joined(separator: ", ")

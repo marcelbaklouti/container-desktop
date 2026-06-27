@@ -97,7 +97,7 @@ struct ImageRow: View {
                 .foregroundStyle(.tint)
                 .font(.title3)
             VStack(alignment: .leading, spacing: 2) {
-                Text(image.configuration.name).font(.headline)
+                Text(ImageName.short(image.configuration.name)).font(.headline)
                 Text(image.shortDigest).font(.caption.monospaced()).foregroundStyle(.secondary)
             }
             Spacer()
@@ -118,7 +118,7 @@ struct ImageDetailView: View {
     var body: some View {
         Form {
             Section {
-                LabeledContent("Reference", value: image.configuration.name)
+                LabeledContent("Reference", value: ImageName.short(image.configuration.name))
                 LabeledContent("Digest", value: image.shortDigest)
                 LabeledContent("Created", value: DateText.relative(image.configuration.creationDate))
             }
@@ -131,7 +131,7 @@ struct ImageDetailView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle(image.configuration.name)
+        .navigationTitle(ImageName.short(image.configuration.name))
     }
 
     private func platformLabel(_ variant: ImageVariant) -> String {
