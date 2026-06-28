@@ -52,6 +52,35 @@ actor ContainerCLI: RuntimeClient {
         return nil
     }
 
+    /// Locates the `container` binary for PRIVILEGED (root) execution. Unlike the unprivileged lookup this
+    /// ignores the inherited `$PATH` (which a same-user process can poison) and only accepts a binary in a
+    /// trusted system directory whose file and parent directory are root-owned and not writable by group
+    /// or others — so the GUI never runs an attacker-replaceable binary as root.
+    nonisolated static func locateBinary(privileged: Bool) -> URL? {
+        guard privileged else { return locateBinary() }
+        let trusted = ["/usr/local/bin", "/opt/homebrew/bin", "/usr/bin"]
+        let fileManager = FileManager.default
+        for directory in trusted {
+            let candidate = URL(fileURLWithPath: directory).appendingPathComponent("container")
+            guard fileManager.isExecutableFile(atPath: candidate.path) else { continue }
+            if isTrustedForRoot(candidate.path) {
+                return candidate
+            }
+        }
+        return nil
+    }
+
+    private nonisolated static func isTrustedForRoot(_ path: String) -> Bool {
+        func rootOwnedNotWritable(_ target: String) -> Bool {
+            var info = stat()
+            guard lstat(target, &info) == 0 else { return false }
+            let groupOrOtherWritable = (info.st_mode & mode_t(S_IWGRP | S_IWOTH)) != 0
+            return info.st_uid == 0 && !groupOrOtherWritable
+        }
+        let parent = (path as NSString).deletingLastPathComponent
+        return rootOwnedNotWritable(path) && rootOwnedNotWritable(parent)
+    }
+
     private func binaryURL() throws -> URL {
         if let cachedBinary {
             return cachedBinary
