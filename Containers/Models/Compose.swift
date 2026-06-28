@@ -40,8 +40,11 @@ nonisolated struct ComposeService: Equatable, Identifiable {
         for variable in environment { args += ["-e", variable] }
         for port in ports { args += ["-p", port] }
         for volume in volumes { args += ["-v", volume] }
-        if let image { args.append(image) }
-        args += command
+        if let image {
+            args.append("--")
+            args.append(image)
+            args += command
+        }
         return args
     }
 }

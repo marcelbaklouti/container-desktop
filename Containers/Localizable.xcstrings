@@ -395,6 +395,12 @@
     "Edit Settings…" : {
 
     },
+    "Enter a valid domain — letters, numbers, dots, and hyphens only." : {
+
+    },
+    "Enter a valid IP address." : {
+
+    },
     "Environment" : {
 
     },
@@ -1125,6 +1131,9 @@
 
     },
     "The downloaded installer isn’t signed by Apple, so it wasn’t installed." : {
+
+    },
+    "The installer changed after verification and wasn’t installed." : {
 
     },
     "The menu bar item shows the running-container count and the combined CPU and memory, with quick Stop, Restart, and Open actions per container, plus Start and Stop for the system. It stays available even when the main window is closed." : {

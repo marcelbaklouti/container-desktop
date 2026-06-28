@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 
 struct ImagesListView: View {
+    @Environment(ContainerStore.self) private var containerStore
     @State private var store = ImageStore()
     @State private var searchText = ""
     @State private var selectedID: String?
@@ -16,7 +17,7 @@ struct ImagesListView: View {
     var body: some View {
         List(selection: $selectedID) {
             ForEach(filteredImages) { image in
-                ImageRow(image: image, isInUse: store.inUseReferences.contains(image.configuration.name))
+                ImageRow(image: image, isInUse: inUseDigests.contains(image.configuration.descriptor.digest))
                     .tag(image.id)
                     .contextMenu { actions(for: image) }
                     .swipeActions(edge: .trailing) {
@@ -53,7 +54,7 @@ struct ImagesListView: View {
         .inspector(isPresented: $showInspector) {
             Group {
                 if let selected = store.images.first(where: { $0.id == selectedID }) {
-                    ImageDetailView(image: selected, isInUse: store.inUseReferences.contains(selected.configuration.name))
+                    ImageDetailView(image: selected, isInUse: inUseDigests.contains(selected.configuration.descriptor.digest))
                 } else {
                     ContentUnavailableView("No Selection", systemImage: "square.stack.3d.up", description: Text("Select an image to inspect it."))
                 }
@@ -85,6 +86,13 @@ struct ImagesListView: View {
     private var filteredImages: [ContainerImage] {
         guard !searchText.isEmpty else { return store.images }
         return store.images.filter { ImageName.short($0.configuration.name).localizedCaseInsensitiveContains(searchText) }
+    }
+
+    /// Images currently backing a container, matched by canonical image digest (robust to how the
+    /// container referenced the image — tag, digest, or short name). Derived from the shared
+    /// ContainerStore poll rather than a second `ls --all` of our own.
+    private var inUseDigests: Set<String> {
+        Set(containerStore.containers.map { $0.configuration.image.descriptor.digest })
     }
 
     @ViewBuilder
