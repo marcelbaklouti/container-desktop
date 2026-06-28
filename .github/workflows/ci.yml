@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  landing:
+    name: Landing (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: landing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: corepack prepare pnpm@11 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build
+
+  app:
+    name: App (build)
+    # Requires a macOS 26 (Tahoe) runner with the Xcode 26.6 toolchain. If GitHub's
+    # hosted image isn't available yet, disable this job (or use a self-hosted
+    # runner) and don't make it a required status check until it is green.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - run: xcodebuild -version
+      # SwiftTerm bundles Metal shaders; the Metal Toolchain isn't in base Xcode.
+      - run: xcodebuild -downloadComponent MetalToolchain || true
+      - name: Build
+        run: >
+          xcodebuild build
+          -project Containers.xcodeproj
+          -scheme Containers
+          -configuration Debug
+          -destination 'platform=macOS'
+          CODE_SIGNING_ALLOWED=NO
+      # The test suite (ContainersTests) talks to a running `container` daemon,
+      # which isn't available on hosted runners, so tests are verified locally
+      # (see CONTRIBUTING.md), not in CI.

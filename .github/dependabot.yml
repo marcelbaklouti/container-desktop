@@ -1,0 +1,17 @@
+version: 2
+# SwiftTerm is managed through the Xcode project (there is no Package.swift), so
+# Dependabot does not cover it — bump it in Xcode when a new version ships.
+updates:
+  - package-ecosystem: npm
+    directory: /landing
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      landing:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
