@@ -55,9 +55,15 @@ You only need the one-time setup below, then one command per release.
    NOTARY_PROFILE=ContainerDesktopNotary ./scripts/release.sh
    ```
 
-   This produces `build/release/Container Desktop.dmg`, already notarized and
-   stapled, and runs `spctl`/`stapler` to prove Gatekeeper will accept it.
-   Add `--skip-notarize` for a local smoke build (not distributable).
+   This produces `build/release/Container-Desktop-<version>.dmg`, already
+   notarized and stapled, and runs `spctl`/`stapler` to prove Gatekeeper will
+   accept it. Add `--skip-notarize` for a local smoke build (not distributable).
+
+   The installer window (dark background, app→Applications arrow, icon layout)
+   is generated headlessly by `scripts/dmg-settings.py` +
+   `scripts/assets/dmg-background.png`; the script auto-provisions `dmgbuild`
+   in a local `.dmgvenv` on first run. To restyle, edit
+   `scripts/make-dmg-background.swift` and regenerate the PNG.
 
 3. Publish (creates the tag `v<version>`, the GitHub Release, and uploads the DMG):
 

@@ -122,13 +122,36 @@ step "Verifying app signature"
 codesign --verify --deep --strict --verbose=2 "$APP"
 codesign -dv --verbose=4 "$APP" 2>&1 | grep -E 'Authority|TeamIdentifier|Runtime|Timestamp' || true
 
-# --- DMG ---------------------------------------------------------------------
+# --- DMG (styled installer window) -------------------------------------------
 step "Building DMG"
-DMG_STAGE="$BUILD_DIR/dmg-stage"
-rm -rf "$DMG_STAGE"; mkdir -p "$DMG_STAGE"
-cp -R "$APP" "$DMG_STAGE/"
-ln -s /Applications "$DMG_STAGE/Applications"
-hdiutil create -volname "$PRODUCT" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG" >/dev/null
+rm -f "$DMG"
+
+# Resolve dmgbuild (lays out the styled window headlessly — no Finder/AppleScript).
+# Auto-provision a local venv on first run so a release is a single command.
+DMGBUILD=""
+if command -v dmgbuild >/dev/null 2>&1; then
+  DMGBUILD="dmgbuild"
+elif [ -x ".dmgvenv/bin/dmgbuild" ]; then
+  DMGBUILD=".dmgvenv/bin/dmgbuild"
+elif command -v python3 >/dev/null 2>&1; then
+  echo "Provisioning dmgbuild (one-time, local .dmgvenv)…"
+  if python3 -m venv .dmgvenv >/dev/null 2>&1 && .dmgvenv/bin/pip install -q dmgbuild >/dev/null 2>&1; then
+    DMGBUILD=".dmgvenv/bin/dmgbuild"
+  fi
+fi
+
+if [ -n "$DMGBUILD" ]; then
+  "$DMGBUILD" -s scripts/dmg-settings.py \
+    -D app="$APP" \
+    -D background="scripts/assets/dmg-background.png" \
+    "$PRODUCT" "$DMG"
+else
+  echo "note: dmgbuild unavailable — building a plain DMG (install Python 3 for the styled installer)."
+  STAGE="$BUILD_DIR/dmg-src"; rm -rf "$STAGE"; mkdir -p "$STAGE"
+  cp -R "$APP" "$STAGE/"
+  ln -s /Applications "$STAGE/Applications"
+  hdiutil create -volname "$PRODUCT" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+fi
 codesign --sign "$SIGNING_IDENTITY" --timestamp "$DMG"
 echo "Built $DMG"
 

@@ -22,6 +22,7 @@ xcuserdata/
 *.dSYM
 *.dmg
 *.xcarchive
+.dmgvenv/
 
 # Local-only working notes — kept on disk, never published
 CLAUDE.md
