@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Container Desktop — landing page
 
-## Getting Started
+Marketing site for **Container Desktop**, the native macOS app for Apple's `container` runtime.
 
-First, run the development server:
+Built with **Next.js 16** (App Router) · **React 19** · **Tailwind CSS v4** · **Motion** · **pnpm**. Dark, Apple-like, animated, accessible.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Develop
+
+```sh
+pnpm install
+pnpm dev          # http://localhost:3000
+pnpm build        # production build (Turbopack)
+pnpm lint         # ESLint (flat config)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Editing content
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+All copy and data live in **`lib/content.ts`** — `site`, `hero`, `features`, `bento`, `capabilities`, and the legal notices. Sections are pure layout, so you rarely touch the components.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Icons are a custom inline-SVG set in **`components/Icon.tsx`** (no icon dependency, no "spark" glyphs).
 
-## Learn More
+## Screenshots
 
-To learn more about Next.js, take a look at the following resources:
+The per-area app screenshots live in **`public/screens/`** — `Container.png` (hero), `Images.png`, `Machines.png`, `System.png` (feature rows), and `Networks.png` / `Volumes.png` / `Registries.png` / `Builder.png` (the bento grid). They're wired up in **`lib/content.ts`**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+They're full macOS windows (their own chrome + transparent rounded corners), so `ScreenshotFrame` renders them bare with a soft drop-shadow — no second window frame. To refresh one, replace the PNG (keep the name); update its `width`/`height` in `content.ts` if the pixel size changes. Any `screenshot` with no `src` falls back to a labelled placeholder. `public/og.png` (1200×630) is still optional for the social card.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy (Vercel)
 
-## Deploy on Vercel
+- Import the repo on Vercel and set **Root Directory = `landing`**.
+- Before going live, set the real domain in **`lib/content.ts` → `site.url`** (used for `metadataBase`/OpenGraph) and add `public/og.png`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Legal
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Container Desktop is an independent, open-source project and is **not affiliated with, endorsed by, or sponsored by Apple Inc.** Apple, macOS, and Apple Silicon are trademarks of Apple Inc.
