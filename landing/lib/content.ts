@@ -5,7 +5,6 @@ export const site = {
   tagline: "A native Mac GUI for Apple's container runtime",
   description:
     "Container Desktop is a native macOS GUI for Apple's container runtime — run, inspect, and manage containers, images, volumes, networks, and machines, launch Compose stacks, and watch live stats, all from a clean SwiftUI app.",
-  // TODO: set to the production Vercel domain once chosen.
   url: "https://container-desktop.vercel.app",
   repo: "https://github.com/marcelbaklouti/container-desktop",
   releases: "https://github.com/marcelbaklouti/container-desktop/releases/latest",
