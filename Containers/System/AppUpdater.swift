@@ -66,7 +66,8 @@ final class AppUpdater {
         }
         phase = .downloading(0)
         do {
-            let dmg = try await PackageDownloader().download(from: url, named: "Container Desktop.dmg") { fraction in
+            let destination = FileManager.default.temporaryDirectory.appendingPathComponent("Container Desktop.dmg")
+            let dmg = try await PackageDownloader().download(from: url, to: destination) { fraction in
                 Task { @MainActor in
                     if case .downloading = self.phase { self.phase = .downloading(fraction) }
                 }

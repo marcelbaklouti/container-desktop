@@ -14,12 +14,15 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
     private let input: Data?
     private let inputPipe: Pipe?
 
-    init(executableURL: URL, arguments: [String], input: Data? = nil) {
+    init(executableURL: URL, arguments: [String], input: Data? = nil, environment: [String: String]? = nil) {
         self.input = input
         let pipe: Pipe? = input == nil ? nil : Pipe()
         self.inputPipe = pipe
         process.executableURL = executableURL
         process.arguments = arguments
+        if let environment {
+            process.environment = ProcessInfo.processInfo.environment.merging(environment) { _, new in new }
+        }
         if let pipe {
             process.standardInput = pipe
         } else {

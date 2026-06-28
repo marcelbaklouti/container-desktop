@@ -97,8 +97,13 @@ final class ContainerInstaller {
             }
 
             phase = .downloading(0)
-            let packageName = "container-\(release.version)-installer-signed.pkg"
-            let downloaded = try await PackageDownloader().download(from: release.packageURL, named: packageName) { fraction in
+            // Stage into a fresh, randomly-named 0700 directory so a same-user process can't pre-place or
+            // race-swap the file at a predictable path.
+            let staging = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+            try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+            defer { try? FileManager.default.removeItem(at: staging) }
+            let packageURL = staging.appendingPathComponent("container-installer.pkg")
+            let downloaded = try await PackageDownloader().download(from: release.packageURL, to: packageURL) { fraction in
                 Task { @MainActor in
                     if case .downloading = self.phase { self.phase = .downloading(fraction) }
                 }
@@ -106,14 +111,17 @@ final class ContainerInstaller {
 
             phase = .verifying
             guard try await Self.verifyAppleSignature(downloaded) else {
-                try? FileManager.default.removeItem(at: downloaded)
                 phase = .failed(String(localized: "The downloaded installer isn’t signed by Apple, so it wasn’t installed."))
                 return
             }
 
             phase = .installing
+            // Re-verify immediately before the privileged install to close the verify→install window.
+            guard try await Self.verifyAppleSignature(downloaded) else {
+                phase = .failed(String(localized: "The installer changed after verification and wasn’t installed."))
+                return
+            }
             try await PrivilegedRunner.runCommand(["/usr/sbin/installer", "-pkg", downloaded.path, "-target", "/"])
-            try? FileManager.default.removeItem(at: downloaded)
 
             await system.refresh()
             phase = .finished
@@ -145,23 +153,29 @@ final class ContainerInstaller {
         return (release.tagName, asset.browserDownloadURL)
     }
 
+    /// Apple's "Developer ID Installer" team that signs the container runtime packages.
+    private static let appleInstallerTeamID = "UPBK2H6LZM"
+
     private static func verifyAppleSignature(_ package: URL) async throws -> Bool {
         let invocation = ProcessInvocation(
             executableURL: URL(fileURLWithPath: "/usr/sbin/pkgutil"),
-            arguments: ["--check-signature", package.path]
+            arguments: ["--check-signature", package.path],
+            environment: ["LC_ALL": "C", "LANG": "C"]
         )
         let result = try await invocation.run()
         guard result.exitCode == 0 else { return false }
         let output = String(decoding: result.standardOutput, as: UTF8.self)
-        // Accept only a package whose leaf signer (chain entry "1.") is Apple's Developer ID and that is
-        // notarized by Apple. Every Developer-ID certificate chains to Apple's root, so only the leaf
-        // signer is meaningful; the real artifact's leaf is "Developer ID Installer: Apple Inc. …".
-        let leaf = output.split(separator: "\n").first {
+        // Pin the leaf signer (chain entry "1.") to Apple's exact Developer ID Installer identity: the CN
+        // must begin "Developer ID Installer: Apple Inc." AND carry Apple's team ID, and the package must
+        // be notarized. A substring like "Snapple Inc.", a different team, or a merely-notarized third
+        // party is rejected. LC_ALL=C keeps pkgutil's status strings stable on non-English systems.
+        guard let leaf = output.split(separator: "\n").first(where: {
             $0.trimmingCharacters(in: .whitespaces).hasPrefix("1.")
-        }
-        let leafIsApple = leaf?.localizedCaseInsensitiveContains("Apple Inc.") ?? false
-        let notarizedByApple = output.localizedCaseInsensitiveContains("Apple notary")
-        return leafIsApple && notarizedByApple
+        }) else { return false }
+        let leafIsApple = leaf.contains("Developer ID Installer: Apple Inc.")
+            && leaf.contains("(\(appleInstallerTeamID))")
+        let notarized = output.contains("trusted by the Apple notary service")
+        return leafIsApple && notarized
     }
 
     nonisolated static func compare(_ lhs: String, _ rhs: String) -> ComparisonResult {
@@ -205,11 +219,11 @@ nonisolated struct GitHubRelease: Decodable {
 nonisolated final class PackageDownloader: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
     private var continuation: CheckedContinuation<URL, any Error>?
     private var progress: (@Sendable (Double) -> Void)?
-    private var destinationName = "download.pkg"
+    private var destination = FileManager.default.temporaryDirectory.appendingPathComponent("download")
 
-    func download(from url: URL, named name: String, progress: @escaping @Sendable (Double) -> Void) async throws -> URL {
+    func download(from url: URL, to destination: URL, progress: @escaping @Sendable (Double) -> Void) async throws -> URL {
         self.progress = progress
-        self.destinationName = name
+        self.destination = destination
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
         return try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
@@ -223,7 +237,7 @@ nonisolated final class PackageDownloader: NSObject, URLSessionDownloadDelegate,
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        let destination = FileManager.default.temporaryDirectory.appendingPathComponent(destinationName)
+        let destination = self.destination
         try? FileManager.default.removeItem(at: destination)
         do {
             try FileManager.default.moveItem(at: location, to: destination)
