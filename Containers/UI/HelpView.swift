@@ -67,7 +67,7 @@ extension HelpTopic {
         HelpTopic(
             id: "start",
             title: "Getting Started",
-            systemImage: "sparkles",
+            systemImage: "hand.wave",
             sections: [
                 .init(heading: "What Container Desktop is",
                       body: "Container Desktop is a native macOS interface for Apple’s container runtime. It manages containers, images, networks, volumes, and virtual machines by driving the container command-line tool, so anything you do here matches what the tool does in Terminal."),

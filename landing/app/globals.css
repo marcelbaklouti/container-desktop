@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #0a84ff;
+  --color-accent-soft: #2b9bff;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Segoe UI", system-ui, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #08090c;
+  color: #ededef;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(10, 132, 255, 0.32);
+}

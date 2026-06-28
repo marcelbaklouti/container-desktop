@@ -119,6 +119,12 @@
     "Cancel" : {
 
     },
+    "Check for Updates" : {
+
+    },
+    "Check for Updates…" : {
+
+    },
     "Checking for the latest release…" : {
 
     },
@@ -165,6 +171,9 @@
 
     },
     "Container Desktop is a native macOS interface for Apple’s container runtime. It manages containers, images, networks, volumes, and virtual machines by driving the container command-line tool, so anything you do here matches what the tool does in Terminal." : {
+
+    },
+    "Container Desktop is up to date." : {
 
     },
     "Container Desktop’s version tracks the container runtime release it’s built for. System → Software Update shows the latest release from Apple and installs verified updates after an administrator prompt — Container Desktop only accepts packages signed and notarized by Apple." : {
@@ -269,6 +278,9 @@
     "Creating…" : {
 
     },
+    "Current Version" : {
+
+    },
     "Daemon stopped" : {
 
     },
@@ -345,6 +357,9 @@
 
     },
     "Domain" : {
+
+    },
+    "Download Update" : {
 
     },
     "Downloading container… %@%%" : {
@@ -522,6 +537,9 @@
 
     },
     "Latest container release" : {
+
+    },
+    "Latest Version" : {
 
     },
     "Launch" : {
@@ -1110,6 +1128,9 @@
 
     },
     "The menu bar item shows the running-container count and the combined CPU and memory, with quick Stop, Restart, and Open actions per container, plus Start and Stop for the system. It stays available even when the main window is closed." : {
+
+    },
+    "The update came from an unexpected location and wasn’t downloaded." : {
 
     },
     "This container hasn’t written any logs yet." : {
