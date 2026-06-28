@@ -75,7 +75,8 @@ echo "Publish:        $([ "$PUBLISH" -eq 1 ] && echo "yes ($REPO)" || echo no)"
 ARCHIVE="$BUILD_DIR/$PRODUCT.xcarchive"
 EXPORT_DIR="$BUILD_DIR/export"
 APP="$EXPORT_DIR/$PRODUCT.app"
-DMG="$BUILD_DIR/$PRODUCT.dmg"
+# Space-free, versioned filename so GitHub doesn't rewrite spaces to dots on upload.
+DMG="$BUILD_DIR/Container-Desktop-$VERSION.dmg"
 EXPORT_OPTS="$BUILD_DIR/ExportOptions.plist"
 
 rm -rf "$BUILD_DIR"
