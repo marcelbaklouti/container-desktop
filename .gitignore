@@ -20,3 +20,12 @@ xcuserdata/
 # Build / release artifacts
 *.dSYM.zip
 *.dSYM
+*.dmg
+*.xcarchive
+
+# Local-only working notes — kept on disk, never published
+CLAUDE.md
+Memory.md
+Projectplan.md
+buildphases.md
+ROADMAP.md
