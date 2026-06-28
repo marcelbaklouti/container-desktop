@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(SystemController.self) private var system
+    @Environment(ContainerStatsStore.self) private var stats
     @State private var selectedArea: Area? = .containers
     @AppStorage("appearance") private var appearance = Appearance.system
 
@@ -29,6 +30,8 @@ struct ContentView: View {
         }
         .frame(minWidth: 960, minHeight: 600)
         .preferredColorScheme(appearance.colorScheme)
+        .onAppear { stats.start() }
+        .onDisappear { stats.stop() }
     }
 
     @ViewBuilder
@@ -48,4 +51,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environment(SystemController())
+        .environment(ContainerStatsStore())
 }

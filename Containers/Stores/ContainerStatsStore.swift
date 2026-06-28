@@ -10,6 +10,7 @@ final class ContainerStatsStore {
 
     private let client: any RuntimeClient
     private var streamTask: Task<Void, Never>?
+    private var consumers = 0
     private var previous: [String: (usec: Int, time: Date)] = [:]
 
     init(client: any RuntimeClient = ContainerCLI()) {
@@ -30,7 +31,11 @@ final class ContainerStatsStore {
         ids.reduce(0) { $0 + (samples[$1]?.memoryUsageBytes ?? 0) }
     }
 
+    /// Reference-counted: the `stats --format json` stream runs only while at least one visible consumer
+    /// (the main window or the open menu-bar popover) is active, so it doesn't spawn a forever-subprocess
+    /// when the app is just sitting in the menu bar.
     func start() {
+        consumers += 1
         guard streamTask == nil else { return }
         streamTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -38,6 +43,17 @@ final class ContainerStatsStore {
                 do { try await Task.sleep(for: .seconds(3)) } catch { return }
             }
         }
+    }
+
+    func stop() {
+        consumers = max(0, consumers - 1)
+        guard consumers == 0 else { return }
+        streamTask?.cancel()
+        streamTask = nil
+        samples = [:]
+        cpuPercents = [:]
+        history = [:]
+        previous = [:]
     }
 
     private func consume() async {

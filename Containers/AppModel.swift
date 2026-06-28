@@ -32,7 +32,6 @@ final class AppModel {
 
     func startPolling(every interval: Duration = .seconds(3)) {
         guard pollTask == nil else { return }
-        stats.start()
         pollTask = Task { [weak self] in
             var tick = 0
             while !Task.isCancelled {

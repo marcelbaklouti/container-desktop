@@ -18,6 +18,8 @@ struct MenuBarContentView: View {
             footer
         }
         .frame(minWidth: 320)
+        .onAppear { stats.start() }
+        .onDisappear { stats.stop() }
     }
 
     private var running: [Container] {
@@ -46,8 +48,10 @@ struct MenuBarContentView: View {
         case .running:
             let running = appModel.runningContainers.map(\.id)
             guard !running.isEmpty else { return String(localized: "No running containers") }
+            let memBytes = stats.totalMemory(for: running)
+            guard memBytes > 0 else { return "\(running.count) running" }
             let cpu = String(format: "%.0f%%", stats.totalCPU(for: running))
-            let mem = ByteCountFormatStyle(style: .memory).format(Int64(stats.totalMemory(for: running)))
+            let mem = ByteCountFormatStyle(style: .memory).format(Int64(memBytes))
             return "\(running.count) running · \(cpu) · \(mem)"
         case .daemonStopped: return String(localized: "Daemon stopped")
         case .binaryMissing: return String(localized: "container CLI not found")

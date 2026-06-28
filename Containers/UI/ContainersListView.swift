@@ -164,16 +164,20 @@ struct ContainersListView: View {
     private var overallSummary: String {
         let runningIDs = store.containers.filter { $0.status?.state == "running" }.map(\.id)
         guard !runningIDs.isEmpty else { return "" }
+        let memBytes = stats.totalMemory(for: runningIDs)
+        guard memBytes > 0 else { return "\(runningIDs.count) running" }
         let cpu = String(format: "%.0f%%", stats.totalCPU(for: runningIDs))
-        let mem = ByteCountFormatStyle(style: .memory).format(Int64(stats.totalMemory(for: runningIDs)))
+        let mem = ByteCountFormatStyle(style: .memory).format(Int64(memBytes))
         return "\(runningIDs.count) running · \(cpu) CPU · \(mem)"
     }
 
     private func groupSummary(_ group: ContainerGroup) -> String? {
         let runningIDs = group.containers.filter { $0.status?.state == "running" }.map(\.id)
         guard !runningIDs.isEmpty else { return nil }
+        let memBytes = stats.totalMemory(for: runningIDs)
+        guard memBytes > 0 else { return nil }
         let cpu = String(format: "%.0f%%", stats.totalCPU(for: runningIDs))
-        let mem = ByteCountFormatStyle(style: .memory).format(Int64(stats.totalMemory(for: runningIDs)))
+        let mem = ByteCountFormatStyle(style: .memory).format(Int64(memBytes))
         return "\(cpu) · \(mem)"
     }
 
