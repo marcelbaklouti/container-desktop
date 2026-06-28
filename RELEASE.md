@@ -11,19 +11,18 @@ You only need the one-time setup below, then one command per release.
 
 ## One-time setup
 
-1. **Apple Developer Program membership** (paid). Required for a *Developer ID
-   Application* certificate and notarization.
+1. **Apple Developer Program membership** (paid) — already in place under team
+   `YW883T2H46`.
 
-2. **Developer ID Application certificate** in your login keychain. Easiest path:
-   Xcode ▸ Settings ▸ Accounts ▸ (your Apple ID) ▸ Manage Certificates ▸ **+** ▸
-   *Developer ID Application*. Confirm it is present:
+2. **Developer ID Application certificate** in your login keychain. This is
+   distinct from the *Apple Distribution* certificate (which is for the Mac App
+   Store) — direct, notarized DMG distribution needs *Developer ID Application*.
+   Create it: Xcode ▸ Settings ▸ Accounts ▸ (your Apple ID) ▸ Manage
+   Certificates ▸ **+** ▸ *Developer ID Application*. Confirm it is present:
 
    ```sh
    security find-identity -v -p codesigning | grep "Developer ID Application"
    ```
-
-   > This machine currently has only *Apple Development* certificates, which are
-   > **not** valid for distribution — create the Developer ID one first.
 
 3. **Notary credentials** stored as a keychain profile (so the script never
    handles your password). Create an app-specific password at
@@ -32,8 +31,8 @@ You only need the one-time setup below, then one command per release.
 
    ```sh
    xcrun notarytool store-credentials "ContainerDesktopNotary" \
-     --apple-id "you@example.com" \
-     --team-id "ABCDE12345" \
+     --apple-id "marcel@baklouti.de" \
+     --team-id "YW883T2H46" \
      --password "abcd-efgh-ijkl-mnop"
    ```
 
@@ -49,12 +48,11 @@ You only need the one-time setup below, then one command per release.
    `Containers.xcodeproj` (both Debug/Release of the app target) and, if the
    targeted runtime changed, `ContainerInstaller.requiredVersion`.
 
-2. Build, sign, notarize, staple, verify:
+2. Build, sign, notarize, staple, verify (the team is read from the project's
+   `DEVELOPMENT_TEAM`; override with `DEVELOPER_ID_TEAM=…` if needed):
 
    ```sh
-   DEVELOPER_ID_TEAM=ABCDE12345 \
-   NOTARY_PROFILE=ContainerDesktopNotary \
-   ./scripts/release.sh
+   NOTARY_PROFILE=ContainerDesktopNotary ./scripts/release.sh
    ```
 
    This produces `build/release/Container Desktop.dmg`, already notarized and
@@ -64,9 +62,7 @@ You only need the one-time setup below, then one command per release.
 3. Publish (creates the tag `v<version>`, the GitHub Release, and uploads the DMG):
 
    ```sh
-   DEVELOPER_ID_TEAM=ABCDE12345 \
-   NOTARY_PROFILE=ContainerDesktopNotary \
-   ./scripts/release.sh --publish
+   NOTARY_PROFILE=ContainerDesktopNotary ./scripts/release.sh --publish
    ```
 
 ## Verify on a clean machine

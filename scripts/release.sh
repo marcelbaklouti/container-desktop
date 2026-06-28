@@ -43,7 +43,12 @@ fail() { printf '\033[1;31merror:\033[0m %s\n' "$1" >&2; exit 1; }
 # --- Preflight ---------------------------------------------------------------
 step "Preflight"
 [ -f "$PROJECT/project.pbxproj" ] || fail "run this from the repo root (no $PROJECT found)."
-[ -n "${DEVELOPER_ID_TEAM:-}" ] || fail "set DEVELOPER_ID_TEAM (your 10-char Apple Team ID). See RELEASE.md."
+
+# Default the team to the project's DEVELOPMENT_TEAM so it stays in sync with Xcode.
+if [ -z "${DEVELOPER_ID_TEAM:-}" ]; then
+  DEVELOPER_ID_TEAM="$(grep -m1 'DEVELOPMENT_TEAM' "$PROJECT/project.pbxproj" | sed -E 's/.*= ([A-Z0-9]+);.*/\1/')"
+fi
+[ -n "$DEVELOPER_ID_TEAM" ] || fail "set DEVELOPER_ID_TEAM (10-char Apple Team ID), or set DEVELOPMENT_TEAM in the project. See RELEASE.md."
 
 if ! security find-identity -v -p codesigning | grep -q "$SIGNING_IDENTITY"; then
   fail "no \"$SIGNING_IDENTITY\" certificate in the keychain.
