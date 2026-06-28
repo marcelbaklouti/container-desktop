@@ -77,11 +77,7 @@ xcodebuild -project Containers.xcodeproj -scheme Containers -configuration Debug
 xcodebuild test -project Containers.xcodeproj -scheme Containers -destination 'platform=macOS'
 ```
 
-Planning and context documents:
-
-- **`Projectplan.md`** — scope, architecture, locked decisions, the CLI-to-feature mapping. Reference only.
-- **`buildphases.md`** — the dependency-ordered execution checklist.
-- **`Memory.md`** — living context: locked decisions, conventions, runtime facts, status. Read first, update last.
+Cutting a release — Developer ID signing, notarization, DMG, and the GitHub release the in-app updater reads — is documented in [`RELEASE.md`](RELEASE.md) and automated by [`scripts/release.sh`](scripts/release.sh).
 
 ### References
 
