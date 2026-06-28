@@ -4,6 +4,10 @@ Marketing site for **Container Desktop**, the native macOS app for Apple's `cont
 
 Built with **Next.js 16** (App Router) · **React 19** · **Tailwind CSS v4** · **Motion** · **pnpm**. Dark, Apple-like, animated, accessible.
 
+<p align="center">
+  <img src="public/screens/Container.png" width="820" alt="Container Desktop" />
+</p>
+
 ## Develop
 
 ```sh

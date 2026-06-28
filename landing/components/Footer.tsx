@@ -1,5 +1,5 @@
+import Image from "next/image";
 import { site, legal } from "@/lib/content";
-import { Icon } from "./Icon";
 
 export function Footer() {
   return (
@@ -8,9 +8,7 @@ export function Footer() {
         <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-sm">
             <div className="flex items-center gap-2.5 font-semibold tracking-tight">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-accent/15 text-accent-soft">
-                <Icon name="box" size={16} />
-              </span>
+              <Image src="/logo.png" alt="" width={28} height={28} />
               {site.name}
             </div>
             <p className="mt-3 text-sm text-fg-muted">{site.tagline}.</p>

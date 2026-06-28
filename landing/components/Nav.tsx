@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { nav, site } from "@/lib/content";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
@@ -11,9 +12,7 @@ export function Nav() {
           href="#top"
           className="flex items-center gap-2.5 font-semibold tracking-tight"
         >
-          <span className="grid h-7 w-7 place-items-center rounded-lg bg-accent/15 text-accent-soft">
-            <Icon name="box" size={16} />
-          </span>
+          <Image src="/logo.png" alt="" width={28} height={28} priority />
           {site.name}
         </Link>
 
