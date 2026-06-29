@@ -84,6 +84,7 @@ final class ContainerInstaller {
     }
 
     func installOrUpdate() async {
+        guard !isBusy else { return }
         do {
             let release: (version: String, packageURL: URL)
             if let url = latestPackageURL, let version = latestVersion {
@@ -124,6 +125,11 @@ final class ContainerInstaller {
             try await PrivilegedRunner.runCommand(["/usr/sbin/installer", "-pkg", downloaded.path, "-target", "/"])
 
             await system.refresh()
+            // A fresh install leaves the apiserver daemon stopped; start it so the app lands on
+            // the running state instead of stranding the user on a separate "Start" step.
+            if case .daemonStopped = system.state {
+                try? await system.start()
+            }
             phase = .finished
         } catch is CancellationError {
             phase = .idle

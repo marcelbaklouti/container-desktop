@@ -81,11 +81,11 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
                     standardOutputPipe.fileHandleForReading.readabilityHandler = nil
                     standardErrorPipe.fileHandleForReading.readabilityHandler = nil
                     process.terminationHandler = nil
-                    continuation.resume(throwing: RuntimeError.binaryNotFound)
+                    continuation.resume(throwing: ProcessInvocation.spawnError(error, arguments: process.arguments ?? []))
                 }
             }
         } onCancel: {
-            terminate()
+            escalatingTerminate()
         }
     }
 
@@ -145,7 +145,7 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
             do {
                 try process.run()
             } catch {
-                continuation.finish(throwing: RuntimeError.binaryNotFound)
+                continuation.finish(throwing: ProcessInvocation.spawnError(error, arguments: process.arguments ?? []))
             }
         }
     }
@@ -154,11 +154,36 @@ nonisolated final class ProcessInvocation: @unchecked Sendable {
         if process.isRunning { process.terminate() }
     }
 
+    /// SIGTERM, then SIGKILL after a grace period, so a child that ignores SIGTERM (or wedges
+    /// before closing its pipes) cannot block the awaiting continuation forever.
+    private func escalatingTerminate() {
+        guard process.isRunning else { return }
+        process.terminate()
+        let pid = process.processIdentifier
+        Task.detached { [self] in
+            try? await Task.sleep(for: .seconds(5))
+            if process.isRunning { kill(pid, SIGKILL) }
+        }
+    }
+
     private func cleanup() {
         standardOutputPipe.fileHandleForReading.readabilityHandler = nil
         standardErrorPipe.fileHandleForReading.readabilityHandler = nil
         process.terminationHandler = nil
-        if process.isRunning { process.terminate() }
+        escalatingTerminate()
+    }
+
+    /// Maps a `process.run()` launch failure: a genuinely missing file is `.binaryNotFound`,
+    /// but a spawn failure on an existing binary (quarantine/Gatekeeper, wrong arch, resource
+    /// limits) surfaces its real cause instead of the misleading "tool isn't installed."
+    private nonisolated static func spawnError(_ error: any Error, arguments: [String]) -> RuntimeError {
+        let nsError = error as NSError
+        let isMissing = (error as? CocoaError)?.code == .fileNoSuchFile
+            || (nsError.domain == NSPOSIXErrorDomain && nsError.code == Int(ENOENT))
+        return isMissing
+            ? .binaryNotFound
+            : .commandFailed(arguments: arguments, exitCode: -1,
+                             message: String(localized: "Failed to launch the container tool: \(error.localizedDescription)"))
     }
 }
 
