@@ -27,6 +27,7 @@ All notable changes to Container Desktop are documented here. The format is base
 - Marketing-site screenshots render at full resolution (no more pixelation).
 - The release DMG ships a styled installer window (branded background, drag-to-Applications layout).
 - CI security scanning (CodeQL) is scoped to JavaScript/TypeScript; the Swift app is built and tested by the regular CI job.
+- The About panel shows the copyright and the “not affiliated with Apple” notice.
 
 ## [1.0.0] — 2026-06-28
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 @main
 struct ContainersApp: App {
@@ -24,6 +25,9 @@ struct ContainersApp: App {
         .defaultSize(width: 1200, height: 800)
         .windowResizability(.contentMinSize)
         .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About Container Desktop") { showAboutPanel() }
+            }
             CommandGroup(after: .appInfo) {
                 SettingsLink {
                     Text("Check for Updates…")
@@ -71,4 +75,22 @@ private struct HelpMenuButton: View {
         }
         .keyboardShortcut("?", modifiers: .command)
     }
+}
+
+/// Standard macOS About panel, with the copyright (from Info.plist) plus the
+/// legally-required "not affiliated with Apple" notice in the credits.
+@MainActor
+private func showAboutPanel() {
+    let notice = "Not affiliated with, endorsed by, or sponsored by Apple Inc. "
+        + "Apple, macOS, and Apple Silicon are trademarks of Apple Inc."
+    NSApplication.shared.orderFrontStandardAboutPanel(options: [
+        .credits: NSAttributedString(
+            string: notice,
+            attributes: [
+                .font: NSFont.systemFont(ofSize: 10),
+                .foregroundColor: NSColor.secondaryLabelColor,
+            ]
+        )
+    ])
+    NSApplication.shared.activate(ignoringOtherApps: true)
 }
