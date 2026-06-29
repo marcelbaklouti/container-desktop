@@ -8,6 +8,7 @@ struct MenuBarContentView: View {
     @Environment(ContainerStatsStore.self) private var stats
     @Environment(\.openURL) private var openURL
     @Environment(\.openWindow) private var openWindow
+    @State private var listHeight: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -94,6 +95,8 @@ struct MenuBarContentView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 18)
         } else {
+            // ScrollView has no intrinsic height, so inside the self-sizing MenuBarExtra(.window)
+            // it collapses to zero — measure the content and bound the height explicitly.
             ScrollView {
                 VStack(spacing: 0) {
                     ForEach(running) { container in
@@ -101,8 +104,9 @@ struct MenuBarContentView: View {
                         if container.id != running.last?.id { Divider().padding(.leading, 12) }
                     }
                 }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { listHeight = $0 }
             }
-            .frame(maxHeight: 280)
+            .frame(height: min(listHeight, 320))
         }
     }
 
