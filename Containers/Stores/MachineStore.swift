@@ -58,6 +58,17 @@ final class MachineStore {
     func setDefault(_ machine: Machine) async { await perform(["machine", "set-default", machine.id]) }
     func stop(_ machine: Machine) async { await perform(["machine", "stop", machine.id]) }
     func delete(_ machine: Machine) async { await perform(["machine", "delete", machine.id]) }
+    func delete(_ ids: [String]) async { await performBulk(ids.map { ["machine", "delete", $0] }) }
+
+    private func performBulk(_ commands: [[String]]) async {
+        var firstError: String?
+        for command in commands {
+            do { _ = try await client.data(for: command) }
+            catch { if firstError == nil { firstError = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription } }
+        }
+        if let firstError { errorMessage = firstError }
+        await refresh()
+    }
 
     private func perform(_ arguments: [String]) async {
         do {

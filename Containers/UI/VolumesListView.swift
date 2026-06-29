@@ -3,63 +3,36 @@ import SwiftUI
 struct VolumesListView: View {
     @State private var store = VolumeStore()
     @State private var searchText = ""
-    @State private var selectedID: String?
+    @State private var selection: Set<String> = []
     @State private var showInspector = false
     @State private var showCreate = false
-    @State private var pendingDeletion: Volume?
+    @State private var pendingDeletion: [Volume] = []
     @State private var confirmingPrune = false
 
     var body: some View {
-        List(selection: $selectedID) {
-            ForEach(store.volumes.filter { searchText.isEmpty || $0.configuration.name.localizedCaseInsensitiveContains(searchText) }) { volume in
-                VolumeRow(volume: volume, usedBytes: store.usedSizes[volume.id])
-                    .tag(volume.id)
-                    .contextMenu { deleteButton(volume) }
-                    .swipeActions(edge: .trailing) { deleteButton(volume) }
+        decoratedList
+            .navigationTitle("Volumes")
+            .searchable(text: $searchText, prompt: "Filter volumes")
+            .toolbar { toolbarContent }
+            .task { await store.poll(every: .seconds(4)) }
+            .inspector(isPresented: $showInspector) {
+                inspectorContent
+                    .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
             }
-        }
-        .overlay { emptyState }
-        .navigationTitle("Volumes")
-        .searchable(text: $searchText, prompt: "Filter volumes")
-        .toolbar {
-            ToolbarItem {
-                Button { showCreate = true } label: { Label("Create Volume", systemImage: "plus") }
-                    .help("Create Volume…")
-                    .keyboardShortcut("n", modifiers: .command)
-            }
-            ToolbarItem {
-                Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
-                    .help(showInspector ? "Hide Inspector" : "Show Inspector")
-            }
-            ToolbarItem {
-                Menu {
-                    Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Volumes", systemImage: "trash") }
-                } label: {
-                    Label("More", systemImage: "ellipsis.circle")
-                }
-                .help("More Actions")
-            }
-        }
-        .task { await store.poll(every: .seconds(4)) }
-        .inspector(isPresented: $showInspector) {
-            Group {
-                if let selected = store.volumes.first(where: { $0.id == selectedID }) {
-                    VolumeDetailView(volume: selected, usedBytes: store.usedSizes[selected.id])
-                } else {
-                    ContentUnavailableView("No Selection", systemImage: "externaldrive", description: Text("Select a volume to inspect it."))
-                }
-            }
-            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
-        }
-        .onChange(of: selectedID) { _, value in showInspector = value != nil }
+            .onChange(of: selection) { _, value in showInspector = value.count == 1 }
         .onChange(of: store.volumes) { _, items in
-            if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
+            let trimmed = selection.intersection(Set(items.map(\.id)))
+            if trimmed != selection { selection = trimmed }
         }
         .sheet(isPresented: $showCreate) { CreateVolumeSheet(store: store) }
-        .confirmationDialog("Delete this volume?", isPresented: deletionBinding, presenting: pendingDeletion) { volume in
-            Button("Delete", role: .destructive) { Task { await store.delete(volume) } }
-        } message: { volume in
-            Text(volume.id)
+        .confirmationDialog(pendingDeletion.count == 1 ? "Delete this volume?" : "Delete \(pendingDeletion.count) volumes?", isPresented: deletionBinding) {
+            Button("Delete", role: .destructive) {
+                let ids = pendingDeletion.map(\.id)
+                pendingDeletion = []
+                Task { await store.delete(ids) }
+            }
+        } message: {
+            Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) volumes, including their data.")
         }
         .confirmationDialog("Remove all unused volumes?", isPresented: $confirmingPrune) {
             Button("Remove Unused Volumes", role: .destructive) { Task { await store.prune() } }
@@ -73,9 +46,65 @@ struct VolumesListView: View {
         }
     }
 
+    private var decoratedList: some View {
+        List(selection: $selection) {
+            ForEach(store.volumes.filter { searchText.isEmpty || $0.configuration.name.localizedCaseInsensitiveContains(searchText) }) { volume in
+                VolumeRow(volume: volume, usedBytes: store.usedSizes[volume.id])
+                    .tag(volume.id)
+                    .swipeActions(edge: .trailing) { deleteButton(volume) }
+            }
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            volumeMenu(ids)
+        }
+        .overlay { emptyState }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem {
+            Button { showCreate = true } label: { Label("Create Volume", systemImage: "plus") }
+                .help("Create Volume…")
+                .keyboardShortcut("n", modifiers: .command)
+        }
+        ToolbarItem {
+            Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
+                .help(showInspector ? "Hide Inspector" : "Show Inspector")
+        }
+        ToolbarItem {
+            Menu {
+                Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Volumes", systemImage: "trash") }
+            } label: {
+                Label("More", systemImage: "ellipsis.circle")
+            }
+            .help("More Actions")
+        }
+    }
+
+    @ViewBuilder
+    private var inspectorContent: some View {
+        if selection.count == 1, let id = selection.first, let selected = store.volumes.first(where: { $0.id == id }) {
+            VolumeDetailView(volume: selected, usedBytes: store.usedSizes[selected.id])
+        } else if selection.count > 1 {
+            ContentUnavailableView("\(selection.count) Selected", systemImage: "externaldrive", description: Text("Select a single volume to inspect it."))
+        } else {
+            ContentUnavailableView("No Selection", systemImage: "externaldrive", description: Text("Select a volume to inspect it."))
+        }
+    }
+
     @ViewBuilder
     private func deleteButton(_ volume: Volume) -> some View {
-        Button(role: .destructive) { pendingDeletion = volume } label: { Label("Delete", systemImage: "trash") }
+        Button(role: .destructive) { pendingDeletion = [volume] } label: { Label("Delete", systemImage: "trash") }
+    }
+
+    @ViewBuilder
+    private func volumeMenu(_ ids: Set<String>) -> some View {
+        let selected = store.volumes.filter { ids.contains($0.id) }
+        if !selected.isEmpty {
+            Button(role: .destructive) { pendingDeletion = selected } label: {
+                Label(selected.count == 1 ? "Delete" : "Delete \(selected.count)", systemImage: "trash")
+            }
+        }
     }
 
     @ViewBuilder
@@ -99,7 +128,7 @@ struct VolumesListView: View {
     }
 
     private var deletionBinding: Binding<Bool> {
-        Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } })
+        Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
     private var errorBinding: Binding<Bool> {

@@ -33,11 +33,16 @@ final class RegistryStore {
     }
 
     func logout(_ login: RegistryLogin) async {
-        do {
-            _ = try await client.data(for: ["registry", "logout", login.hostname])
-            await refresh()
-        } catch {
-            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+        await logout([login.hostname])
+    }
+
+    func logout(_ hostnames: [String]) async {
+        var firstError: String?
+        for hostname in hostnames {
+            do { _ = try await client.data(for: ["registry", "logout", hostname]) }
+            catch { if firstError == nil { firstError = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription } }
         }
+        if let firstError { errorMessage = firstError }
+        await refresh()
     }
 }

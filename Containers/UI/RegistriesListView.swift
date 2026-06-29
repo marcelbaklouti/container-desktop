@@ -3,11 +3,12 @@ import SwiftUI
 struct RegistriesListView: View {
     @State private var store = RegistryStore()
     @State private var searchText = ""
+    @State private var selection: Set<String> = []
     @State private var showLogin = false
-    @State private var pendingLogout: RegistryLogin?
+    @State private var pendingLogout: [RegistryLogin] = []
 
     var body: some View {
-        List {
+        List(selection: $selection) {
             ForEach(store.logins.filter { searchText.isEmpty || $0.hostname.localizedCaseInsensitiveContains(searchText) }) { login in
                 HStack(spacing: 12) {
                     Image(systemName: "person.badge.key.fill")
@@ -26,17 +27,20 @@ struct RegistriesListView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(login.hostname)
                 .accessibilityValue(login.username.map { "Signed in as \($0)" } ?? "Signed in")
-                .contextMenu {
-                    Button(role: .destructive) { pendingLogout = login } label: {
-                        Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
-                    }
-                }
+                .tag(login.id)
                 .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) { pendingLogout = login } label: {
+                    Button(role: .destructive) { pendingLogout = [login] } label: {
                         Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
                     }
                 }
             }
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            registryMenu(ids)
+        }
+        .onChange(of: store.logins) { _, items in
+            let trimmed = selection.intersection(Set(items.map(\.id)))
+            if trimmed != selection { selection = trimmed }
         }
         .overlay { emptyState }
         .navigationTitle("Registries")
@@ -55,10 +59,14 @@ struct RegistriesListView: View {
         }
         .task { await store.refresh() }
         .sheet(isPresented: $showLogin) { RegistryLoginSheet(store: store) }
-        .confirmationDialog("Log out of this registry?", isPresented: logoutBinding, presenting: pendingLogout) { login in
-            Button("Log Out", role: .destructive) { Task { await store.logout(login) } }
-        } message: { login in
-            Text(login.hostname)
+        .confirmationDialog(pendingLogout.count == 1 ? "Log out of this registry?" : "Log out of \(pendingLogout.count) registries?", isPresented: logoutBinding) {
+            Button("Log Out", role: .destructive) {
+                let hostnames = pendingLogout.map(\.hostname)
+                pendingLogout = []
+                Task { await store.logout(hostnames) }
+            }
+        } message: {
+            Text(pendingLogout.count == 1 ? (pendingLogout.first?.hostname ?? "") : "This logs out of \(pendingLogout.count) registries.")
         }
         .alert("Something went wrong", isPresented: errorBinding) {
             Button("OK", role: .cancel) {}
@@ -87,8 +95,18 @@ struct RegistriesListView: View {
         }
     }
 
+    @ViewBuilder
+    private func registryMenu(_ ids: Set<String>) -> some View {
+        let selected = store.logins.filter { ids.contains($0.id) }
+        if !selected.isEmpty {
+            Button(role: .destructive) { pendingLogout = selected } label: {
+                Label(selected.count == 1 ? "Log Out" : "Log Out \(selected.count)", systemImage: "rectangle.portrait.and.arrow.right")
+            }
+        }
+    }
+
     private var logoutBinding: Binding<Bool> {
-        Binding(get: { pendingLogout != nil }, set: { if !$0 { pendingLogout = nil } })
+        Binding(get: { !pendingLogout.isEmpty }, set: { if !$0 { pendingLogout = [] } })
     }
 
     private var errorBinding: Binding<Bool> {

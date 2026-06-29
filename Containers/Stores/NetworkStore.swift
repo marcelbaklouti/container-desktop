@@ -46,6 +46,17 @@ final class NetworkStore {
 
     func delete(_ network: Network) async { await perform(["network", "delete", network.id]) }
     func prune() async { await perform(["network", "prune"]) }
+    func delete(_ ids: [String]) async { await performBulk(ids.map { ["network", "delete", $0] }) }
+
+    private func performBulk(_ commands: [[String]]) async {
+        var firstError: String?
+        for command in commands {
+            do { _ = try await client.data(for: command) }
+            catch { if firstError == nil { firstError = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription } }
+        }
+        if let firstError { errorMessage = firstError }
+        await refresh()
+    }
 
     private func perform(_ arguments: [String]) async {
         do {

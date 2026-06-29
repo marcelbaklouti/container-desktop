@@ -6,9 +6,9 @@ struct ContainersListView: View {
     @Environment(ContainerStatsStore.self) private var stats
     @State private var searchText = ""
     @State private var runningOnly = false
-    @State private var pendingDeletion: Container?
+    @State private var pendingDeletion: [Container] = []
     @State private var showRunSheet = false
-    @State private var selectedContainerID: String?
+    @State private var selection: Set<String> = []
     @State private var showInspector = false
     @State private var pendingCopy: Container?
     @State private var launchProject: ComposeProject?
@@ -47,10 +47,9 @@ struct ContainersListView: View {
     private func row(_ container: Container) -> some View {
         ContainerRow(container: container)
             .tag(container.id)
-            .contextMenu { actions(for: container) }
             .swipeActions(edge: .trailing) {
                 Button(role: .destructive) {
-                    pendingDeletion = container
+                    pendingDeletion = [container]
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
@@ -58,113 +57,76 @@ struct ContainersListView: View {
     }
 
     var body: some View {
-        List(selection: $selectedContainerID) {
+        decoratedList
+            .sheet(isPresented: $showRunSheet) {
+                RunContainerSheet(store: store)
+            }
+            .sheet(item: $pendingCopy) { container in
+                CopyFilesSheet(store: store, container: container)
+            }
+            .sheet(item: $launchProject) { project in
+                ComposeLaunchSheet(project: project)
+            }
+            .inspector(isPresented: $showInspector) {
+                inspectorContent
+                    .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
+            }
+            .onChange(of: selection) { _, value in
+                showInspector = value.count == 1
+            }
+            .onChange(of: store.containers) { _, items in
+                let trimmed = selection.intersection(Set(items.map(\.id)))
+                if trimmed != selection { selection = trimmed }
+            }
+    }
+
+    private var decoratedList: some View {
+        List(selection: $selection) {
             ForEach(containerGroups) { group in
                 Section {
                     ForEach(group.containers) { container in
                         row(container)
                     }
                 } header: {
-                    if let title = group.title {
-                        HStack {
-                            Text(title)
-                            Spacer()
-                            if let summary = groupSummary(group) {
-                                Text(summary)
-                                    .font(.caption.monospacedDigit())
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                    sectionHeader(group)
                 }
             }
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            bulkMenu(ids)
         }
         .overlay { emptyState }
         .navigationTitle("Containers")
         .navigationSubtitle(overallSummary)
         .searchable(text: $searchText, prompt: "Filter containers")
-        .toolbar {
-            ToolbarItemGroup {
-                Toggle(isOn: $runningOnly) {
-                    Label("Running Only", systemImage: "line.3.horizontal.decrease.circle")
-                }
-                .help("Show Running Containers Only")
-
-                Button {
-                    Task { await store.refresh(surfacingErrors: true) }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .help("Refresh")
-            }
-            ToolbarItemGroup {
-                Button {
-                    pickComposeFile()
-                } label: {
-                    Label("Launch Stack", systemImage: "square.stack.3d.up")
-                }
-                .help("Launch Compose Stack")
-                .keyboardShortcut("n", modifiers: [.command, .shift])
-
-                Button {
-                    showRunSheet = true
-                } label: {
-                    Label("Run Container", systemImage: "plus")
-                }
-                .help("Run Container")
-                .keyboardShortcut("n", modifiers: .command)
-            }
-            ToolbarItem {
-                Button {
-                    showInspector.toggle()
-                } label: {
-                    Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right")
-                }
-                .help(showInspector ? "Hide Inspector" : "Show Inspector")
-            }
-        }
+        .toolbar { toolbarContent }
         .confirmationDialog(
-            "Delete this container?",
-            isPresented: deletionBinding,
-            presenting: pendingDeletion
-        ) { container in
+            pendingDeletion.count == 1 ? "Delete this container?" : "Delete \(pendingDeletion.count) containers?",
+            isPresented: deletionBinding
+        ) {
             Button("Delete", role: .destructive) {
-                Task { await store.delete(container) }
+                let ids = pendingDeletion.map(\.id)
+                pendingDeletion = []
+                Task { await store.delete(ids) }
             }
-        } message: { container in
-            Text(container.id)
+        } message: {
+            Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) containers.")
         }
         .alert("Something went wrong", isPresented: errorBinding) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(store.errorMessage ?? "")
         }
-        .sheet(isPresented: $showRunSheet) {
-            RunContainerSheet(store: store)
-        }
-        .sheet(item: $pendingCopy) { container in
-            CopyFilesSheet(store: store, container: container)
-        }
-        .sheet(item: $launchProject) { project in
-            ComposeLaunchSheet(project: project)
-        }
-        .inspector(isPresented: $showInspector) {
-            Group {
-                if let selected = store.containers.first(where: { $0.id == selectedContainerID }) {
-                    ContainerInspector(container: selected)
-                } else {
-                    ContentUnavailableView("No Selection", systemImage: "shippingbox", description: Text("Select a container to inspect it."))
-                }
-            }
-            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
-        }
-        .onChange(of: selectedContainerID) { _, value in
-            showInspector = value != nil
-        }
-        .onChange(of: store.containers) { _, items in
-            if let id = selectedContainerID, !items.contains(where: { $0.id == id }) {
-                selectedContainerID = nil
-            }
+    }
+
+    @ViewBuilder
+    private var inspectorContent: some View {
+        if selection.count == 1, let id = selection.first, let selected = store.containers.first(where: { $0.id == id }) {
+            ContainerInspector(container: selected)
+        } else if selection.count > 1 {
+            ContentUnavailableView("\(selection.count) Selected", systemImage: "shippingbox", description: Text("Select a single container to inspect it."))
+        } else {
+            ContentUnavailableView("No Selection", systemImage: "shippingbox", description: Text("Select a container to inspect it."))
         }
     }
 
@@ -219,34 +181,126 @@ struct ContainersListView: View {
         }
     }
 
+    /// Context menu for the current selection (one or many). SwiftUI passes the effective
+    /// target set, so the same menu serves single-click and multi-select.
     @ViewBuilder
-    private func actions(for container: Container) -> some View {
-        if container.status?.state == "running" {
-            Button { Task { await store.stop(container) } } label: { Label("Stop", systemImage: "stop.fill") }
-            Button { Task { await store.restart(container) } } label: { Label("Restart", systemImage: "arrow.clockwise") }
-            Button { Task { await store.kill(container) } } label: { Label("Kill", systemImage: "bolt.fill") }
-        } else {
-            Button { Task { await store.start(container) } } label: { Label("Start", systemImage: "play.fill") }
+    private func bulkMenu(_ ids: Set<String>) -> some View {
+        let selected = store.containers.filter { ids.contains($0.id) }
+        let running = selected.filter { $0.status?.state == "running" }
+        let stopped = selected.filter { $0.status?.state != "running" }
+        if !stopped.isEmpty {
+            Button { Task { await store.start(stopped.map(\.id)) } } label: { Label(actionLabel("Start", stopped.count), systemImage: "play.fill") }
         }
-        if !container.configuration.publishedPorts.isEmpty {
-            Divider()
-            ForEach(container.configuration.publishedPorts, id: \.self) { port in
-                Button {
-                    if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
-                } label: {
-                    Label("Open localhost:\(String(port.hostPort))", systemImage: "arrow.up.right")
+        if !running.isEmpty {
+            Button { Task { await store.stop(running.map(\.id)) } } label: { Label(actionLabel("Stop", running.count), systemImage: "stop.fill") }
+            Button { Task { await store.restart(running.map(\.id)) } } label: { Label(actionLabel("Restart", running.count), systemImage: "arrow.clockwise") }
+        }
+        if selected.count == 1, let container = selected.first {
+            if container.status?.state == "running" {
+                Button { Task { await store.kill(container) } } label: { Label("Kill", systemImage: "bolt.fill") }
+            }
+            if !container.configuration.publishedPorts.isEmpty {
+                Divider()
+                ForEach(container.configuration.publishedPorts, id: \.self) { port in
+                    Button {
+                        if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
+                    } label: {
+                        Label("Open localhost:\(String(port.hostPort))", systemImage: "arrow.up.right")
+                    }
                 }
             }
+            Divider()
+            Button { pendingCopy = container } label: { Label("Copy Files…", systemImage: "doc.on.doc") }
+            Button { exportFilesystem(container) } label: { Label("Export Filesystem…", systemImage: "arrow.down.doc") }
         }
-        Divider()
-        Button { pendingCopy = container } label: { Label("Copy Files…", systemImage: "doc.on.doc") }
-        Button { exportFilesystem(container) } label: { Label("Export Filesystem…", systemImage: "arrow.down.doc") }
-        Divider()
-        Button(role: .destructive) {
-            pendingDeletion = container
-        } label: {
-            Label("Delete", systemImage: "trash")
+        if !selected.isEmpty {
+            Divider()
+            Button(role: .destructive) { pendingDeletion = selected } label: { Label(actionLabel("Delete", selected.count), systemImage: "trash") }
         }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItemGroup {
+            Toggle(isOn: $runningOnly) {
+                Label("Running Only", systemImage: "line.3.horizontal.decrease.circle")
+            }
+            .help("Show Running Containers Only")
+
+            Button {
+                Task { await store.refresh(surfacingErrors: true) }
+            } label: {
+                Label("Refresh", systemImage: "arrow.clockwise")
+            }
+            .help("Refresh")
+        }
+        ToolbarItemGroup {
+            Button {
+                pickComposeFile()
+            } label: {
+                Label("Launch Stack", systemImage: "square.stack.3d.up")
+            }
+            .help("Launch Compose Stack")
+            .keyboardShortcut("n", modifiers: [.command, .shift])
+
+            Button {
+                showRunSheet = true
+            } label: {
+                Label("Run Container", systemImage: "plus")
+            }
+            .help("Run Container")
+            .keyboardShortcut("n", modifiers: .command)
+        }
+        ToolbarItem {
+            Button {
+                showInspector.toggle()
+            } label: {
+                Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right")
+            }
+            .help(showInspector ? "Hide Inspector" : "Show Inspector")
+        }
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ group: ContainerGroup) -> some View {
+        if let title = group.title {
+            HStack(spacing: 10) {
+                Text(title)
+                if let summary = groupSummary(group) {
+                    Text(summary)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                groupActions(group)
+            }
+        }
+    }
+
+    /// Start/Stop the whole Compose group from its section header.
+    @ViewBuilder
+    private func groupActions(_ group: ContainerGroup) -> some View {
+        if group.id != "__standalone__" {
+            let running = group.containers.filter { $0.status?.state == "running" }.map(\.id)
+            let stopped = group.containers.filter { $0.status?.state != "running" }.map(\.id)
+            HStack(spacing: 8) {
+                if !stopped.isEmpty {
+                    Button { Task { await store.start(stopped) } } label: { Image(systemName: "play.fill") }
+                        .help("Start all in \(group.title ?? "this group")")
+                }
+                if !running.isEmpty {
+                    Button { Task { await store.stop(running) } } label: { Image(systemName: "stop.fill") }
+                        .help("Stop all in \(group.title ?? "this group")")
+                }
+            }
+            .buttonStyle(.borderless)
+            .foregroundStyle(.secondary)
+            .imageScale(.small)
+        }
+    }
+
+    private func actionLabel(_ verb: String, _ count: Int) -> String {
+        count == 1 ? verb : "\(verb) \(count)"
     }
 
     private func pickComposeFile() {
@@ -277,7 +331,7 @@ struct ContainersListView: View {
     }
 
     private var deletionBinding: Binding<Bool> {
-        Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } })
+        Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
     private var errorBinding: Binding<Bool> {

@@ -50,6 +50,17 @@ final class ImageStore {
 
     func delete(_ image: ContainerImage) async { await perform(["image", "delete", image.configuration.name]) }
     func prune() async { await perform(["image", "prune"]) }
+    func delete(_ names: [String]) async { await performBulk(names.map { ["image", "delete", $0] }) }
+
+    private func performBulk(_ commands: [[String]]) async {
+        var firstError: String?
+        for command in commands {
+            do { _ = try await client.data(for: command) }
+            catch { if firstError == nil { firstError = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription } }
+        }
+        if let firstError { errorMessage = firstError }
+        await refresh()
+    }
 
     private func perform(_ arguments: [String]) async {
         do {

@@ -6,6 +6,11 @@ All notable changes to Container Desktop are documented here. The format is base
 
 ## [1.0.2] — 2026-06-29
 
+### Added
+
+- **Multiple selection across every list.** ⌘-click or ⇧-click to select several containers, images, networks, volumes, machines, or registry logins, then act on them all at once from the right-click menu — start, stop, restart, or delete containers; delete images, networks, and volumes; stop or delete machines; or log out of registries together. The menu adapts to what you picked, so Stop appears only when something selected is running.
+- **Start or stop a whole Compose stack.** Each project group header in Containers now has Start All and Stop All, so an entire stack goes up or down in one move.
+
 ### Fixed
 
 - **Compose stacks that use `${VARIABLE}` syntax now launch.** The app performs full Docker Compose variable interpolation — `${VAR}`, `${VAR:-default}`, `${VAR-default}`, `${VAR:?err}`, `${VAR:+alt}`, `$$`, and nested forms — and reads a sibling `.env` file, so a port like `${POSTGRES_PORT:-5432}:5432` resolves to `5432:5432` instead of being passed literally to the runtime.

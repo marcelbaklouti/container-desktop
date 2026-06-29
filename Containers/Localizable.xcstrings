@@ -29,6 +29,9 @@
     "%@ platforms" : {
 
     },
+    "%lld Selected" : {
+
+    },
     "10.10.0.0/24 (optional)" : {
 
     },
@@ -36,6 +39,9 @@
 
     },
     "8080:80" : {
+
+    },
+    "A published port is already in use — stop whatever is using it (for example, the same stack running in Docker) and try again." : {
 
     },
     "About Container Desktop" : {
@@ -257,9 +263,6 @@
     "Create" : {
 
     },
-    "Create a container machine to get started." : {
-
-    },
     "Create Machine" : {
 
     },
@@ -315,6 +318,24 @@
 
     },
     "Delete" : {
+
+    },
+    "Delete %lld" : {
+
+    },
+    "Delete %lld containers?" : {
+
+    },
+    "Delete %lld images?" : {
+
+    },
+    "Delete %lld machines?" : {
+
+    },
+    "Delete %lld networks?" : {
+
+    },
+    "Delete %lld volumes?" : {
 
     },
     "Delete domain %@" : {
@@ -617,9 +638,6 @@
     "Log In to a Registry" : {
 
     },
-    "Log in to a registry to push and pull private images." : {
-
-    },
     "Log in to a registry under Registries to pull and push private images. Your password is handled securely by the container tool and never passed on the command line." : {
 
     },
@@ -630,6 +648,12 @@
 
     },
     "Log Out" : {
+
+    },
+    "Log Out %lld" : {
+
+    },
+    "Log out of %lld registries?" : {
 
     },
     "Log out of this registry?" : {
@@ -719,13 +743,10 @@
     "No cache" : {
 
     },
-    "No Containers" : {
+    "No containers match your filter." : {
 
     },
     "No image specified — build: services aren’t supported yet." : {
-
-    },
-    "No Images" : {
 
     },
     "No Live Stats" : {
@@ -734,13 +755,7 @@
     "No Log Output" : {
 
     },
-    "No Machines" : {
-
-    },
-    "No Networks" : {
-
-    },
-    "No Registry Logins" : {
+    "No Matches" : {
 
     },
     "No running containers" : {
@@ -750,9 +765,6 @@
 
     },
     "No Selection" : {
-
-    },
-    "No Volumes" : {
 
     },
     "None" : {
@@ -843,9 +855,6 @@
 
     },
     "Pull a pre-built image by reference, or Build one from a Dockerfile with live build output. Import and Export move images as .tar archives." : {
-
-    },
-    "Pull an image to get started." : {
 
     },
     "Pull Image" : {
@@ -956,9 +965,6 @@
     "Run" : {
 
     },
-    "Run a container to see it here." : {
-
-    },
     "Run Container" : {
 
     },
@@ -996,6 +1002,21 @@
 
     },
     "Select a network to inspect it." : {
+
+    },
+    "Select a single container to inspect it." : {
+
+    },
+    "Select a single image to inspect it." : {
+
+    },
+    "Select a single machine to inspect it." : {
+
+    },
+    "Select a single network to inspect it." : {
+
+    },
+    "Select a single volume to inspect it." : {
 
     },
     "Select a Topic" : {
@@ -1052,6 +1073,9 @@
     "Start" : {
 
     },
+    "Start all in %@" : {
+
+    },
     "Start Builder" : {
 
     },
@@ -1089,6 +1113,12 @@
 
     },
     "Stop %@" : {
+
+    },
+    "Stop %lld" : {
+
+    },
+    "Stop all in %@" : {
 
     },
     "Stop Builder" : {

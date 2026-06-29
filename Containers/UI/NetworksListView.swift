@@ -3,63 +3,36 @@ import SwiftUI
 struct NetworksListView: View {
     @State private var store = NetworkStore()
     @State private var searchText = ""
-    @State private var selectedID: String?
+    @State private var selection: Set<String> = []
     @State private var showInspector = false
     @State private var showCreate = false
-    @State private var pendingDeletion: Network?
+    @State private var pendingDeletion: [Network] = []
     @State private var confirmingPrune = false
 
     var body: some View {
-        List(selection: $selectedID) {
-            ForEach(store.networks.filter { searchText.isEmpty || $0.configuration.name.localizedCaseInsensitiveContains(searchText) }) { network in
-                NetworkRow(network: network)
-                    .tag(network.id)
-                    .contextMenu { deleteButton(network) }
-                    .swipeActions(edge: .trailing) { deleteButton(network) }
+        decoratedList
+            .navigationTitle("Networks")
+            .searchable(text: $searchText, prompt: "Filter networks")
+            .toolbar { toolbarContent }
+            .task { await store.poll(every: .seconds(4)) }
+            .inspector(isPresented: $showInspector) {
+                inspectorContent
+                    .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
             }
-        }
-        .overlay { emptyState }
-        .navigationTitle("Networks")
-        .searchable(text: $searchText, prompt: "Filter networks")
-        .toolbar {
-            ToolbarItem {
-                Button { showCreate = true } label: { Label("Create Network", systemImage: "plus") }
-                    .help("Create Network…")
-                    .keyboardShortcut("n", modifiers: .command)
-            }
-            ToolbarItem {
-                Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
-                    .help(showInspector ? "Hide Inspector" : "Show Inspector")
-            }
-            ToolbarItem {
-                Menu {
-                    Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Networks", systemImage: "trash") }
-                } label: {
-                    Label("More", systemImage: "ellipsis.circle")
-                }
-                .help("More Actions")
-            }
-        }
-        .task { await store.poll(every: .seconds(4)) }
-        .inspector(isPresented: $showInspector) {
-            Group {
-                if let selected = store.networks.first(where: { $0.id == selectedID }) {
-                    NetworkDetailView(network: selected)
-                } else {
-                    ContentUnavailableView("No Selection", systemImage: "network", description: Text("Select a network to inspect it."))
-                }
-            }
-            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
-        }
-        .onChange(of: selectedID) { _, value in showInspector = value != nil }
+            .onChange(of: selection) { _, value in showInspector = value.count == 1 }
         .onChange(of: store.networks) { _, items in
-            if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
+            let trimmed = selection.intersection(Set(items.map(\.id)))
+            if trimmed != selection { selection = trimmed }
         }
         .sheet(isPresented: $showCreate) { CreateNetworkSheet(store: store) }
-        .confirmationDialog("Delete this network?", isPresented: deletionBinding, presenting: pendingDeletion) { network in
-            Button("Delete", role: .destructive) { Task { await store.delete(network) } }
-        } message: { network in
-            Text(network.id)
+        .confirmationDialog(pendingDeletion.count == 1 ? "Delete this network?" : "Delete \(pendingDeletion.count) networks?", isPresented: deletionBinding) {
+            Button("Delete", role: .destructive) {
+                let ids = pendingDeletion.map(\.id)
+                pendingDeletion = []
+                Task { await store.delete(ids) }
+            }
+        } message: {
+            Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) networks.")
         }
         .confirmationDialog("Remove all unused networks?", isPresented: $confirmingPrune) {
             Button("Remove Unused Networks", role: .destructive) { Task { await store.prune() } }
@@ -73,10 +46,66 @@ struct NetworksListView: View {
         }
     }
 
+    private var decoratedList: some View {
+        List(selection: $selection) {
+            ForEach(store.networks.filter { searchText.isEmpty || $0.configuration.name.localizedCaseInsensitiveContains(searchText) }) { network in
+                NetworkRow(network: network)
+                    .tag(network.id)
+                    .swipeActions(edge: .trailing) { deleteButton(network) }
+            }
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            networkMenu(ids)
+        }
+        .overlay { emptyState }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem {
+            Button { showCreate = true } label: { Label("Create Network", systemImage: "plus") }
+                .help("Create Network…")
+                .keyboardShortcut("n", modifiers: .command)
+        }
+        ToolbarItem {
+            Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
+                .help(showInspector ? "Hide Inspector" : "Show Inspector")
+        }
+        ToolbarItem {
+            Menu {
+                Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Networks", systemImage: "trash") }
+            } label: {
+                Label("More", systemImage: "ellipsis.circle")
+            }
+            .help("More Actions")
+        }
+    }
+
+    @ViewBuilder
+    private var inspectorContent: some View {
+        if selection.count == 1, let id = selection.first, let selected = store.networks.first(where: { $0.id == id }) {
+            NetworkDetailView(network: selected)
+        } else if selection.count > 1 {
+            ContentUnavailableView("\(selection.count) Selected", systemImage: "network", description: Text("Select a single network to inspect it."))
+        } else {
+            ContentUnavailableView("No Selection", systemImage: "network", description: Text("Select a network to inspect it."))
+        }
+    }
+
     @ViewBuilder
     private func deleteButton(_ network: Network) -> some View {
         if !network.isBuiltin {
-            Button(role: .destructive) { pendingDeletion = network } label: { Label("Delete", systemImage: "trash") }
+            Button(role: .destructive) { pendingDeletion = [network] } label: { Label("Delete", systemImage: "trash") }
+        }
+    }
+
+    @ViewBuilder
+    private func networkMenu(_ ids: Set<String>) -> some View {
+        let deletable = store.networks.filter { ids.contains($0.id) && !$0.isBuiltin }
+        if !deletable.isEmpty {
+            Button(role: .destructive) { pendingDeletion = deletable } label: {
+                Label(deletable.count == 1 ? "Delete" : "Delete \(deletable.count)", systemImage: "trash")
+            }
         }
     }
 
@@ -101,7 +130,7 @@ struct NetworksListView: View {
     }
 
     private var deletionBinding: Binding<Bool> {
-        Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } })
+        Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
     private var errorBinding: Binding<Bool> {

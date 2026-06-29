@@ -172,10 +172,28 @@ fi
 # --- Publish -----------------------------------------------------------------
 if [ "$PUBLISH" -eq 1 ]; then
   step "Creating GitHub release v$VERSION"
+  # Release notes are the CHANGELOG section for this version, so the two never drift.
+  NOTES_FILE="$BUILD_DIR/release-notes-$VERSION.md"
+  if awk -v ver="$VERSION" '
+      $0 ~ "^## \\[" ver "\\]" { grab=1; next }
+      grab && /^## \[/ { exit }
+      grab { print }
+    ' CHANGELOG.md | sed '/./,$!d' > "$NOTES_FILE" && [ -s "$NOTES_FILE" ]; then
+    echo "Release notes from CHANGELOG.md [$VERSION]"
+  else
+    printf '%s\n' "Container Desktop $VERSION. Apple Silicon, macOS 26+." > "$NOTES_FILE"
+    echo "WARNING: no CHANGELOG.md section for $VERSION — using a generic note."
+  fi
+  cat >> "$NOTES_FILE" <<EOF
+
+---
+
+**Install:** Download the DMG below, open it, drag **Container Desktop** to **Applications**, then launch it. The app is Developer ID-signed and notarized by Apple, so it opens without a Gatekeeper warning. Apple Silicon, macOS 26+.
+EOF
   gh release create "v$VERSION" "$DMG" \
     --repo "$REPO" \
     --title "$PRODUCT $VERSION" \
-    --notes "Container Desktop $VERSION. Apple Silicon, macOS 26+. Download the DMG, drag the app to Applications, and on first launch right-click > Open if Gatekeeper prompts."
+    --notes-file "$NOTES_FILE"
   echo "Published: https://github.com/$REPO/releases/tag/v$VERSION"
 else
   step "Done (not published)"

@@ -85,7 +85,7 @@ extension HelpTopic {
                 .init(heading: "Running a container",
                       body: "Click the + (Run Container) button to choose an image and set ports, environment variables, volumes, and resources. Give it a Project name to group it with related containers."),
                 .init(heading: "Lifecycle",
-                      body: "Right-click any container to Start, Stop, Restart, Kill, or Delete it. Quitting Container Desktop does not stop your containers — they keep running under the system service until you stop them or the service."),
+                      body: "Right-click any container to Start, Stop, Restart, Kill, or Delete it. Select several with ⌘-click or ⇧-click to act on them together, or use Start All and Stop All in a Compose project’s group header to bring a whole stack up or down. Quitting Container Desktop does not stop your containers — they keep running under the system service until you stop them or the service."),
                 .init(heading: "Logs, stats, and a shell",
                       body: "Select a container to open the inspector, then switch tabs to follow live logs, watch CPU and memory charts, or open an interactive terminal inside the container."),
                 .init(heading: "Published ports",
@@ -165,6 +165,19 @@ extension HelpTopic {
             sections: [
                 .init(heading: "Keeping the runtime current",
                       body: "Container Desktop’s version tracks the container runtime release it’s built for. System → Software Update shows the latest release from Apple and installs verified updates after an administrator prompt — Container Desktop only accepts packages signed and notarized by Apple."),
+            ]
+        ),
+        HelpTopic(
+            id: "shortcuts",
+            title: "Selection & Shortcuts",
+            systemImage: "command",
+            sections: [
+                .init(heading: "Selecting several at once",
+                      body: "Every list — containers, images, networks, volumes, machines, and registry logins — supports multiple selection. Click an item, then ⌘-click to add others or ⇧-click to extend the range, and right-click to apply one action to all of them. The menu only shows actions that fit the selection, so you’ll see Stop only when something selected is running."),
+                .init(heading: "Acting on a whole stack",
+                      body: "Containers are grouped by their Compose project. Each group header has Start All and Stop All, so an entire stack goes up or down without selecting its containers one by one."),
+                .init(heading: "Keyboard shortcuts",
+                      body: "⌘N is each area’s primary action — Run Container, Build or Pull an image, Create, or Log In. In Containers, ⇧⌘N launches a Compose stack. ⌘F filters the current list, ⌘, opens Settings, and ⌘? opens this Help. The empty screens also list the shortcuts that apply there."),
             ]
         ),
     ]

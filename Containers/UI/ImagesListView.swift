@@ -5,75 +5,58 @@ struct ImagesListView: View {
     @Environment(ContainerStore.self) private var containerStore
     @State private var store = ImageStore()
     @State private var searchText = ""
-    @State private var selectedID: String?
+    @State private var selection: Set<String> = []
     @State private var showInspector = false
     @State private var showPull = false
     @State private var tagging: ContainerImage?
     @State private var pushing: ContainerImage?
-    @State private var pendingDeletion: ContainerImage?
+    @State private var pendingDeletion: [ContainerImage] = []
     @State private var showBuild = false
     @State private var confirmingPrune = false
 
     var body: some View {
-        List(selection: $selectedID) {
+        decoratedList
+            .task { await store.poll(every: .seconds(5)) }
+            .inspector(isPresented: $showInspector) {
+                inspectorContent
+                    .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
+            }
+            .onChange(of: selection) { _, value in showInspector = value.count == 1 }
+            .onChange(of: store.images) { _, items in
+                let trimmed = selection.intersection(Set(items.map(\.id)))
+                if trimmed != selection { selection = trimmed }
+            }
+            .sheet(isPresented: $showPull) { PullImageSheet(store: store) }
+            .sheet(isPresented: $showBuild) { BuildImageSheet(store: store) }
+            .sheet(item: $tagging) { image in TagImageSheet(store: store, image: image) }
+            .sheet(item: $pushing) { image in PushImageSheet(reference: image.configuration.name) }
+    }
+
+    private var decoratedList: some View {
+        List(selection: $selection) {
             ForEach(filteredImages) { image in
                 ImageRow(image: image, isInUse: inUseDigests.contains(image.configuration.descriptor.digest))
                     .tag(image.id)
-                    .contextMenu { actions(for: image) }
                     .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) { pendingDeletion = image } label: { Label("Delete", systemImage: "trash") }
+                        Button(role: .destructive) { pendingDeletion = [image] } label: { Label("Delete", systemImage: "trash") }
                     }
             }
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            imageMenu(ids)
         }
         .overlay { emptyState }
         .navigationTitle("Images")
         .searchable(text: $searchText, prompt: "Filter images")
-        .toolbar {
-            ToolbarItemGroup {
-                Button { showPull = true } label: { Label("Pull Image", systemImage: "arrow.down.circle") }
-                    .help("Pull Image…")
-                    .keyboardShortcut("n", modifiers: .command)
-                Button { showBuild = true } label: { Label("Build Image", systemImage: "hammer") }
-                    .help("Build Image…")
-                Button { importImage() } label: { Label("Import Image", systemImage: "arrow.up.doc") }
-                    .help("Import Image…")
+        .toolbar { toolbarContent }
+        .confirmationDialog(pendingDeletion.count == 1 ? "Delete this image?" : "Delete \(pendingDeletion.count) images?", isPresented: deletionBinding) {
+            Button("Delete", role: .destructive) {
+                let names = pendingDeletion.map { $0.configuration.name }
+                pendingDeletion = []
+                Task { await store.delete(names) }
             }
-            ToolbarItem {
-                Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
-                    .help(showInspector ? "Hide Inspector" : "Show Inspector")
-            }
-            ToolbarItem {
-                Menu {
-                    Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Images", systemImage: "trash") }
-                } label: {
-                    Label("More", systemImage: "ellipsis.circle")
-                }
-                .help("More Actions")
-            }
-        }
-        .task { await store.poll(every: .seconds(5)) }
-        .inspector(isPresented: $showInspector) {
-            Group {
-                if let selected = store.images.first(where: { $0.id == selectedID }) {
-                    ImageDetailView(image: selected, isInUse: inUseDigests.contains(selected.configuration.descriptor.digest))
-                } else {
-                    ContentUnavailableView("No Selection", systemImage: "square.stack.3d.up", description: Text("Select an image to inspect it."))
-                }
-            }
-            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
-        }
-        .onChange(of: selectedID) { _, value in showInspector = value != nil }
-        .onChange(of: store.images) { _, items in
-            if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
-        }
-        .sheet(isPresented: $showPull) { PullImageSheet(store: store) }
-        .sheet(isPresented: $showBuild) { BuildImageSheet(store: store) }
-        .sheet(item: $tagging) { image in TagImageSheet(store: store, image: image) }
-        .sheet(item: $pushing) { image in PushImageSheet(reference: image.configuration.name) }
-        .confirmationDialog("Delete this image?", isPresented: deletionBinding, presenting: pendingDeletion) { image in
-            Button("Delete", role: .destructive) { Task { await store.delete(image) } }
-        } message: { image in
-            Text(image.configuration.name)
+        } message: {
+            Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.configuration.name ?? "") : "This permanently deletes \(pendingDeletion.count) images.")
         }
         .confirmationDialog("Remove all unused images?", isPresented: $confirmingPrune) {
             Button("Remove Unused Images", role: .destructive) { Task { await store.prune() } }
@@ -84,6 +67,42 @@ struct ImagesListView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(store.errorMessage ?? "")
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItemGroup {
+            Button { showPull = true } label: { Label("Pull Image", systemImage: "arrow.down.circle") }
+                .help("Pull Image…")
+                .keyboardShortcut("n", modifiers: .command)
+            Button { showBuild = true } label: { Label("Build Image", systemImage: "hammer") }
+                .help("Build Image…")
+            Button { importImage() } label: { Label("Import Image", systemImage: "arrow.up.doc") }
+                .help("Import Image…")
+        }
+        ToolbarItem {
+            Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
+                .help(showInspector ? "Hide Inspector" : "Show Inspector")
+        }
+        ToolbarItem {
+            Menu {
+                Button(role: .destructive) { confirmingPrune = true } label: { Label("Prune Unused Images", systemImage: "trash") }
+            } label: {
+                Label("More", systemImage: "ellipsis.circle")
+            }
+            .help("More Actions")
+        }
+    }
+
+    @ViewBuilder
+    private var inspectorContent: some View {
+        if selection.count == 1, let id = selection.first, let selected = store.images.first(where: { $0.id == id }) {
+            ImageDetailView(image: selected, isInUse: inUseDigests.contains(selected.configuration.descriptor.digest))
+        } else if selection.count > 1 {
+            ContentUnavailableView("\(selection.count) Selected", systemImage: "square.stack.3d.up", description: Text("Select a single image to inspect it."))
+        } else {
+            ContentUnavailableView("No Selection", systemImage: "square.stack.3d.up", description: Text("Select an image to inspect it."))
         }
     }
 
@@ -100,12 +119,19 @@ struct ImagesListView: View {
     }
 
     @ViewBuilder
-    private func actions(for image: ContainerImage) -> some View {
-        Button { tagging = image } label: { Label("Tag…", systemImage: "tag") }
-        Button { pushing = image } label: { Label("Push…", systemImage: "arrow.up.circle") }
-        Button { exportImage(image) } label: { Label("Export…", systemImage: "arrow.down.doc") }
-        Divider()
-        Button(role: .destructive) { pendingDeletion = image } label: { Label("Delete", systemImage: "trash") }
+    private func imageMenu(_ ids: Set<String>) -> some View {
+        let selected = store.images.filter { ids.contains($0.id) }
+        if selected.count == 1, let image = selected.first {
+            Button { tagging = image } label: { Label("Tag…", systemImage: "tag") }
+            Button { pushing = image } label: { Label("Push…", systemImage: "arrow.up.circle") }
+            Button { exportImage(image) } label: { Label("Export…", systemImage: "arrow.down.doc") }
+            Divider()
+        }
+        if !selected.isEmpty {
+            Button(role: .destructive) { pendingDeletion = selected } label: {
+                Label(selected.count == 1 ? "Delete" : "Delete \(selected.count)", systemImage: "trash")
+            }
+        }
     }
 
     private func exportImage(_ image: ContainerImage) {
@@ -164,7 +190,7 @@ struct ImagesListView: View {
     }
 
     private var deletionBinding: Binding<Bool> {
-        Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } })
+        Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
     private var errorBinding: Binding<Bool> {

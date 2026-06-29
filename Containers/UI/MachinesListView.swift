@@ -3,57 +3,39 @@ import SwiftUI
 struct MachinesListView: View {
     @State private var store = MachineStore()
     @State private var searchText = ""
-    @State private var selectedID: String?
+    @State private var selection: Set<String> = []
     @State private var showInspector = false
     @State private var showCreate = false
     @State private var reconfiguring: Machine?
     @State private var shellMachine: Machine?
-    @State private var pendingDeletion: Machine?
+    @State private var pendingDeletion: [Machine] = []
 
     var body: some View {
-        List(selection: $selectedID) {
-            ForEach(store.machines.filter { searchText.isEmpty || $0.id.localizedCaseInsensitiveContains(searchText) }) { machine in
-                MachineRow(machine: machine)
-                    .tag(machine.id)
-                    .contextMenu { actions(for: machine) }
+        decoratedList
+            .navigationTitle("Machines")
+            .searchable(text: $searchText, prompt: "Filter machines")
+            .toolbar { toolbarContent }
+            .task { await store.poll(every: .seconds(4)) }
+            .inspector(isPresented: $showInspector) {
+                inspectorContent
+                    .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
             }
-        }
-        .overlay { emptyState }
-        .navigationTitle("Machines")
-        .searchable(text: $searchText, prompt: "Filter machines")
-        .toolbar {
-            ToolbarItem {
-                Button { showCreate = true } label: { Label("Create Machine", systemImage: "plus") }
-                    .help("Create Machine…")
-                    .keyboardShortcut("n", modifiers: .command)
-            }
-            ToolbarItem {
-                Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
-                    .help(showInspector ? "Hide Inspector" : "Show Inspector")
-            }
-        }
-        .task { await store.poll(every: .seconds(4)) }
-        .inspector(isPresented: $showInspector) {
-            Group {
-                if let selected = store.machines.first(where: { $0.id == selectedID }) {
-                    MachineDetailView(machine: selected)
-                } else {
-                    ContentUnavailableView("No Selection", systemImage: "server.rack", description: Text("Select a machine to inspect it."))
-                }
-            }
-            .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
-        }
-        .onChange(of: selectedID) { _, value in showInspector = value != nil }
+            .onChange(of: selection) { _, value in showInspector = value.count == 1 }
         .onChange(of: store.machines) { _, items in
-            if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
+            let trimmed = selection.intersection(Set(items.map(\.id)))
+            if trimmed != selection { selection = trimmed }
         }
         .sheet(isPresented: $showCreate) { CreateMachineSheet(store: store) }
         .sheet(item: $reconfiguring) { machine in ReconfigureMachineSheet(store: store, machine: machine) }
         .sheet(item: $shellMachine) { machine in MachineTerminalSheet(machineID: machine.id) }
-        .confirmationDialog("Delete this machine?", isPresented: deletionBinding, presenting: pendingDeletion) { machine in
-            Button("Delete", role: .destructive) { Task { await store.delete(machine) } }
-        } message: { machine in
-            Text(machine.id)
+        .confirmationDialog(pendingDeletion.count == 1 ? "Delete this machine?" : "Delete \(pendingDeletion.count) machines?", isPresented: deletionBinding) {
+            Button("Delete", role: .destructive) {
+                let ids = pendingDeletion.map(\.id)
+                pendingDeletion = []
+                Task { await store.delete(ids) }
+            }
+        } message: {
+            Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) machines.")
         }
         .alert("Something went wrong", isPresented: errorBinding) {
             Button("OK", role: .cancel) {}
@@ -62,18 +44,65 @@ struct MachinesListView: View {
         }
     }
 
+    private var decoratedList: some View {
+        List(selection: $selection) {
+            ForEach(store.machines.filter { searchText.isEmpty || $0.id.localizedCaseInsensitiveContains(searchText) }) { machine in
+                MachineRow(machine: machine)
+                    .tag(machine.id)
+            }
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            machineMenu(ids)
+        }
+        .overlay { emptyState }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem {
+            Button { showCreate = true } label: { Label("Create Machine", systemImage: "plus") }
+                .help("Create Machine…")
+                .keyboardShortcut("n", modifiers: .command)
+        }
+        ToolbarItem {
+            Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
+                .help(showInspector ? "Hide Inspector" : "Show Inspector")
+        }
+    }
+
     @ViewBuilder
-    private func actions(for machine: Machine) -> some View {
-        Button { shellMachine = machine } label: { Label("Open Shell", systemImage: "terminal") }
-        if !machine.isDefault {
-            Button { Task { await store.setDefault(machine) } } label: { Label("Set as Default", systemImage: "checkmark.circle") }
+    private var inspectorContent: some View {
+        if selection.count == 1, let id = selection.first, let selected = store.machines.first(where: { $0.id == id }) {
+            MachineDetailView(machine: selected)
+        } else if selection.count > 1 {
+            ContentUnavailableView("\(selection.count) Selected", systemImage: "server.rack", description: Text("Select a single machine to inspect it."))
+        } else {
+            ContentUnavailableView("No Selection", systemImage: "server.rack", description: Text("Select a machine to inspect it."))
         }
-        Button { reconfiguring = machine } label: { Label("Edit Settings…", systemImage: "gearshape") }
-        if machine.isRunning {
-            Button { Task { await store.stop(machine) } } label: { Label("Stop", systemImage: "stop.fill") }
+    }
+
+    @ViewBuilder
+    private func machineMenu(_ ids: Set<String>) -> some View {
+        let selected = store.machines.filter { ids.contains($0.id) }
+        if selected.count == 1, let machine = selected.first {
+            Button { shellMachine = machine } label: { Label("Open Shell", systemImage: "terminal") }
+            if !machine.isDefault {
+                Button { Task { await store.setDefault(machine) } } label: { Label("Set as Default", systemImage: "checkmark.circle") }
+            }
+            Button { reconfiguring = machine } label: { Label("Edit Settings…", systemImage: "gearshape") }
         }
-        Divider()
-        Button(role: .destructive) { pendingDeletion = machine } label: { Label("Delete", systemImage: "trash") }
+        let running = selected.filter { $0.isRunning }
+        if !running.isEmpty {
+            Button {
+                Task { for machine in running { await store.stop(machine) } }
+            } label: { Label(running.count == 1 ? "Stop" : "Stop \(running.count)", systemImage: "stop.fill") }
+        }
+        if !selected.isEmpty {
+            Divider()
+            Button(role: .destructive) { pendingDeletion = selected } label: {
+                Label(selected.count == 1 ? "Delete" : "Delete \(selected.count)", systemImage: "trash")
+            }
+        }
     }
 
     @ViewBuilder
@@ -97,7 +126,7 @@ struct MachinesListView: View {
     }
 
     private var deletionBinding: Binding<Bool> {
-        Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } })
+        Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
     private var errorBinding: Binding<Bool> {

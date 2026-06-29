@@ -72,6 +72,28 @@ final class ContainerStore {
         await perform(["start", container.id])
     }
 
+    // Bulk actions for multi-select and Compose groups: run all, refresh once, surface the first error.
+    func start(_ ids: [String]) async { await performBulk(ids.map { ["start", $0] }) }
+    func delete(_ ids: [String]) async { await performBulk(ids.map { ["delete", $0] }) }
+    func stop(_ ids: [String]) async {
+        ids.forEach { markManaged($0) }
+        await performBulk(ids.map { ["stop", $0] })
+    }
+    func restart(_ ids: [String]) async {
+        ids.forEach { markManaged($0) }
+        await performBulk(ids.flatMap { [["stop", $0], ["start", $0]] })
+    }
+
+    private func performBulk(_ commands: [[String]]) async {
+        var firstError: String?
+        for command in commands {
+            do { _ = try await client.data(for: command) }
+            catch { if firstError == nil { firstError = Self.describe(error) } }
+        }
+        if let firstError { errorMessage = firstError }
+        await refresh()
+    }
+
     private func perform(_ arguments: [String]) async {
         do {
             _ = try await client.data(for: arguments)
