@@ -20,8 +20,8 @@ jobs:
       run:
         working-directory: landing
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
       - run: corepack enable
@@ -37,7 +37,7 @@ jobs:
     # runner) and don't make it a required status check until it is green.
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: xcodebuild -version
       # SwiftTerm bundles Metal shaders; the Metal Toolchain isn't in base Xcode.
       - run: xcodebuild -downloadComponent MetalToolchain || true
