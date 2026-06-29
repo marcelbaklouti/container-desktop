@@ -8,7 +8,7 @@ export const site = {
   url: "https://container-desktop.vercel.app",
   repo: "https://github.com/marcelbaklouti/container-desktop",
   releases: "https://github.com/marcelbaklouti/container-desktop/releases/latest",
-  version: "1.0.0",
+  version: "1.0.1",
   requirements: "Apple Silicon · macOS 26 Tahoe or later",
 };
 
