@@ -93,11 +93,24 @@ actor ContainerCLI: RuntimeClient {
     }
 
     private nonisolated static func failure(arguments: [String], result: ProcessResult) -> RuntimeError {
-        let message = String(decoding: result.standardError, as: UTF8.self)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        if message.contains("XPC connection error") || message.contains("system service has been started") {
+        let raw = String(decoding: result.standardError, as: UTF8.self)
+        if raw.contains("XPC connection error") || raw.contains("system service has been started") {
             return .daemonNotRunning
         }
-        return .commandFailed(arguments: arguments, exitCode: result.exitCode, message: message)
+        return .commandFailed(arguments: arguments, exitCode: result.exitCode, message: Self.readableError(raw))
+    }
+
+    /// Condenses the CLI's stderr into a concise, human-readable message: drops the `[n/m] …`
+    /// progress lines that `container run` streams to stderr, and maps common low-level failures.
+    private nonisolated static func readableError(_ stderr: String) -> String {
+        let lines = stderr
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && $0.range(of: #"^\[\d+/\d+\]"#, options: .regularExpression) == nil }
+        let cleaned = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleaned.localizedCaseInsensitiveContains("address already in use") || cleaned.contains("errno: 48") {
+            return String(localized: "A published port is already in use — stop whatever is using it (for example, the same stack running in Docker) and try again.")
+        }
+        return cleaned.isEmpty ? stderr.trimmingCharacters(in: .whitespacesAndNewlines) : cleaned
     }
 }
