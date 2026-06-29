@@ -7,6 +7,7 @@ export function ScreenshotFrame({
   width,
   height,
   priority,
+  sizes,
   className,
 }: {
   src?: string;
@@ -15,6 +16,7 @@ export function ScreenshotFrame({
   width: number;
   height: number;
   priority?: boolean;
+  sizes?: string;
   className?: string;
 }) {
   // The app screenshots are full macOS windows (their own chrome + rounded, transparent corners),
@@ -41,7 +43,8 @@ export function ScreenshotFrame({
       width={width}
       height={height}
       priority={priority}
-      sizes="(max-width: 1024px) 100vw, 640px"
+      quality={90}
+      sizes={sizes ?? "100vw"}
       className={`h-auto w-full ${className ?? ""}`}
       style={{ filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.55))" }}
     />

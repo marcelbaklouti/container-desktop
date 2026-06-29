@@ -46,6 +46,7 @@ export function Hero() {
           src={hero.screenshot.src}
           width={hero.screenshot.width}
           height={hero.screenshot.height}
+          sizes="(min-width: 1024px) 1024px, 100vw"
           priority
         />
       </Reveal>

@@ -39,6 +39,7 @@ export function FeatureRow({
           src={feature.screenshot.src}
           width={feature.screenshot.width}
           height={feature.screenshot.height}
+          sizes="(min-width: 1024px) 560px, 100vw"
         />
       </Reveal>
     </div>
