@@ -133,15 +133,32 @@ extension ComposeService {
         return items.compactMap { item in
             switch item {
             case let .scalar(text):
-                return text
+                return normalizePortSpec(text)
             case let .mapping(pairs):
-                let published = pairs.scalar("published") ?? pairs.scalar("target")
                 guard let target = pairs.scalar("target") else { return nil }
-                return published.map { "\($0):\(target)" } ?? target
+                // Long syntax publishes to the host only when `published` is set;
+                // a bare `target` is expose-only and must not become a `-p` mapping.
+                guard let published = pairs.scalar("published") else { return nil }
+                return "\(published):\(target)"
             default:
                 return nil
             }
         }
+    }
+
+    /// `container run -p` requires `[host-ip:]host-port:container-port[/proto]`, so the bare
+    /// container port that Compose short syntax allows (`"3000"`, `"3000/udp"`) is rejected —
+    /// mirror it to `host:container`. Already-mapped values pass through unchanged.
+    nonisolated private static func normalizePortSpec(_ text: String) -> String {
+        let (body, proto) = splitProtocol(text)
+        guard !body.contains(":") else { return text }
+        guard !body.isEmpty, body.allSatisfy(\.isNumber) else { return text }
+        return proto.map { "\(body):\(body)/\($0)" } ?? "\(body):\(body)"
+    }
+
+    nonisolated private static func splitProtocol(_ text: String) -> (String, String?) {
+        guard let slash = text.lastIndex(of: "/") else { return (text, nil) }
+        return (String(text[..<slash]), String(text[text.index(after: slash)...]))
     }
 
     nonisolated private static func environmentPairs(_ value: YAMLValue?) -> [String] {

@@ -75,6 +75,28 @@ struct ComposeParsingTests {
         #expect(mailpit.labels["traefik.enable"] == "true")
     }
 
+    @Test func normalizesPortsForContainerRun() throws {
+        let source = """
+        name: ports-demo
+        services:
+          web:
+            image: nginx:latest
+            ports:
+              - "3000"
+              - "5000/udp"
+              - "8080:80"
+          api:
+            image: example/api:latest
+            ports:
+              - target: 9090
+        """
+        let project = try #require(ComposeProject.parse(source, defaultName: "x"))
+        let web = try #require(project.services.first { $0.name == "web" })
+        #expect(web.ports == ["3000:3000", "5000:5000/udp", "8080:80"])
+        let api = try #require(project.services.first { $0.name == "api" })
+        #expect(api.ports == [])
+    }
+
     @Test func runOrderRespectsDependsOn() throws {
         let project = try #require(ComposeProject.parse(Self.sample, defaultName: "x"))
         let order = project.runOrder().map(\.name)
