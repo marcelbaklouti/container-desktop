@@ -4,6 +4,12 @@ All notable changes to Container Desktop are documented here. The format is base
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] — 2026-06-29
+
+### Fixed
+
+- **The installer DMG's styled window renders again.** A 1.0.2 change set the Finder icon-label size to an out-of-range value to hide the labels; on macOS 26 that made Finder discard the window's entire icon-view layout, so the disk image opened as a plain default window with no background art, arrow, or instructions. The label size is back in the valid range and the branded installer background is restored. This is the only change in this release.
+
 ## [1.0.2] — 2026-06-29
 
 ### Added
@@ -54,6 +60,7 @@ Initial public release.
 
 A native macOS app for Apple’s `container` runtime — run, inspect, and manage containers, images, volumes, networks, and machines; launch Compose stacks; stream logs and an embedded terminal; watch live CPU/memory; and control everything from the menu bar. Apple Silicon, macOS 26+. Developer ID-signed and notarized, with a guided `container` CLI install and a signed in-app self-update.
 
+[1.0.3]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.3
 [1.0.2]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.2
 [1.0.1]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.1
 [1.0.0]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.0

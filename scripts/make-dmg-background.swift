@@ -61,23 +61,8 @@ func text(_ s: String, size: CGFloat, weight: NSFont.Weight, white: CGFloat, alp
     str.draw(in: NSRect(x: 0, y: H - topY - h, width: W, height: h))
 }
 
-// White icon labels baked under each icon. Finder's own labels are shrunk to ~invisible
-// (text_size in dmg-settings.py) because Finder can't render light label text on a dark
-// background, so the readable labels live in the artwork instead.
-func label(_ s: String, centerX: Double, topY: Double) {
-    let attrs: [NSAttributedString.Key: Any] = [
-        .font: NSFont.systemFont(ofSize: 25, weight: .medium),
-        .foregroundColor: NSColor(white: 1.0, alpha: 1.0),
-    ]
-    let str = NSAttributedString(string: s, attributes: attrs)
-    let size = str.size()
-    str.draw(at: NSPoint(x: centerX - size.width / 2, y: H - topY - size.height))
-}
-
 text("Container Desktop", size: 46, weight: .semibold, white: 1.0, alpha: 1, topY: 96)
 text("Drag the app onto the Applications folder to install", size: 27, weight: .medium, white: 1.0, alpha: 0.96, topY: 632)
-label("Container Desktop", centerX: 330, topY: 486)
-label("Applications", centerX: 990, topY: 486)
 
 NSGraphicsContext.restoreGraphicsState()
 
