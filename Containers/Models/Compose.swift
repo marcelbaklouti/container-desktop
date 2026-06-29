@@ -60,9 +60,33 @@ nonisolated struct ComposeProject: Equatable, Identifiable {
         String(name.lowercased().map { $0.isLetter || $0.isNumber ? $0 : "-" })
     }
 
-    static func parse(_ source: String, defaultName: String) -> ComposeProject? {
+    /// Reads a compose file plus a sibling `.env`, then parses with interpolation. Shell
+    /// environment overrides `.env` values, matching Docker Compose precedence.
+    static func load(from url: URL) -> ComposeProject? {
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        let directory = url.deletingLastPathComponent()
+        var environment = loadDotEnv(in: directory)
+        environment.merge(ProcessInfo.processInfo.environment) { _, shell in shell }
+        return parse(text, defaultName: directory.lastPathComponent, environment: environment)
+    }
+
+    static func loadDotEnv(in directory: URL) -> [String: String] {
+        guard let text = try? String(contentsOf: directory.appendingPathComponent(".env"), encoding: .utf8) else { return [:] }
+        var values: [String: String] = [:]
+        for rawLine in text.split(separator: "\n", omittingEmptySubsequences: true) {
+            let line = rawLine.trimmingCharacters(in: .whitespaces)
+            guard !line.isEmpty, !line.hasPrefix("#"), let equals = line.firstIndex(of: "=") else { continue }
+            let key = String(line[..<equals]).trimmingCharacters(in: .whitespaces)
+            let value = ComposeParser.unquote(String(line[line.index(after: equals)...]).trimmingCharacters(in: .whitespaces))
+            if !key.isEmpty { values[key] = value }
+        }
+        return values
+    }
+
+    static func parse(_ source: String, defaultName: String, environment: [String: String] = [:]) -> ComposeProject? {
         var parser = ComposeParser(source)
-        guard case let .mapping(root) = parser.parse() else { return nil }
+        let interpolated = ComposeInterpolation.interpolate(parser.parse(), environment: environment)
+        guard case let .mapping(root) = interpolated else { return nil }
 
         let name = root.scalar("name") ?? defaultName
         guard case let .mapping(servicesMap)? = root.value("services") else { return nil }
@@ -345,5 +369,113 @@ nonisolated struct ComposeParser {
         }
         if !current.isEmpty { tokens.append(current) }
         return tokens
+    }
+}
+
+/// Docker Compose variable interpolation: `$VAR`, `${VAR}`, `${VAR:-default}`, `${VAR-default}`,
+/// `${VAR:?err}`, `${VAR?err}`, `${VAR:+alt}`, `${VAR+alt}`, `$$` (a literal `$`), and nested
+/// `${VAR:-${OTHER}}`. Applied to scalar VALUES only (keys are left untouched).
+nonisolated enum ComposeInterpolation {
+    static func interpolate(_ value: YAMLValue, environment: [String: String]) -> YAMLValue {
+        switch value {
+        case let .scalar(text):
+            return .scalar(expand(text, environment: environment))
+        case let .sequence(items):
+            return .sequence(items.map { interpolate($0, environment: environment) })
+        case let .mapping(pairs):
+            return .mapping(pairs.map { ($0.0, interpolate($0.1, environment: environment)) })
+        }
+    }
+
+    static func expand(_ text: String, environment: [String: String]) -> String {
+        let chars = Array(text)
+        var result = ""
+        var index = 0
+        while index < chars.count {
+            let character = chars[index]
+            guard character == "$" else { result.append(character); index += 1; continue }
+            let next = index + 1
+            if next < chars.count, chars[next] == "$" {
+                result.append("$"); index += 2; continue
+            }
+            if next < chars.count, chars[next] == "{" {
+                let (expression, after) = readBraced(chars, from: next + 1)
+                result += evaluate(expression, environment: environment)
+                index = after; continue
+            }
+            let (name, after) = readName(chars, from: next)
+            if name.isEmpty {
+                result.append(character); index += 1; continue
+            }
+            result += environment[name] ?? ""
+            index = after
+        }
+        return result
+    }
+
+    private static func readName(_ chars: [Character], from start: Int) -> (String, Int) {
+        var index = start
+        var name = ""
+        while index < chars.count {
+            let character = chars[index]
+            if character == "_" || character.isLetter || (!name.isEmpty && character.isNumber) {
+                name.append(character)
+                index += 1
+            } else {
+                break
+            }
+        }
+        return (name, index)
+    }
+
+    private static func readBraced(_ chars: [Character], from start: Int) -> (String, Int) {
+        var index = start
+        var depth = 1
+        var expression = ""
+        while index < chars.count {
+            let character = chars[index]
+            if character == "{" {
+                depth += 1
+            } else if character == "}" {
+                depth -= 1
+                if depth == 0 { index += 1; break }
+            }
+            expression.append(character)
+            index += 1
+        }
+        return (expression, index)
+    }
+
+    private static func evaluate(_ expression: String, environment: [String: String]) -> String {
+        let chars = Array(expression)
+        let (name, rest) = readName(chars, from: 0)
+        guard !name.isEmpty else { return "" }
+        let value = environment[name]
+        let isSet = value != nil
+        let isNonEmpty = !(value ?? "").isEmpty
+        guard rest < chars.count else { return value ?? "" }
+
+        let operatorChars = Array(chars[rest...])
+        let (op, word) = splitOperator(operatorChars, environment: environment)
+        switch op {
+        case ":-": return isNonEmpty ? value! : word
+        case "-": return isSet ? value! : word
+        case ":+": return isNonEmpty ? word : ""
+        case "+": return isSet ? word : ""
+        default: return value ?? ""   // ${VAR:?err}/${VAR?err}: Compose errors; we substitute the value or empty
+        }
+    }
+
+    private static func splitOperator(_ operatorChars: [Character], environment: [String: String]) -> (op: String, word: String) {
+        if operatorChars.count >= 2 {
+            let two = String(operatorChars[0...1])
+            if two == ":-" || two == ":?" || two == ":+" {
+                return (two, expand(String(operatorChars[2...]), environment: environment))
+            }
+        }
+        if let first = operatorChars.first, first == "-" || first == "?" || first == "+" {
+            return (String(first), expand(String(operatorChars.dropFirst()), environment: environment))
+        }
+        return ("", "")
     }
 }

@@ -234,11 +234,8 @@ struct ContainersListView: View {
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.message = String(localized: "Choose a docker-compose.yml file")
-        guard panel.runModal() == .OK,
-              let url = panel.url,
-              let text = try? String(contentsOf: url, encoding: .utf8) else { return }
-        let fallback = url.deletingLastPathComponent().lastPathComponent
-        guard let project = ComposeProject.parse(text, defaultName: fallback) else {
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard let project = ComposeProject.load(from: url) else {
             store.errorMessage = String(localized: "Could not read services from that compose file.")
             return
         }

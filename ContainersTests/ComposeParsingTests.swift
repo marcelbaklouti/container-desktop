@@ -97,6 +97,42 @@ struct ComposeParsingTests {
         #expect(api.ports == [])
     }
 
+    @Test func interpolatesEnvironmentVariables() throws {
+        let source = """
+        name: interp
+        services:
+          db:
+            image: postgres:${PG_TAG:-16}
+            environment:
+              POSTGRES_USER: ${POSTGRES_USER:-container-desktop-test}
+            ports:
+              - '${POSTGRES_PORT:-5432}:5432'
+              - '${EXTRA_PORT-7000}:7000'
+        """
+        let defaults = try #require(ComposeProject.parse(source, defaultName: "x"))
+        let db = try #require(defaults.services.first { $0.name == "db" })
+        #expect(db.image == "postgres:16")
+        #expect(db.ports == ["5432:5432", "7000:7000"])
+        #expect(db.environment == ["POSTGRES_USER=container-desktop-test"])
+
+        let overridden = try #require(ComposeProject.parse(
+            source, defaultName: "x",
+            environment: ["POSTGRES_PORT": "6000", "PG_TAG": "17"]))
+        let db2 = try #require(overridden.services.first { $0.name == "db" })
+        #expect(db2.image == "postgres:17")
+        #expect(db2.ports == ["6000:5432", "7000:7000"])
+    }
+
+    @Test func interpolationHandlesEscapesAndAlternates() throws {
+        let env = ["SET": "yes", "EMPTY": ""]
+        #expect(ComposeInterpolation.expand("$$HOME", environment: env) == "$HOME")
+        #expect(ComposeInterpolation.expand("${SET:+on}", environment: env) == "on")
+        #expect(ComposeInterpolation.expand("${EMPTY:+on}", environment: env) == "")
+        #expect(ComposeInterpolation.expand("${EMPTY:-fallback}", environment: env) == "fallback")
+        #expect(ComposeInterpolation.expand("${EMPTY-keep}", environment: env) == "")
+        #expect(ComposeInterpolation.expand("${MISSING:-${SET}}", environment: env) == "yes")
+    }
+
     @Test func runOrderRespectsDependsOn() throws {
         let project = try #require(ComposeProject.parse(Self.sample, defaultName: "x"))
         let order = project.runOrder().map(\.name)
