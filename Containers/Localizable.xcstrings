@@ -4,6 +4,9 @@
     "“%@” — requires administrator authorization." : {
 
     },
+    "“%@” has no image (build: services aren’t supported yet)." : {
+
+    },
     "/etc/hosts" : {
 
     },
@@ -36,6 +39,9 @@
 
     },
     "8080:80" : {
+
+    },
+    "About Container Desktop" : {
 
     },
     "Add" : {
@@ -84,6 +90,9 @@
 
     },
     "Arguments" : {
+
+    },
+    "Authorization was cancelled." : {
 
     },
     "Block read" : {
@@ -231,6 +240,12 @@
 
     },
     "Could not read services from that compose file." : {
+
+    },
+    "Couldn’t open the downloaded update." : {
+
+    },
+    "Couldn’t prepare the update." : {
 
     },
     "Couldn’t start the container system." : {
@@ -413,6 +428,9 @@
     "Export…" : {
 
     },
+    "Failed to launch the container tool: %@" : {
+
+    },
     "Filter containers" : {
 
     },
@@ -507,6 +525,9 @@
 
     },
     "Installing the runtime" : {
+
+    },
+    "Installing update…" : {
 
     },
     "Installing…" : {
@@ -1140,6 +1161,12 @@
 
     },
     "The update came from an unexpected location and wasn’t downloaded." : {
+
+    },
+    "The update didn’t contain an app." : {
+
+    },
+    "The update isn’t signed by the expected developer, so it wasn’t installed." : {
 
     },
     "This container hasn’t written any logs yet." : {

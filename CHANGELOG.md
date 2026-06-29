@@ -4,6 +4,18 @@ All notable changes to Container Desktop are documented here. The format is base
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] — 2026-06-29
+
+### Fixed
+
+- **Compose stacks that use `${VARIABLE}` syntax now launch.** The app performs full Docker Compose variable interpolation — `${VAR}`, `${VAR:-default}`, `${VAR-default}`, `${VAR:?err}`, `${VAR:+alt}`, `$$`, and nested forms — and reads a sibling `.env` file, so a port like `${POSTGRES_PORT:-5432}:5432` resolves to `5432:5432` instead of being passed literally to the runtime.
+- **The menu-bar popover shows its running-container quick-nav again.** The scrollable list was collapsing to zero height inside the menu-bar window.
+- **In-app updates install themselves.** Instead of opening a disk image you had to drag onto the still-running app (which macOS refuses), the updater verifies the new build's Developer ID, then quits, swaps the app in place, and relaunches.
+
+### Changed
+
+- The installer DMG's icon labels are now legible white text on the dark background.
+
 ## [1.0.1] — 2026-06-29
 
 ### Fixed
@@ -35,5 +47,6 @@ Initial public release.
 
 A native macOS app for Apple’s `container` runtime — run, inspect, and manage containers, images, volumes, networks, and machines; launch Compose stacks; stream logs and an embedded terminal; watch live CPU/memory; and control everything from the menu bar. Apple Silicon, macOS 26+. Developer ID-signed and notarized, with a guided `container` CLI install and a signed in-app self-update.
 
+[1.0.2]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.2
 [1.0.1]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.1
 [1.0.0]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.0
