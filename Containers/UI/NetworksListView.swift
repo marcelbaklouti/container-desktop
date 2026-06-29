@@ -25,6 +25,7 @@ struct NetworksListView: View {
             ToolbarItem {
                 Button { showCreate = true } label: { Label("Create Network", systemImage: "plus") }
                     .help("Create Network…")
+                    .keyboardShortcut("n", modifiers: .command)
             }
             ToolbarItem {
                 Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
@@ -84,7 +85,18 @@ struct NetworksListView: View {
         if !store.hasLoaded {
             ProgressView().controlSize(.large)
         } else if store.networks.isEmpty {
-            ContentUnavailableView("No Networks", systemImage: "network")
+            EmptyStateGuide(
+                icon: "network",
+                title: "No Networks",
+                message: "A network lets containers find and talk to each other by name. Put related containers on the same one to connect them.",
+                primaryLabel: "Create a Network",
+                primaryAction: { showCreate = true },
+                shortcuts: [
+                    KeyboardHint(label: "Create a network", keys: "⌘N"),
+                    KeyboardHint(label: "Help", keys: "⌘?"),
+                    KeyboardHint(label: "Settings", keys: "⌘,"),
+                ]
+            )
         }
     }
 

@@ -4,9 +4,6 @@
     "“%@” — requires administrator authorization." : {
 
     },
-    "“%@” has no image (build: services aren’t supported yet)." : {
-
-    },
     "/etc/hosts" : {
 
     },
@@ -374,6 +371,9 @@
     "Domain" : {
 
     },
+    "Done" : {
+
+    },
     "Download Update" : {
 
     },
@@ -426,6 +426,9 @@
 
     },
     "Export…" : {
+
+    },
+    "Failed" : {
 
     },
     "Failed to launch the container tool: %@" : {
@@ -719,6 +722,9 @@
     "No Containers" : {
 
     },
+    "No image specified — build: services aren’t supported yet." : {
+
+    },
     "No Images" : {
 
     },
@@ -849,6 +855,9 @@
 
     },
     "Pulling and building" : {
+
+    },
+    "Pulling image…" : {
 
     },
     "Pulling…" : {
@@ -1236,6 +1245,9 @@
 
     },
     "Volumes store data that outlives a container. Each row shows real disk usage against the allocated size. Deleting a volume permanently deletes its data — this can’t be undone." : {
+
+    },
+    "Waiting" : {
 
     },
     "What Container Desktop is" : {

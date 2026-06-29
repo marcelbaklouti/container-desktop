@@ -32,6 +32,7 @@ struct ImagesListView: View {
             ToolbarItemGroup {
                 Button { showPull = true } label: { Label("Pull Image", systemImage: "arrow.down.circle") }
                     .help("Pull Image…")
+                    .keyboardShortcut("n", modifiers: .command)
                 Button { showBuild = true } label: { Label("Build Image", systemImage: "hammer") }
                     .help("Build Image…")
                 Button { importImage() } label: { Label("Import Image", systemImage: "arrow.up.doc") }
@@ -143,7 +144,22 @@ struct ImagesListView: View {
         if !store.hasLoaded {
             ProgressView().controlSize(.large)
         } else if store.images.isEmpty {
-            ContentUnavailableView("No Images", systemImage: "square.stack.3d.up", description: Text("Pull an image to get started."))
+            EmptyStateGuide(
+                icon: "square.stack.3d.up",
+                title: "No Images",
+                message: "An image is the blueprint a container runs from — an app and its dependencies, frozen and ready. Pull one from a registry or build your own.",
+                primaryLabel: "Pull an Image",
+                primaryIcon: "arrow.down.circle",
+                primaryAction: { showPull = true },
+                secondaryLabel: "Build…",
+                secondaryIcon: "hammer",
+                secondaryAction: { showBuild = true },
+                shortcuts: [
+                    KeyboardHint(label: "Pull an image", keys: "⌘N"),
+                    KeyboardHint(label: "Help", keys: "⌘?"),
+                    KeyboardHint(label: "Settings", keys: "⌘,"),
+                ]
+            )
         }
     }
 

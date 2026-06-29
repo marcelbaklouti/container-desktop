@@ -104,6 +104,7 @@ struct ContainersListView: View {
                     Label("Launch Stack", systemImage: "square.stack.3d.up")
                 }
                 .help("Launch Compose Stack")
+                .keyboardShortcut("n", modifiers: [.command, .shift])
 
                 Button {
                     showRunSheet = true
@@ -111,6 +112,7 @@ struct ContainersListView: View {
                     Label("Run Container", systemImage: "plus")
                 }
                 .help("Run Container")
+                .keyboardShortcut("n", modifiers: .command)
             }
             ToolbarItem {
                 Button {
@@ -190,12 +192,30 @@ struct ContainersListView: View {
     private var emptyState: some View {
         if !store.hasLoaded {
             ProgressView().controlSize(.large)
+        } else if store.containers.isEmpty {
+            EmptyStateGuide(
+                icon: "shippingbox",
+                title: "No Containers",
+                message: "A container packages an app with everything it needs and runs it in isolation — start as many as you like, and throw them away when you're done.",
+                primaryLabel: "Run a Container",
+                primaryIcon: "plus",
+                primaryAction: { showRunSheet = true },
+                secondaryLabel: "Launch Stack",
+                secondaryIcon: "square.stack.3d.up",
+                secondaryAction: { pickComposeFile() },
+                shortcuts: [
+                    KeyboardHint(label: "Run a container", keys: "⌘N"),
+                    KeyboardHint(label: "Launch a Compose stack", keys: "⇧⌘N"),
+                    KeyboardHint(label: "Help", keys: "⌘?"),
+                    KeyboardHint(label: "Settings", keys: "⌘,"),
+                ]
+            )
         } else if visibleContainers.isEmpty {
-            ContentUnavailableView {
-                Label("No Containers", systemImage: "shippingbox")
-            } description: {
-                Text(runningOnly ? "No running containers." : "Run a container to see it here.")
-            }
+            ContentUnavailableView(
+                "No Matches",
+                systemImage: "line.3.horizontal.decrease.circle",
+                description: Text(runningOnly ? "No running containers." : "No containers match your filter.")
+            )
         }
     }
 

@@ -49,6 +49,7 @@ struct RegistriesListView: View {
             ToolbarItem {
                 Button { showLogin = true } label: { Label("Log In", systemImage: "plus") }
                     .help("Log In to Registry…")
+                    .keyboardShortcut("n", modifiers: .command)
                     .accessibilityLabel("Log In to a Registry")
             }
         }
@@ -71,7 +72,18 @@ struct RegistriesListView: View {
         if !store.hasLoaded {
             ProgressView().controlSize(.large)
         } else if store.logins.isEmpty {
-            ContentUnavailableView("No Registry Logins", systemImage: "person.badge.key", description: Text("Log in to a registry to push and pull private images."))
+            EmptyStateGuide(
+                icon: "person.badge.key",
+                title: "No Registry Logins",
+                message: "A registry hosts container images, like Docker Hub. Sign in to pull from or push to private ones.",
+                primaryLabel: "Log In",
+                primaryAction: { showLogin = true },
+                shortcuts: [
+                    KeyboardHint(label: "Log in to a registry", keys: "⌘N"),
+                    KeyboardHint(label: "Help", keys: "⌘?"),
+                    KeyboardHint(label: "Settings", keys: "⌘,"),
+                ]
+            )
         }
     }
 

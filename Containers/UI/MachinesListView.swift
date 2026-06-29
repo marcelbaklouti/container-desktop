@@ -25,6 +25,7 @@ struct MachinesListView: View {
             ToolbarItem {
                 Button { showCreate = true } label: { Label("Create Machine", systemImage: "plus") }
                     .help("Create Machine…")
+                    .keyboardShortcut("n", modifiers: .command)
             }
             ToolbarItem {
                 Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
@@ -80,7 +81,18 @@ struct MachinesListView: View {
         if !store.hasLoaded {
             ProgressView().controlSize(.large)
         } else if store.machines.isEmpty {
-            ContentUnavailableView("No Machines", systemImage: "server.rack", description: Text("Create a container machine to get started."))
+            EmptyStateGuide(
+                icon: "server.rack",
+                title: "No Machines",
+                message: "Containers run inside a lightweight Linux machine. Most setups need only the default one.",
+                primaryLabel: "Create a Machine",
+                primaryAction: { showCreate = true },
+                shortcuts: [
+                    KeyboardHint(label: "Create a machine", keys: "⌘N"),
+                    KeyboardHint(label: "Help", keys: "⌘?"),
+                    KeyboardHint(label: "Settings", keys: "⌘,"),
+                ]
+            )
         }
     }
 

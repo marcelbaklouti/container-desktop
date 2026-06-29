@@ -25,6 +25,7 @@ struct VolumesListView: View {
             ToolbarItem {
                 Button { showCreate = true } label: { Label("Create Volume", systemImage: "plus") }
                     .help("Create Volume…")
+                    .keyboardShortcut("n", modifiers: .command)
             }
             ToolbarItem {
                 Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
@@ -82,7 +83,18 @@ struct VolumesListView: View {
         if !store.hasLoaded {
             ProgressView().controlSize(.large)
         } else if store.volumes.isEmpty {
-            ContentUnavailableView("No Volumes", systemImage: "externaldrive")
+            EmptyStateGuide(
+                icon: "externaldrive",
+                title: "No Volumes",
+                message: "A volume stores data that needs to outlive a container — databases, uploads, caches — so it survives restarts and rebuilds.",
+                primaryLabel: "Create a Volume",
+                primaryAction: { showCreate = true },
+                shortcuts: [
+                    KeyboardHint(label: "Create a volume", keys: "⌘N"),
+                    KeyboardHint(label: "Help", keys: "⌘?"),
+                    KeyboardHint(label: "Settings", keys: "⌘,"),
+                ]
+            )
         }
     }
 

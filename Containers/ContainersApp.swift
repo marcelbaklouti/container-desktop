@@ -25,6 +25,8 @@ struct ContainersApp: App {
         .defaultSize(width: 1200, height: 800)
         .windowResizability(.contentMinSize)
         .commands {
+            // Free ⌘N (default "New Window") for each area's primary "new" action.
+            CommandGroup(replacing: .newItem) {}
             CommandGroup(replacing: .appInfo) {
                 Button("About Container Desktop") { showAboutPanel() }
             }

@@ -11,10 +11,12 @@ All notable changes to Container Desktop are documented here. The format is base
 - **Compose stacks that use `${VARIABLE}` syntax now launch.** The app performs full Docker Compose variable interpolation — `${VAR}`, `${VAR:-default}`, `${VAR-default}`, `${VAR:?err}`, `${VAR:+alt}`, `$$`, and nested forms — and reads a sibling `.env` file, so a port like `${POSTGRES_PORT:-5432}:5432` resolves to `5432:5432` instead of being passed literally to the runtime.
 - **The menu-bar popover shows its running-container quick-nav again.** The scrollable list was collapsing to zero height inside the menu-bar window.
 - **In-app updates install themselves.** Instead of opening a disk image you had to drag onto the still-running app (which macOS refuses), the updater verifies the new build's Developer ID, then quits, swaps the app in place, and relaunches.
+- **Clearer Compose launch.** Each service shows a named phase — *Pulling image… → Starting… → Running / Failed* — with an always-animating indicator and a live "N of M ready" summary, and failures show a readable message (e.g. a port conflict) instead of raw CLI progress output.
 
 ### Changed
 
 - The installer DMG's icon labels are now legible white text on the dark background.
+- **Empty screens now teach.** Each area with no items explains, in plain language, what the resource is and lists the relevant keyboard shortcuts — and **⌘N** creates a new one in every area (run a container, pull an image, create a network/volume/machine, log in to a registry).
 
 ## [1.0.1] — 2026-06-29
 
