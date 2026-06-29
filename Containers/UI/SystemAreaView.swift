@@ -178,6 +178,12 @@ struct AddDNSDomainSheet: View {
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
+                if let error = store.errorMessage {
+                    Section {
+                        Label(error, systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.red)
+                    }
+                }
             }
             .formStyle(.grouped)
             .navigationTitle("Add DNS Domain")
@@ -187,9 +193,9 @@ struct AddDNSDomainSheet: View {
                     Button(isWorking ? "Adding…" : "Add") {
                         Task {
                             isWorking = true
-                            await store.add(domain: domain, localhost: localhost)
+                            let added = await store.add(domain: domain, localhost: localhost)
                             isWorking = false
-                            dismiss()
+                            if added { dismiss() }
                         }
                     }
                     .disabled(domain.isEmpty || isWorking)

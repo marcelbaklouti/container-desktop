@@ -50,7 +50,10 @@ struct NetworksListView: View {
             }
             .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
-        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
+        .onChange(of: selectedID) { _, value in showInspector = value != nil }
+        .onChange(of: store.networks) { _, items in
+            if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
+        }
         .sheet(isPresented: $showCreate) { CreateNetworkSheet(store: store) }
         .confirmationDialog("Delete this network?", isPresented: deletionBinding, presenting: pendingDeletion) { network in
             Button("Delete", role: .destructive) { Task { await store.delete(network) } }

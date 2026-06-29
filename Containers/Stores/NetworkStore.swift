@@ -14,15 +14,15 @@ final class NetworkStore {
         self.client = client
     }
 
-    func refresh() async {
+    func refresh(surfacingErrors: Bool = false) async {
         do {
             let updated = try await client.decode([Network].self, from: ["network", "ls", "--format", "json"])
             if updated != networks {
                 networks = updated
             }
-            errorMessage = nil
+            if surfacingErrors { errorMessage = nil }
         } catch {
-            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            if surfacingErrors { errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription }
         }
         hasLoaded = true
     }

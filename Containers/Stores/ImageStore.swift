@@ -14,15 +14,15 @@ final class ImageStore {
         self.client = client
     }
 
-    func refresh() async {
+    func refresh(surfacingErrors: Bool = false) async {
         do {
             let updated = try await client.decode([ContainerImage].self, from: ["image", "ls", "--format", "json"])
             if updated != images {
                 images = updated
             }
-            errorMessage = nil
+            if surfacingErrors { errorMessage = nil }
         } catch {
-            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            if surfacingErrors { errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription }
         }
         hasLoaded = true
     }

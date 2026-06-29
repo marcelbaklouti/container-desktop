@@ -91,7 +91,7 @@ struct ContainersListView: View {
                 .help("Show Running Containers Only")
 
                 Button {
-                    Task { await store.refresh() }
+                    Task { await store.refresh(surfacingErrors: true) }
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
@@ -157,7 +157,12 @@ struct ContainersListView: View {
             .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
         .onChange(of: selectedContainerID) { _, value in
-            if value != nil { showInspector = true }
+            showInspector = value != nil
+        }
+        .onChange(of: store.containers) { _, items in
+            if let id = selectedContainerID, !items.contains(where: { $0.id == id }) {
+                selectedContainerID = nil
+            }
         }
     }
 

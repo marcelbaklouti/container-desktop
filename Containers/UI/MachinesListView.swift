@@ -42,7 +42,10 @@ struct MachinesListView: View {
             }
             .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
-        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
+        .onChange(of: selectedID) { _, value in showInspector = value != nil }
+        .onChange(of: store.machines) { _, items in
+            if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
+        }
         .sheet(isPresented: $showCreate) { CreateMachineSheet(store: store) }
         .sheet(item: $reconfiguring) { machine in ReconfigureMachineSheet(store: store, machine: machine) }
         .sheet(item: $shellMachine) { machine in MachineTerminalSheet(machineID: machine.id) }

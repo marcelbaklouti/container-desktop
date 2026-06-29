@@ -14,15 +14,15 @@ final class MachineStore {
         self.client = client
     }
 
-    func refresh() async {
+    func refresh(surfacingErrors: Bool = false) async {
         do {
             let updated = try await client.decode([Machine].self, from: ["machine", "ls", "--format", "json"])
             if updated != machines {
                 machines = updated
             }
-            errorMessage = nil
+            if surfacingErrors { errorMessage = nil }
         } catch {
-            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            if surfacingErrors { errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription }
         }
         hasLoaded = true
     }

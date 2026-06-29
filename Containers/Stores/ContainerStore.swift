@@ -15,15 +15,18 @@ final class ContainerStore {
         self.client = client
     }
 
-    func refresh() async {
+    /// `surfacingErrors` is only set by an explicit user refresh; the background poll leaves
+    /// `errorMessage` untouched so a transient read failure can't re-present (or clobber) the
+    /// modal alert every few seconds.
+    func refresh(surfacingErrors: Bool = false) async {
         do {
             let updated = try await client.decode([Container].self, from: ["ls", "--all", "--format", "json"])
             if updated != containers {
                 containers = updated
             }
-            errorMessage = nil
+            if surfacingErrors { errorMessage = nil }
         } catch {
-            errorMessage = Self.describe(error)
+            if surfacingErrors { errorMessage = Self.describe(error) }
         }
         hasLoaded = true
     }

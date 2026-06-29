@@ -61,7 +61,10 @@ struct ImagesListView: View {
             }
             .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
-        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
+        .onChange(of: selectedID) { _, value in showInspector = value != nil }
+        .onChange(of: store.images) { _, items in
+            if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
+        }
         .sheet(isPresented: $showPull) { PullImageSheet(store: store) }
         .sheet(isPresented: $showBuild) { BuildImageSheet(store: store) }
         .sheet(item: $tagging) { image in TagImageSheet(store: store, image: image) }

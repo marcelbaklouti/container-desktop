@@ -17,24 +17,27 @@ final class DNSStore {
         do {
             let data = try await client.data(for: ["system", "dns", "list", "--format", "json"])
             domains = DNSStore.parseDomains(data)
+            errorMessage = nil
+        } catch is CancellationError {
         } catch {
-            domains = []
+            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
         }
     }
 
-    func add(domain: String, localhost: String) async {
+    @discardableResult
+    func add(domain: String, localhost: String) async -> Bool {
         guard DNSStore.isValidDomain(domain) else {
             errorMessage = String(localized: "Enter a valid domain — letters, numbers, dots, and hyphens only.")
-            return
+            return false
         }
         guard localhost.isEmpty || DNSStore.isValidAddress(localhost) else {
             errorMessage = String(localized: "Enter a valid IP address.")
-            return
+            return false
         }
         var arguments = ["system", "dns", "create"]
         if !localhost.isEmpty { arguments += ["--localhost", localhost] }
         arguments.append(domain)
-        await runPrivileged(arguments)
+        return await runPrivileged(arguments)
     }
 
     nonisolated static func isValidDomain(_ value: String) -> Bool {
@@ -53,14 +56,19 @@ final class DNSStore {
         await runPrivileged(["system", "dns", "delete", domain])
     }
 
-    private func runPrivileged(_ arguments: [String]) async {
+    @discardableResult
+    private func runPrivileged(_ arguments: [String]) async -> Bool {
         do {
             try await PrivilegedRunner.run(arguments)
             errorMessage = nil
             await refresh()
+            return true
         } catch is CancellationError {
+            errorMessage = String(localized: "Authorization was cancelled.")
+            return false
         } catch {
             errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            return false
         }
     }
 

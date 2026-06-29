@@ -50,7 +50,10 @@ struct VolumesListView: View {
             }
             .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
         }
-        .onChange(of: selectedID) { _, value in if value != nil { showInspector = true } }
+        .onChange(of: selectedID) { _, value in showInspector = value != nil }
+        .onChange(of: store.volumes) { _, items in
+            if let id = selectedID, !items.contains(where: { $0.id == id }) { selectedID = nil }
+        }
         .sheet(isPresented: $showCreate) { CreateVolumeSheet(store: store) }
         .confirmationDialog("Delete this volume?", isPresented: deletionBinding, presenting: pendingDeletion) { volume in
             Button("Delete", role: .destructive) { Task { await store.delete(volume) } }
