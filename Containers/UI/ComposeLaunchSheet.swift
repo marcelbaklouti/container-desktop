@@ -10,16 +10,24 @@ struct ComposeLaunchSheet: View {
             Form {
                 Section {
                     LabeledContent("Project", value: project.name)
-                    LabeledContent("Services", value: project.services.count.formatted())
+                    LabeledContent("Network", value: project.networkName)
                     if !project.namedVolumes.isEmpty {
                         LabeledContent("Volumes", value: project.namedVolumes.joined(separator: ", "))
                     }
-                    LabeledContent("Network", value: project.networkName)
                 }
 
-                Section("Services") {
+                Section {
                     ForEach(rows) { row in
                         ComposeServiceRow(row: row, service: service(named: row.id))
+                    }
+                } header: {
+                    HStack {
+                        Text("Services")
+                        Spacer()
+                        Text(summary)
+                            .font(.caption)
+                            .foregroundStyle(summaryColor)
+                            .textCase(nil)
                     }
                 }
             }
@@ -27,25 +35,54 @@ struct ComposeLaunchSheet: View {
             .navigationTitle("Launch Stack")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(launcher.finished ? "Close" : "Cancel") { dismiss() }
+                    Button(launcher.finished ? "Done" : "Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(launcher.isLaunching ? "Launching…" : "Launch") {
-                        Task { await launcher.launch(project) }
+                    if !launcher.finished {
+                        Button {
+                            Task { await launcher.launch(project) }
+                        } label: {
+                            if launcher.isLaunching {
+                                HStack(spacing: 6) {
+                                    ProgressView().controlSize(.small)
+                                    Text("Launching…")
+                                }
+                            } else {
+                                Text("Launch")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(launcher.isLaunching)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(launcher.isLaunching || launcher.finished)
                 }
             }
         }
-        .frame(minWidth: 480, minHeight: 440)
+        .frame(minWidth: 480, minHeight: 460)
+        .interactiveDismissDisabled(launcher.isLaunching)
     }
 
     private var rows: [ComposeLauncher.ServiceProgress] {
-        if launcher.progress.isEmpty {
-            return project.runOrder().map { ComposeLauncher.ServiceProgress(id: $0.name, name: $0.displayName, step: .pending) }
+        launcher.progress.isEmpty
+            ? project.runOrder().map { ComposeLauncher.ServiceProgress(id: $0.name, name: $0.displayName, phase: .waiting) }
+            : launcher.progress
+    }
+
+    private var summary: String {
+        let total = rows.count
+        if launcher.finished {
+            return launcher.failedCount == 0
+                ? "All \(total) running"
+                : "\(launcher.runningCount) running · \(launcher.failedCount) failed"
         }
-        return launcher.progress
+        if launcher.isLaunching {
+            return "\(launcher.runningCount) of \(total) ready"
+        }
+        return "\(total)"
+    }
+
+    private var summaryColor: Color {
+        guard launcher.finished else { return .secondary }
+        return launcher.failedCount == 0 ? .green : .orange
     }
 
     private func service(named name: String) -> ComposeService? {
@@ -58,43 +95,63 @@ private struct ComposeServiceRow: View {
     let service: ComposeService?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 10) {
-                statusIcon
-                    .frame(width: 18)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(row.name).font(.callout)
-                    if let image = service?.image {
-                        Text(ImageName.short(image))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+        HStack(spacing: 11) {
+            statusIcon
+                .frame(width: 20, height: 20)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 8) {
+                    Text(row.name).font(.callout.weight(.medium))
+                    Spacer(minLength: 8)
+                    if let ports = service?.ports, !ports.isEmpty {
+                        Text(ports.joined(separator: ", "))
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(.tertiary)
                     }
                 }
-                Spacer()
-                if let ports = service?.ports, !ports.isEmpty {
-                    Text(ports.joined(separator: ", "))
-                        .font(.caption2.monospaced())
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundStyle(statusColor)
+                if case let .failed(message) = row.phase {
+                    Text(message)
+                        .font(.caption2)
                         .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if case let .failed(message) = row.step {
-                Text(message)
-                    .font(.caption2)
-                    .foregroundStyle(.red)
-                    .lineLimit(2)
-            }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 3)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(row.name)
+        .accessibilityValue(statusText)
+    }
+
+    private var statusText: String {
+        switch row.phase {
+        case .waiting: service?.image.map(ImageName.short) ?? String(localized: "Waiting")
+        case .pulling: String(localized: "Pulling image…")
+        case .starting: String(localized: "Starting…")
+        case .running: String(localized: "Running")
+        case .failed: String(localized: "Failed")
+        }
+    }
+
+    private var statusColor: Color {
+        switch row.phase {
+        case .waiting, .pulling, .starting: .secondary
+        case .running: .green
+        case .failed: .red
+        }
     }
 
     @ViewBuilder
     private var statusIcon: some View {
-        switch row.step {
-        case .pending:
-            Image(systemName: "circle.dotted").foregroundStyle(.secondary)
-        case .running:
+        switch row.phase {
+        case .waiting:
+            Image(systemName: "circle.dotted").foregroundStyle(.tertiary)
+        case .pulling, .starting:
             ProgressView().controlSize(.small)
-        case .done:
+        case .running:
             Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
         case .failed:
             Image(systemName: "xmark.circle.fill").foregroundStyle(.red)
