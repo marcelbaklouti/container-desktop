@@ -134,6 +134,13 @@ final class LogSearchModel {
         query = ""
     }
 
+    /// Full re-scan against a replaced entry set — used when a filter (not an append) changes
+    /// which lines are visible.
+    func reset(entries: [LogEntry]) {
+        scannedEntries = entries
+        rescan()
+    }
+
     private func rescan() {
         orderedMatches = []
         matchSet = []

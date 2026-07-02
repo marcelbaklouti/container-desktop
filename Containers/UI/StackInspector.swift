@@ -22,6 +22,8 @@ struct StackInspector: View {
             switch tab {
             case .services:
                 StackServicesView(stack: stack)
+            case .logs:
+                StackLogsView(stack: stack)
             case .details:
                 StackDetailsView(stack: stack, onRelaunch: onRelaunch, onOpenComposeFile: onOpenComposeFile)
             }
@@ -31,6 +33,7 @@ struct StackInspector: View {
 
 enum StackTab: String, CaseIterable, Identifiable {
     case services
+    case logs
     case details
 
     var id: String { rawValue }
@@ -38,6 +41,7 @@ enum StackTab: String, CaseIterable, Identifiable {
     var title: LocalizedStringKey {
         switch self {
         case .services: "Services"
+        case .logs: "Logs"
         case .details: "Details"
         }
     }

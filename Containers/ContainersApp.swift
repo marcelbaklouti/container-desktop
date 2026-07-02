@@ -41,6 +41,14 @@ struct ContainersApp: App {
             }
         }
 
+        WindowGroup("Stack Logs", id: "stack-logs", for: String.self) { $stackName in
+            StackLogsWindow(stackName: stackName ?? "")
+                .environment(appModel)
+                .environment(appModel.containers)
+                .environment(appModel.stats)
+        }
+        .windowResizability(.contentMinSize)
+
         Window("Container Desktop Help", id: "help") {
             HelpView()
         }
