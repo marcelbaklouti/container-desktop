@@ -11,7 +11,7 @@ export function WhatYouCanDo() {
             What you can do
           </h2>
           <p className="mt-3 max-w-2xl text-lg text-fg-muted">
-            The same guides that ship inside the app — a tour of everything Container Desktop manages.
+            A quick tour of everything Container Desktop manages, straight from the guides that ship inside the app.
           </p>
         </Reveal>
 

@@ -3,6 +3,7 @@ import { Button } from "@/components/Button";
 import { Reveal } from "@/components/Reveal";
 import { HeroGlow } from "@/components/HeroGlow";
 import { ScreenshotFrame } from "@/components/ScreenshotFrame";
+import { TerminalTease } from "@/components/TerminalTease";
 
 export function Hero() {
   return (
@@ -36,6 +37,9 @@ export function Hero() {
           <p className="mt-4 text-xs text-fg-faint">
             {site.requirements} · Free &amp; open source
           </p>
+        </Reveal>
+        <Reveal delay={0.24}>
+          <TerminalTease />
         </Reveal>
       </div>
 

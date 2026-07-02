@@ -1,4 +1,4 @@
-import { site, legal } from "@/lib/content";
+import { site, legal, download } from "@/lib/content";
 import { Button } from "@/components/Button";
 import { Reveal } from "@/components/Reveal";
 
@@ -20,10 +20,10 @@ export function Download() {
       <div className="mx-auto max-w-3xl text-center">
         <Reveal>
           <h2 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-            Get Container Desktop
+            {download.title}
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
-            Download the latest release and manage Apple&apos;s container runtime from a native Mac app.
+            {download.subtitle}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button href={site.releases} icon="download" external>
@@ -34,7 +34,7 @@ export function Download() {
             </Button>
           </div>
           <p className="mt-4 text-sm text-fg-faint">
-            {site.requirements} · The DMG is hosted on GitHub Releases.
+            {site.requirements} · {download.note}
           </p>
           <p className="mt-2 text-xs text-fg-faint">{legal.short}</p>
         </Reveal>

@@ -10,7 +10,7 @@ export function Highlights() {
           A better way to run containers on the Mac.
         </h2>
         <p className="mt-3 max-w-2xl text-lg text-fg-muted">
-          The everyday essentials, done natively — plus a few things a wrapper can&apos;t.
+          The everyday essentials, done natively. Plus a few things no wrapper can do.
         </p>
       </Reveal>
 

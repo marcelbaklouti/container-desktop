@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const alt = "Container Desktop — the Apple container GUI for your Mac";
+export const alt = "Container Desktop, the native Mac app for Apple's container runtime";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

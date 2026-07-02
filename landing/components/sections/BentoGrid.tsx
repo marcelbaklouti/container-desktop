@@ -12,7 +12,7 @@ export function BentoGrid() {
             Everything else, in one place.
           </h2>
           <p className="mt-3 max-w-2xl text-lg text-fg-muted">
-            Networks, volumes, registries, and the builder — each a first-class part of the app.
+            Networks, volumes, registries, and the builder. Each one a first-class part of the app.
           </p>
         </Reveal>
 
