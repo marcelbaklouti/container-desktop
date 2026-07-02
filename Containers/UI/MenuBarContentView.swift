@@ -152,15 +152,65 @@ struct MenuBarContentView: View {
             // it collapses to zero — measure the content and bound the height explicitly.
             ScrollView {
                 VStack(spacing: 0) {
-                    ForEach(running) { container in
-                        MenuBarContainerRow(container: container, store: store, openURL: openURL)
-                        if container.id != running.last?.id { Divider().padding(.leading, 12) }
+                    ForEach(runningGroups, id: \.id) { group in
+                        if let title = group.title {
+                            stackHeader(title: title, containers: group.containers)
+                        }
+                        ForEach(group.containers) { container in
+                            MenuBarContainerRow(container: container, store: store, openURL: openURL)
+                            if container.id != group.containers.last?.id { Divider().padding(.leading, 12) }
+                        }
+                        if group.id != runningGroups.last?.id { Divider() }
                     }
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { listHeight = $0 }
             }
             .frame(height: min(listHeight, 320))
         }
+    }
+
+    private struct RunningGroup: Identifiable {
+        let id: String
+        let title: String?
+        let containers: [Container]
+    }
+
+    private var runningGroups: [RunningGroup] {
+        let grouped = Dictionary(grouping: running) { $0.project ?? "" }
+        var groups: [RunningGroup] = []
+        for project in grouped.keys.filter({ !$0.isEmpty }).sorted() {
+            groups.append(RunningGroup(id: project, title: project, containers: grouped[project] ?? []))
+        }
+        if let standalone = grouped[""], !standalone.isEmpty {
+            groups.append(RunningGroup(id: "__standalone__", title: nil, containers: standalone))
+        }
+        return groups
+    }
+
+    @ViewBuilder
+    private func stackHeader(title: String, containers: [Container]) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "rectangle.3.group")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button {
+                Task { await store.stop(containers.map(\.id)) }
+            } label: {
+                Image(systemName: "stop.fill")
+            }
+            .buttonStyle(.borderless)
+            .controlSize(.small)
+            .help("Stop all in \(title)")
+            .accessibilityLabel("Stop all in \(title)")
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
+        .padding(.bottom, 2)
     }
 
     @ViewBuilder

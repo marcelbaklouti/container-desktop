@@ -2,6 +2,7 @@ import SwiftUI
 
 nonisolated enum Area: String, CaseIterable, Identifiable, Hashable {
     case containers
+    case stacks
     case images
     case networks
     case volumes
@@ -15,6 +16,7 @@ nonisolated enum Area: String, CaseIterable, Identifiable, Hashable {
     var titleKey: LocalizedStringKey {
         switch self {
         case .containers: "Containers"
+        case .stacks: "Stacks"
         case .images: "Images"
         case .networks: "Networks"
         case .volumes: "Volumes"
@@ -28,6 +30,7 @@ nonisolated enum Area: String, CaseIterable, Identifiable, Hashable {
     var systemImage: String {
         switch self {
         case .containers: "shippingbox"
+        case .stacks: "rectangle.3.group"
         case .images: "square.stack.3d.up"
         case .networks: "network"
         case .volumes: "externaldrive"
@@ -38,6 +41,6 @@ nonisolated enum Area: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
-    static let resources: [Area] = [.containers, .images, .networks, .volumes, .machines]
+    static let resources: [Area] = [.containers, .stacks, .images, .networks, .volumes, .machines]
     static let tools: [Area] = [.builder, .registries]
 }

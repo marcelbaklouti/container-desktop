@@ -218,4 +218,20 @@ struct ComposeParsingTests {
         let run = api.runArguments(in: project)
         #expect(run.contains("container-desktop-test-build-api"))
     }
+
+    @Test func runArgumentsCarryStackIdentityLabels() throws {
+        var project = try #require(ComposeProject.parse(Self.sample, defaultName: "x"))
+        project.configFileURL = URL(fileURLWithPath: "/Users/dev/shop/docker-compose.yml")
+        let service = try #require(project.services.first { $0.name == "valkey" })
+        let args = service.runArguments(in: project)
+        #expect(args.contains("com.docker.compose.project.config_files=/Users/dev/shop/docker-compose.yml"))
+        #expect(args.contains("com.docker.compose.project.working_dir=/Users/dev/shop"))
+    }
+
+    @Test func runArgumentsOmitStackLabelsWithoutConfigFile() throws {
+        let project = try #require(ComposeProject.parse(Self.sample, defaultName: "x"))
+        let service = try #require(project.services.first { $0.name == "valkey" })
+        let args = service.runArguments(in: project)
+        #expect(!args.contains { $0.hasPrefix("com.docker.compose.project.config_files=") })
+    }
 }

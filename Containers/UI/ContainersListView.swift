@@ -179,7 +179,7 @@ struct ContainersListView: View {
                 primaryIcon: "plus",
                 primaryAction: { showRunSheet = true },
                 secondaryLabel: "Launch Stack",
-                secondaryIcon: "square.stack.3d.up",
+                secondaryIcon: "rectangle.3.group",
                 secondaryAction: { pickComposeFile() },
                 tertiaryLabel: appModel.dockerAvailability != .notInstalled ? "Migrate from Docker" : nil,
                 tertiaryAction: appModel.dockerAvailability != .notInstalled ? { showMigration = true } : nil,
@@ -216,6 +216,14 @@ struct ContainersListView: View {
         if selected.count == 1, let container = selected.first {
             if container.status?.state == "running" {
                 Button { Task { await store.kill(container) } } label: { Label("Kill", systemImage: "bolt.fill") }
+            }
+            if let project = container.project {
+                Button {
+                    appModel.navigator.area = .stacks
+                    appModel.navigator.stackSelection = project
+                } label: {
+                    Label("Show in Stacks", systemImage: "rectangle.3.group")
+                }
             }
             if !container.configuration.publishedPorts.isEmpty {
                 Divider()
@@ -265,7 +273,7 @@ struct ContainersListView: View {
             Button {
                 pickComposeFile()
             } label: {
-                Label("Launch Stack", systemImage: "square.stack.3d.up")
+                Label("Launch Stack", systemImage: "rectangle.3.group")
             }
             .help("Launch Compose Stack")
             .keyboardShortcut("n", modifiers: [.command, .shift])

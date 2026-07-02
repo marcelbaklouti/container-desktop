@@ -61,10 +61,16 @@ nonisolated struct ComposeService: Equatable, Identifiable {
         return args
     }
 
+    /// The config-file and working-dir labels match what Docker Compose writes, so a stack keeps
+    /// its identity — Relaunch and Open Compose File — whether it was launched here or migrated.
     func runArguments(in project: ComposeProject) -> [String] {
         var args = ["run", "-d", "--name", containerIdentifier(in: project), "--network", project.networkName]
         args += ["--label", "\(Container.projectLabelKey)=\(project.name)"]
         args += ["--label", "com.docker.compose.service=\(name)"]
+        if let configFile = project.configFileURL {
+            args += ["--label", "com.docker.compose.project.config_files=\(configFile.path)"]
+            args += ["--label", "com.docker.compose.project.working_dir=\(configFile.deletingLastPathComponent().path)"]
+        }
         for (key, value) in labels.sorted(by: { $0.key < $1.key }) {
             args += ["--label", "\(key)=\(value)"]
         }
@@ -91,6 +97,7 @@ nonisolated struct ComposeProject: Equatable, Identifiable {
     let services: [ComposeService]
     let namedVolumes: [String]
     var directory: URL?
+    var configFileURL: URL?
 
     var id: String { name }
 
@@ -105,7 +112,9 @@ nonisolated struct ComposeProject: Equatable, Identifiable {
         let directory = url.deletingLastPathComponent()
         var environment = loadDotEnv(in: directory)
         environment.merge(ProcessInfo.processInfo.environment) { _, shell in shell }
-        return parse(text, defaultName: directory.lastPathComponent, environment: environment, directory: directory)
+        var project = parse(text, defaultName: directory.lastPathComponent, environment: environment, directory: directory)
+        project?.configFileURL = url.standardizedFileURL
+        return project
     }
 
     static func loadDotEnv(in directory: URL) -> [String: String] {

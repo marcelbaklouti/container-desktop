@@ -6,6 +6,7 @@ import Observation
 final class Navigator {
     var area: Area? = .containers
     var containerSelection: Set<String> = []
+    var stackSelection: String?
 }
 
 @Observable

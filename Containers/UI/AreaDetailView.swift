@@ -9,6 +9,8 @@ struct AreaDetailView: View {
             SystemAreaView()
         case .containers:
             ContainersListView()
+        case .stacks:
+            StacksListView()
         case .networks:
             NetworksListView()
         case .volumes:
