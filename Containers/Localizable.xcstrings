@@ -4,6 +4,15 @@
     "“%@” — requires administrator authorization." : {
 
     },
+    "“%@” Didn’t Respond" : {
+
+    },
+    "“%@” Is in Use" : {
+
+    },
+    "“%@” Is Still Running" : {
+
+    },
     "/etc/hosts" : {
 
     },
@@ -11,6 +20,19 @@
 
     },
     "/Users/…" : {
+
+    },
+    "%@ %@ attached to it. Delete %@, then delete the network." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ attached to it. Delete %3$@, then delete the network."
+          }
+        }
+      }
+    },
+    "%@ are still used by containers." : {
 
     },
     "%@ CPU · %@" : {
@@ -23,24 +45,34 @@
         }
       }
     },
-    "%@ didn’t finish %@ — check its logs." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ didn’t finish %2$@ — check its logs."
-          }
-        }
-      }
-    },
-    "%@ didn’t finish stopping." : {
+    "%@ is no longer running." : {
 
     },
-    "%@ is no longer running." : {
+    "%@ is still used by a container." : {
 
     },
     "%@ platforms" : {
 
+    },
+    "%lld migrated · %lld failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld migrated · %2$lld failed"
+          }
+        }
+      }
+    },
+    "%lld of %lld migrated" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld migrated"
+          }
+        }
+      }
     },
     "%lld Selected" : {
 
@@ -55,6 +87,24 @@
 
     },
     "8080:80" : {
+
+    },
+    "A container has to stop before it can be deleted." : {
+
+    },
+    "A container is attached to this network. Delete that container, then delete the network." : {
+
+    },
+    "A container is using this volume. Stop that container, then delete the volume." : {
+
+    },
+    "A container named “%@” already exists here." : {
+
+    },
+    "A container’s Docker original is stopped only after its copy here starts successfully, and it is never deleted — if starting fails, the original is started again automatically. Docker must be running during the migration so its data can be read." : {
+
+    },
+    "A Port Is Already in Use" : {
 
     },
     "A published port is already in use — stop whatever is using it (for example, the same stack running in Docker) and try again." : {
@@ -93,6 +143,9 @@
     "Addressing" : {
 
     },
+    "All %lld migrated" : {
+
+    },
     "All running containers will be stopped." : {
 
     },
@@ -105,13 +158,28 @@
     "alpine:latest" : {
 
     },
+    "Already migrated" : {
+
+    },
     "apiserver" : {
+
+    },
+    "App update is available" : {
+
+    },
+    "App updates install themselves" : {
 
     },
     "Appearance" : {
 
     },
+    "Apple’s runtime has no restart policies and doesn’t share Docker’s custom networks, so those are dropped — each migrated container lists exactly what changed. Compose project labels carry over, so your stacks stay grouped." : {
+
+    },
     "Arguments" : {
+
+    },
+    "Attached to the default network — Docker’s “%@” network doesn’t carry over." : {
 
     },
     "Authorization was cancelled." : {
@@ -141,13 +209,22 @@
     "Builder" : {
 
     },
+    "Building image…" : {
+
+    },
     "Building…" : {
+
+    },
+    "Builds locally" : {
 
     },
     "Built-in" : {
 
     },
     "Cancel" : {
+
+    },
+    "Cancelled" : {
 
     },
     "Check for Updates" : {
@@ -157,6 +234,9 @@
 
     },
     "Checking for the latest release…" : {
+
+    },
+    "Checking the builder…" : {
 
     },
     "Checking…" : {
@@ -195,7 +275,13 @@
     "Container Desktop" : {
 
     },
+    "Container Desktop %@ is available to download." : {
+
+    },
     "Container Desktop can notify you when a container exits unexpectedly or when the system stops. Turn these on or off in Settings → Notifications." : {
+
+    },
+    "Container Desktop checks for its own updates daily, downloads them in the background, and verifies the developer signature before anything is installed. When one is ready, “Restart to Update” appears in the menu bar and in Settings → Updates — the app never restarts on its own. Automatic downloads and update notifications can be turned off in Settings." : {
 
     },
     "Container Desktop Help" : {
@@ -240,6 +326,19 @@
     "Context directory" : {
 
     },
+    "Copied volume “%@” (%@)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Copied volume “%1$@” (%2$@)."
+          }
+        }
+      }
+    },
+    "Copies the selected containers — images, settings, and volume data — to Apple’s runtime. Their Docker originals are stopped after a successful move, and never deleted." : {
+
+    },
     "Copy" : {
 
     },
@@ -247,6 +346,9 @@
 
     },
     "Copy address for port %@" : {
+
+    },
+    "Copy Details" : {
 
     },
     "Copy Files" : {
@@ -261,10 +363,40 @@
     "Copy Hostname" : {
 
     },
+    "Copying volume “%@”…" : {
+
+    },
     "Copying…" : {
 
     },
-    "Could not read services from that compose file." : {
+    "Couldn’t Delete the Container" : {
+
+    },
+    "Couldn’t Delete the Image" : {
+
+    },
+    "Couldn’t Delete the Machine" : {
+
+    },
+    "Couldn’t Delete the Network" : {
+
+    },
+    "Couldn’t Delete the Volume" : {
+
+    },
+    "Couldn’t Export the Filesystem" : {
+
+    },
+    "Couldn’t Export the Image" : {
+
+    },
+    "Couldn’t Import the Image" : {
+
+    },
+    "Couldn’t Kill the Container" : {
+
+    },
+    "Couldn’t Log Out" : {
 
     },
     "Couldn’t open the downloaded update." : {
@@ -273,7 +405,58 @@
     "Couldn’t prepare the update." : {
 
     },
+    "Couldn’t Prune Images" : {
+
+    },
+    "Couldn’t Prune Networks" : {
+
+    },
+    "Couldn’t Prune Volumes" : {
+
+    },
+    "Couldn’t read Docker’s response." : {
+
+    },
+    "Couldn’t Read Registry Logins" : {
+
+    },
+    "Couldn’t Read the Compose File" : {
+
+    },
+    "Couldn’t Refresh Containers" : {
+
+    },
+    "Couldn’t Refresh Images" : {
+
+    },
+    "Couldn’t Refresh Machines" : {
+
+    },
+    "Couldn’t Refresh Networks" : {
+
+    },
+    "Couldn’t Refresh Volumes" : {
+
+    },
+    "Couldn’t Restart the Container" : {
+
+    },
+    "Couldn’t Run the Container" : {
+
+    },
+    "Couldn’t Set the Default Machine" : {
+
+    },
+    "Couldn’t Start the Container" : {
+
+    },
     "Couldn’t start the container system." : {
+
+    },
+    "Couldn’t Stop the Container" : {
+
+    },
+    "Couldn’t Stop the Machine" : {
 
     },
     "CPU" : {
@@ -309,7 +492,16 @@
     "Created" : {
 
     },
+    "Created stopped — stop the Docker original, then start it here." : {
+
+    },
+    "Created stopped, matching its state in Docker." : {
+
+    },
     "Creating a local DNS domain requires administrator authorization." : {
+
+    },
+    "Creating container…" : {
 
     },
     "Creating…" : {
@@ -387,6 +579,9 @@
     "Details" : {
 
     },
+    "Didn’t start — %@ failed." : {
+
+    },
     "Digest" : {
 
     },
@@ -405,6 +600,21 @@
     "DNS domain" : {
 
     },
+    "Docker has no containers on this Mac." : {
+
+    },
+    "Docker is installed but not running — start Docker Desktop, then try again." : {
+
+    },
+    "Docker is installed but not running. Start Docker Desktop so its containers can be read, then try again." : {
+
+    },
+    "Docker Isn’t Installed" : {
+
+    },
+    "Docker isn’t installed." : {
+
+    },
     "docker.io" : {
 
     },
@@ -420,7 +630,13 @@
     "Download Update" : {
 
     },
+    "Download updates automatically" : {
+
+    },
     "Downloading container… %@%%" : {
+
+    },
+    "Downloading update…" : {
 
     },
     "Downloading… %@%%" : {
@@ -537,6 +753,9 @@
     "ID" : {
 
     },
+    "If Docker is installed, “Migrate from Docker” appears in the Containers toolbar. It lists every Docker container grouped by Compose project — running ones preselected — and moves the ones you choose: the image, the settings, and the data in named volumes all come along." : {
+
+    },
     "If the container tool isn’t installed, the start screen offers to download and install Apple’s official, signed release for you, with a single administrator prompt. You can also install it yourself from github.com/apple/container." : {
 
     },
@@ -544,6 +763,12 @@
 
     },
     "Image reference" : {
+
+    },
+    "Image was already present." : {
+
+    },
+    "Image was pulled from its registry." : {
 
     },
     "Images" : {
@@ -602,6 +827,22 @@
     },
     "IPv6 subnet" : {
 
+    },
+    "It didn’t finish %@ — check its logs." : {
+
+    },
+    "It didn’t finish stopping." : {
+
+    },
+    "It’s mounted by %@. Stop %@ first, then delete the volume." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "It’s mounted by %1$@. Stop %2$@ first, then delete the volume."
+          }
+        }
+      }
     },
     "Keeping the runtime current" : {
 
@@ -717,6 +958,24 @@
     "Menu Bar & Notifications" : {
 
     },
+    "Migrate %lld Containers" : {
+
+    },
+    "Migrate Container" : {
+
+    },
+    "Migrate from Docker" : {
+
+    },
+    "Migrate from Docker…" : {
+
+    },
+    "Migrated" : {
+
+    },
+    "Migration copies containers out of a local Docker installation, and there isn’t one on this Mac." : {
+
+    },
     "Mode" : {
 
     },
@@ -726,7 +985,20 @@
     "More Actions" : {
 
     },
+    "Mount “%@” of type %@ wasn’t carried over." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Mount “%1$@” of type %2$@ wasn’t carried over."
+          }
+        }
+      }
+    },
     "Mounts" : {
+
+    },
+    "Moving over in one click" : {
 
     },
     "my-network" : {
@@ -774,9 +1046,6 @@
     "No containers match your filter." : {
 
     },
-    "No image specified — build: services aren’t supported yet." : {
-
-    },
     "No Live Stats" : {
 
     },
@@ -795,7 +1064,19 @@
     "No Selection" : {
 
     },
+    "No services could be read from that file. Make sure it’s a docker-compose.yml with a services section." : {
+
+    },
     "None" : {
+
+    },
+    "Not enough free disk space to transfer — about %@ is needed temporarily." : {
+
+    },
+    "Nothing can run until the container system starts." : {
+
+    },
+    "Nothing to Migrate" : {
 
     },
     "Notifications" : {
@@ -859,6 +1140,9 @@
 
     },
     "Ports appear in the inspector. Click a port to open it in your browser, or copy its address. Running rows offer the same “Open” action in their context menu." : {
+
+    },
+    "Preparing the builder…" : {
 
     },
     "Processes" : {
@@ -987,6 +1271,12 @@
     "Restart %@" : {
 
     },
+    "Restart Container Desktop to update to %@." : {
+
+    },
+    "Restart to Update" : {
+
+    },
     "Restarting" : {
 
     },
@@ -1077,6 +1367,12 @@
     "Services" : {
 
     },
+    "Services that build" : {
+
+    },
+    "Services with a build: section are built automatically — the builder starts on its own when needed, the image is tagged the Compose way, and the build streams its progress right in the launch sheet. If a build fails, only that service and the ones that depend on it are held back." : {
+
+    },
     "Set as default" : {
 
     },
@@ -1086,7 +1382,13 @@
     "Shell" : {
 
     },
+    "Show %@" : {
+
+    },
     "Show Inspector" : {
+
+    },
+    "Show Running Containers" : {
 
     },
     "Show Running Containers Only" : {
@@ -1107,10 +1409,13 @@
     "Software Update" : {
 
     },
-    "Something went wrong" : {
+    "Something Went Wrong" : {
 
     },
     "Source" : {
+
+    },
+    "Standalone" : {
 
     },
     "Start" : {
@@ -1123,6 +1428,9 @@
 
     },
     "Start Container System" : {
+
+    },
+    "Start Docker to Migrate" : {
 
     },
     "Start the container system to manage your containers, images, networks, and volumes." : {
@@ -1138,6 +1446,9 @@
 
     },
     "Starting %@" : {
+
+    },
+    "Starting here failed, so the Docker original was restarted." : {
 
     },
     "Starting the container system…" : {
@@ -1173,10 +1484,16 @@
     "Stop all in %@" : {
 
     },
+    "Stop and Delete" : {
+
+    },
     "Stop Builder" : {
 
     },
     "Stop Container System" : {
+
+    },
+    "Stop originals in Docker" : {
 
     },
     "Stop the container system?" : {
@@ -1201,6 +1518,9 @@
 
     },
     "Subnet" : {
+
+    },
+    "Switching over…" : {
 
     },
     "System" : {
@@ -1236,6 +1556,9 @@
     "The container command failed." : {
 
     },
+    "The container command-line tool could not be found. Install it from the start screen." : {
+
+    },
     "The container runtime is no longer running." : {
 
     },
@@ -1248,22 +1571,49 @@
     "The container system is stopped" : {
 
     },
+    "The Container System Is Stopped" : {
+
+    },
     "The container system is stopped." : {
 
     },
     "The container tool could not be found." : {
 
     },
+    "The container Tool Is Missing" : {
+
+    },
     "The container tool isn’t installed" : {
 
     },
+    "The docker command failed." : {
+
+    },
     "The downloaded installer isn’t signed by Apple, so it wasn’t installed." : {
+
+    },
+    "The downloaded update is no longer intact, so it wasn’t installed." : {
+
+    },
+    "The entrypoint was flattened to a single string." : {
+
+    },
+    "The image “%@” exists only in Docker and couldn’t be transferred." : {
+
+    },
+    "The image archive needed lenient loading." : {
 
     },
     "The installer changed after verification and wasn’t installed." : {
 
     },
     "The menu bar item shows the running-container count and the combined CPU and memory, with quick Stop, Restart, and Open actions per container, plus Start and Stop for the system. It stays available even when the main window is closed." : {
+
+    },
+    "The restart policy “%@” isn’t supported by Apple’s runtime and was dropped." : {
+
+    },
+    "The service has neither an image nor a build configuration." : {
 
     },
     "The update came from an unexpected location and wasn’t downloaded." : {
@@ -1276,6 +1626,9 @@
 
     },
     "This container hasn’t written any logs yet." : {
+
+    },
+    "This permanently deletes %lld images." : {
 
     },
     "This permanently deletes every image not used by a container." : {
@@ -1296,6 +1649,9 @@
     "Tools" : {
 
     },
+    "Transferring image…" : {
+
+    },
     "Unavailable" : {
 
     },
@@ -1303,6 +1659,15 @@
 
     },
     "Up to date" : {
+
+    },
+    "Update available" : {
+
+    },
+    "Update available — %@" : {
+
+    },
+    "Update ready to install" : {
 
     },
     "Update to %@" : {
@@ -1329,6 +1694,12 @@
     "Verifying Apple’s signature…" : {
 
     },
+    "Verifying…" : {
+
+    },
+    "Version %@ is ready to install." : {
+
+    },
     "View" : {
 
     },
@@ -1336,6 +1707,9 @@
 
     },
     "Volume" : {
+
+    },
+    "Volume “%@” already existed; Docker’s files were merged in." : {
 
     },
     "Volumes" : {
@@ -1350,7 +1724,13 @@
     "What Container Desktop is" : {
 
     },
+    "What doesn’t carry over" : {
+
+    },
     "Working directory" : {
+
+    },
+    "Your Docker containers are safe" : {
 
     }
   },

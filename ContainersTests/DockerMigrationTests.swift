@@ -20,7 +20,10 @@ struct DockerMigrationTests {
         "Entrypoint": ["docker-entrypoint.sh"],
         "Labels": {
           "com.docker.compose.project": "container-desktop-test",
-          "com.docker.compose.service": "cache"
+          "com.docker.compose.service": "cache",
+          "url": "https://catalog.redhat.com/en/search?searchType=containers",
+          "vendor": "Container Desktop Test",
+          "custom.container.label": "kept"
         },
         "WorkingDir": "/data",
         "User": "",
@@ -64,6 +67,10 @@ struct DockerMigrationTests {
         ],
         "Cmd": ["valkey-server"],
         "Entrypoint": ["docker-entrypoint.sh"],
+        "Labels": {
+          "url": "https://catalog.redhat.com/en/search?searchType=containers",
+          "vendor": "Container Desktop Test"
+        },
         "WorkingDir": "/data",
         "User": ""
       },
@@ -148,6 +155,34 @@ struct DockerMigrationTests {
         let args = DockerMigrator.createArguments(for: container, imageDefaults: image).arguments
         let terminator = try #require(args.firstIndex(of: "--"))
         #expect(args.suffix(from: terminator + 1) == ["valkey/valkey:8-alpine"])
+    }
+
+    @Test func imageBakedLabelsAreNotReapplied() throws {
+        let container = try fixtureContainer()
+        let image = try fixtureImage()
+        let args = DockerMigrator.createArguments(for: container, imageDefaults: image).arguments
+        let labels = args.indices.filter { args[$0] == "--label" }.map { args[$0 + 1] }
+        #expect(labels.contains("com.docker.compose.project=container-desktop-test"))
+        #expect(labels.contains("custom.container.label=kept"))
+        #expect(!labels.contains { $0.hasPrefix("url=") })
+        #expect(!labels.contains { $0.hasPrefix("vendor=") })
+    }
+
+    @Test func essentialLabelsFallbackKeepsOnlyComposeGrouping() throws {
+        let container = try fixtureContainer()
+        let image = try fixtureImage()
+        let args = DockerMigrator.createArguments(for: container, imageDefaults: image, essentialLabelsOnly: true).arguments
+        let labels = args.indices.filter { args[$0] == "--label" }.map { args[$0 + 1] }
+        #expect(labels.contains("com.docker.compose.project=container-desktop-test"))
+        #expect(labels.contains("com.docker.compose.service=cache"))
+        #expect(labels.contains("\(DockerMigrator.migrationLabelKey)=docker"))
+        #expect(!labels.contains("custom.container.label=kept"))
+    }
+
+    @Test func dockerSubprocessPathIncludesCredentialHelperDirectories() {
+        let path = DockerCLI.subprocessEnvironment["PATH"] ?? ""
+        #expect(path.contains("/Applications/Docker.app/Contents/Resources/bin"))
+        #expect(path.contains(".docker/bin"))
     }
 
     @Test func canonicalReferenceMatchesAppleNaming() {

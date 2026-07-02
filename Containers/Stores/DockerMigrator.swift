@@ -160,6 +160,7 @@ final class DockerMigrator {
         let volumes = container.namedVolumeMounts
         if !volumes.isEmpty {
             try await ensureHelperImage(localReferences: &localReferences)
+            try await ensureDockerHelperImage()
             for mount in volumes {
                 guard let volumeName = mount.name else { continue }
                 if cancelRequested {
@@ -179,7 +180,13 @@ final class DockerMigrator {
         items[index].phase = .creating
         let plan = Self.createArguments(for: container, imageDefaults: imageInfo)
         items[index].notes.append(contentsOf: plan.notes)
-        _ = try await client.data(for: plan.arguments)
+        do {
+            _ = try await client.data(for: plan.arguments)
+        } catch let RuntimeError.commandFailed(_, _, message) where message.contains("invalid label format") {
+            let essential = Self.createArguments(for: container, imageDefaults: imageInfo, essentialLabelsOnly: true)
+            _ = try await client.data(for: essential.arguments)
+            items[index].notes.append(String(localized: "Some labels weren’t accepted by Apple’s runtime and were left behind; Compose grouping is preserved."))
+        }
 
         if container.isRunning {
             if stopOriginals {
@@ -282,6 +289,11 @@ final class DockerMigrator {
         localReferences.insert(Self.canonicalReference(Self.helperImage))
     }
 
+    private func ensureDockerHelperImage() async throws {
+        if (try? await docker.data(for: ["image", "inspect", Self.helperImage])) != nil { return }
+        _ = try await docker.data(for: ["pull", Self.helperImage])
+    }
+
     private func ensureScratchCapacity(bytes: Int) throws {
         let values = try? FileManager.default.temporaryDirectory.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
         guard let available = values?.volumeAvailableCapacityForImportantUsage else { return }
@@ -315,7 +327,7 @@ final class DockerMigrator {
         return references.contains(reference) || references.contains(canonical)
     }
 
-    nonisolated static func createArguments(for container: DockerContainer, imageDefaults: DockerImage?) -> (arguments: [String], notes: [String]) {
+    nonisolated static func createArguments(for container: DockerContainer, imageDefaults: DockerImage?, essentialLabelsOnly: Bool = false) -> (arguments: [String], notes: [String]) {
         var args = ["create", "--name", container.displayName]
         var notes: [String] = []
 
@@ -388,7 +400,10 @@ final class DockerMigrator {
             args += ["--memory", String(memory)]
         }
 
-        for (key, value) in (container.config.labels ?? [:]).sorted(by: { $0.key < $1.key }) {
+        let imageLabels = imageDefaults?.config.labels ?? [:]
+        let essentialKeys = [Container.projectLabelKey, "com.docker.compose.service"]
+        for (key, value) in (container.config.labels ?? [:]).sorted(by: { $0.key < $1.key }) where imageLabels[key] != value {
+            if essentialLabelsOnly && !essentialKeys.contains(key) { continue }
             args += ["--label", "\(key)=\(value)"]
         }
         args += ["--label", "\(migrationLabelKey)=docker"]

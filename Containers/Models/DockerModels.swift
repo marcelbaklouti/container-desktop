@@ -119,6 +119,7 @@ nonisolated struct DockerImage: Codable, Sendable {
         let env: [String]?
         let cmd: [String]?
         let entrypoint: [String]?
+        let labels: [String: String]?
         let workingDir: String?
         let user: String?
 
@@ -126,6 +127,7 @@ nonisolated struct DockerImage: Codable, Sendable {
             case env = "Env"
             case cmd = "Cmd"
             case entrypoint = "Entrypoint"
+            case labels = "Labels"
             case workingDir = "WorkingDir"
             case user = "User"
         }

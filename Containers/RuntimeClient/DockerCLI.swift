@@ -63,11 +63,29 @@ actor DockerCLI {
         }
     }
 
+    /// GUI apps inherit a minimal PATH, but docker shells out to credential helpers like
+    /// docker-credential-desktop (Docker.app's Resources/bin, ~/.docker/bin) for every pull —
+    /// without these directories on PATH, any docker pull fails with "error getting credentials".
+    nonisolated static var subprocessEnvironment: [String: String] {
+        var directories = [
+            "/Applications/Docker.app/Contents/Resources/bin",
+            (NSHomeDirectory() as NSString).appendingPathComponent(".docker/bin"),
+            "/usr/local/bin",
+            "/opt/homebrew/bin",
+        ]
+        if let path = ProcessInfo.processInfo.environment["PATH"] {
+            directories.append(contentsOf: path.split(separator: ":").map(String.init))
+        }
+        var seen = Set<String>()
+        let merged = directories.filter { seen.insert($0).inserted }
+        return ["PATH": merged.joined(separator: ":")]
+    }
+
     func data(for arguments: [String]) async throws -> Data {
         guard let binary = binaryURL() else { throw DockerError.notInstalled }
         let result: ProcessResult
         do {
-            result = try await ProcessInvocation(executableURL: binary, arguments: arguments).run()
+            result = try await ProcessInvocation(executableURL: binary, arguments: arguments, environment: Self.subprocessEnvironment).run()
         } catch RuntimeError.binaryNotFound {
             throw DockerError.notInstalled
         }
