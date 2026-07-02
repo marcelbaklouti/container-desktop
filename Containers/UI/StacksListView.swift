@@ -73,6 +73,12 @@ struct StacksListView: View {
                 stackMenu(stack)
             }
         }
+        .onDeleteCommand {
+            if let selection, let stack = stacks.first(where: { $0.id == selection }) {
+                pendingDeletion = stack
+            }
+        }
+        .appAnimation(store.containers)
         .overlay { emptyState }
     }
 
@@ -114,6 +120,7 @@ struct StacksListView: View {
                 Label("Refresh", systemImage: "arrow.clockwise")
             }
             .help("Refresh")
+            .keyboardShortcut("r", modifiers: .command)
         }
         ToolbarItem {
             Button {
@@ -131,6 +138,7 @@ struct StacksListView: View {
                 Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right")
             }
             .help(showInspector ? "Hide Inspector" : "Show Inspector")
+            .keyboardShortcut("i", modifiers: [.command, .option])
         }
     }
 
@@ -239,6 +247,8 @@ private struct StackRow: View {
                 Text(servicesSummary)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+                    .appAnimation(servicesSummary)
             }
             Spacer()
             if let liveStats {

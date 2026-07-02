@@ -68,6 +68,11 @@ struct VolumesListView: View {
         .contextMenu(forSelectionType: String.self) { ids in
             volumeMenu(ids)
         }
+        .onDeleteCommand {
+            let selected = store.volumes.filter { selection.contains($0.id) }
+            if !selected.isEmpty { pendingDeletion = selected }
+        }
+        .appAnimation(store.volumes)
         .overlay { emptyState }
     }
 
@@ -81,6 +86,7 @@ struct VolumesListView: View {
         ToolbarItem {
             Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
                 .help(showInspector ? "Hide Inspector" : "Show Inspector")
+                .keyboardShortcut("i", modifiers: [.command, .option])
         }
         ToolbarItem {
             Menu {

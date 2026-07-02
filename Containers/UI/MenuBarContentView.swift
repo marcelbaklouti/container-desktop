@@ -71,7 +71,11 @@ struct MenuBarContentView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
                 Text("Container Desktop").font(.headline)
-                Text(statusText).font(.caption).foregroundStyle(.secondary)
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+                    .appAnimation(statusText)
             }
             Spacer()
             daemonButton

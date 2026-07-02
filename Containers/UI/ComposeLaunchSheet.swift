@@ -34,6 +34,7 @@ struct ComposeLaunchSheet: View {
                 }
             }
             .formStyle(.grouped)
+            .appAnimation(launcher.progress.map(\.phase))
             .navigationTitle("Launch Stack")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

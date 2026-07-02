@@ -28,6 +28,11 @@ struct ContainersApp: App {
         .commands {
             // Free ⌘N (default "New Window") for each area's primary "new" action.
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(after: .sidebar) {
+                Divider()
+                areaCommands
+                Divider()
+            }
             CommandGroup(replacing: .appInfo) {
                 Button("About Container Desktop") { showAboutPanel() }
             }
@@ -73,6 +78,20 @@ struct ContainersApp: App {
         Settings {
             SettingsView()
                 .environment(appModel.updater)
+        }
+    }
+
+    /// ⌘1…⌘9 jump straight to a sidebar area, Mail-style.
+    @ViewBuilder
+    private var areaCommands: some View {
+        let areas = Area.resources + Area.tools + [Area.system]
+        ForEach(Array(areas.enumerated()), id: \.element) { index, area in
+            Button {
+                appModel.navigator.area = area
+            } label: {
+                Text(area.titleKey)
+            }
+            .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
         }
     }
 }

@@ -64,6 +64,11 @@ struct NetworksListView: View {
         .contextMenu(forSelectionType: String.self) { ids in
             networkMenu(ids)
         }
+        .onDeleteCommand {
+            let selected = store.networks.filter { selection.contains($0.id) && !$0.isBuiltin }
+            if !selected.isEmpty { pendingDeletion = selected }
+        }
+        .appAnimation(store.networks)
         .overlay { emptyState }
     }
 
@@ -77,6 +82,7 @@ struct NetworksListView: View {
         ToolbarItem {
             Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
                 .help(showInspector ? "Hide Inspector" : "Show Inspector")
+                .keyboardShortcut("i", modifiers: [.command, .option])
         }
         ToolbarItem {
             Menu {

@@ -3,12 +3,15 @@ import SwiftUI
 struct StatusBadge: View {
     let text: LocalizedStringKey
     let tint: Color
+    @ScaledMetric(relativeTo: .caption) private var horizontalPadding = 10
+    @ScaledMetric(relativeTo: .caption) private var verticalPadding = 4
 
     var body: some View {
         Text(text)
             .font(.caption.weight(.semibold))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
+            .contentTransition(.opacity)
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
             .glassEffect(.regular.tint(tint.opacity(0.55)), in: .capsule)
     }
 }

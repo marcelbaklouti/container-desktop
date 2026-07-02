@@ -55,6 +55,11 @@ struct MachinesListView: View {
         .contextMenu(forSelectionType: String.self) { ids in
             machineMenu(ids)
         }
+        .onDeleteCommand {
+            let selected = store.machines.filter { selection.contains($0.id) }
+            if !selected.isEmpty { pendingDeletion = selected }
+        }
+        .appAnimation(store.machines)
         .overlay { emptyState }
     }
 
@@ -68,6 +73,7 @@ struct MachinesListView: View {
         ToolbarItem {
             Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
                 .help(showInspector ? "Hide Inspector" : "Show Inspector")
+                .keyboardShortcut("i", modifiers: [.command, .option])
         }
     }
 

@@ -22,11 +22,13 @@ struct EmptyStateGuide: View {
     var tertiaryIcon: String = "shippingbox.and.arrow.backward"
     var tertiaryAction: (() -> Void)? = nil
     var shortcuts: [KeyboardHint] = []
+    @ScaledMetric(relativeTo: .largeTitle) private var iconSize = 46
+    @ScaledMetric(relativeTo: .callout) private var messageWidth = 380
 
     var body: some View {
         VStack(spacing: 18) {
             Image(systemName: icon)
-                .font(.system(size: 46))
+                .font(.system(size: iconSize))
                 .foregroundStyle(.tertiary)
                 .accessibilityHidden(true)
 
@@ -36,7 +38,7 @@ struct EmptyStateGuide: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 380)
+                    .frame(maxWidth: messageWidth)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -67,18 +69,7 @@ struct EmptyStateGuide: View {
             if !shortcuts.isEmpty {
                 VStack(spacing: 7) {
                     ForEach(shortcuts) { hint in
-                        HStack(spacing: 16) {
-                            Text(hint.label)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Spacer(minLength: 12)
-                            Text(hint.keys)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 2)
-                                .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
-                        }
+                        KeyboardHintRow(hint: hint)
                     }
                 }
                 .frame(maxWidth: 260)
@@ -87,5 +78,26 @@ struct EmptyStateGuide: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(40)
+    }
+}
+
+private struct KeyboardHintRow: View {
+    let hint: KeyboardHint
+    @ScaledMetric(relativeTo: .caption) private var keyPaddingHorizontal = 7
+    @ScaledMetric(relativeTo: .caption) private var keyPaddingVertical = 2
+
+    var body: some View {
+        HStack(spacing: 16) {
+            Text(hint.label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 12)
+            Text(hint.keys)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, keyPaddingHorizontal)
+                .padding(.vertical, keyPaddingVertical)
+                .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
+        }
     }
 }

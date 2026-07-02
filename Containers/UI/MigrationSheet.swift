@@ -226,10 +226,16 @@ struct MigrationSheet: View {
                         .font(.caption)
                         .foregroundStyle(summaryColor)
                         .textCase(nil)
+                        .contentTransition(.numericText())
                 }
             }
         }
         .formStyle(.grouped)
+        .appAnimation(progressAnimationKey)
+    }
+
+    private var progressAnimationKey: [DockerMigrator.Phase] {
+        migrator.items.map(\.phase)
     }
 
     private var progressSummary: String {

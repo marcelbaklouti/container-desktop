@@ -116,6 +116,11 @@ struct ContainersListView: View {
         .contextMenu(forSelectionType: String.self) { ids in
             bulkMenu(ids)
         }
+        .onDeleteCommand {
+            let selected = store.containers.filter { selection.contains($0.id) }
+            if !selected.isEmpty { pendingDeletion = selected }
+        }
+        .appAnimation(store.containers)
         .overlay { emptyState }
         .navigationTitle("Containers")
         .navigationSubtitle(overallSummary)
@@ -276,6 +281,7 @@ struct ContainersListView: View {
                 Label("Refresh", systemImage: "arrow.clockwise")
             }
             .help("Refresh")
+            .keyboardShortcut("r", modifiers: .command)
         }
         ToolbarItemGroup {
             if appModel.dockerAvailability != .notInstalled {
@@ -310,6 +316,7 @@ struct ContainersListView: View {
                 Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right")
             }
             .help(showInspector ? "Hide Inspector" : "Show Inspector")
+            .keyboardShortcut("i", modifiers: [.command, .option])
         }
         ToolbarItem {
             Menu {

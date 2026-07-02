@@ -48,6 +48,11 @@ struct ImagesListView: View {
         .contextMenu(forSelectionType: String.self) { ids in
             imageMenu(ids)
         }
+        .onDeleteCommand {
+            let selected = store.images.filter { selection.contains($0.id) }
+            if !selected.isEmpty { pendingDeletion = selected }
+        }
+        .appAnimation(store.images)
         .overlay { emptyState }
         .navigationTitle("Images")
         .searchable(text: $searchText, prompt: "Filter images")
@@ -100,6 +105,7 @@ struct ImagesListView: View {
         ToolbarItem {
             Button { showInspector.toggle() } label: { Label(showInspector ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.right") }
                 .help(showInspector ? "Hide Inspector" : "Show Inspector")
+                .keyboardShortcut("i", modifiers: [.command, .option])
         }
         ToolbarItem {
             Menu {
