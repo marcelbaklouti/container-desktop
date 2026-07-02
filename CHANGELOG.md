@@ -4,6 +4,20 @@ All notable changes to Container Desktop are documented here. The format is base
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] — 2026-07-02
+
+### Added
+
+- **Migrate from Docker in one click — data included.** If Docker is installed, a new assistant in Containers lists every Docker container grouped by Compose project (running ones preselected) and moves your selection over: images transfer directly (registry pull as fallback), named volumes are recreated **with their data**, and containers are rebuilt with their ports, environment, mounts, resource limits, and labels — so Compose groups carry over. Docker originals are stopped only after their replacement is running, restarted automatically if it isn't, and never deleted. Anything that can't carry over (restart policies, custom Docker networks) is listed per container. Re-running is safe: already-migrated containers are skipped.
+- **Compose `build:` services now build.** Launching a stack builds services that declare `build:` (shorthand or full `context`/`dockerfile`/`args`/`target` form) instead of failing them — the builder starts automatically when needed, with visible progress for its first-run image pull, and built images follow Compose naming (`<project>-<service>`). Failures propagate through `depends_on`, so a dependent reports “didn’t start — X failed” instead of a confusing runtime error.
+- **App updates install in the background.** Container Desktop now checks daily, notifies you once per version, downloads and signature-verifies the update in the background, and waits for one click — **Restart to Update** in the menu bar or Settings. The app never restarts on its own; automatic downloads and update notifications have Settings toggles.
+- **Errors that help instead of apologize.** Alerts now say what went wrong and offer the fix: deleting a running container offers *Stop and Delete*, an in-use volume or network names the containers using it and can reveal them, a port conflict offers *Show Running Containers*, and a stopped system offers *Start Container System*. Every alert can copy the failing command for diagnosis.
+
+### Fixed
+
+- **Starting the container system no longer flashes a false error.** The app now waits for the daemon to report ready (it keeps booting after the start command returns) and shows “Starting the container system…” progress in the meantime — in the start screen and the menu bar.
+- **Lifecycle actions show what's happening.** Containers display *Starting…*, *Stopping…*, and *Restarting…* badges with a spinner the moment you act, instead of a stale Running/Stopped badge until the next poll; machines show the same while stopping. A container that wedges mid-transition surfaces a message after 30 seconds.
+
 ## [1.0.3] — 2026-06-29
 
 ### Fixed
@@ -60,6 +74,7 @@ Initial public release.
 
 A native macOS app for Apple’s `container` runtime — run, inspect, and manage containers, images, volumes, networks, and machines; launch Compose stacks; stream logs and an embedded terminal; watch live CPU/memory; and control everything from the menu bar. Apple Silicon, macOS 26+. Developer ID-signed and notarized, with a guided `container` CLI install and a signed in-app self-update.
 
+[1.0.4]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.4
 [1.0.3]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.3
 [1.0.2]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.2
 [1.0.1]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.1

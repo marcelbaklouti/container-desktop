@@ -4,11 +4,11 @@ export const site = {
   name: "Container Desktop",
   tagline: "A native Mac GUI for Apple's container runtime",
   description:
-    "Container Desktop is a native macOS GUI for Apple's container runtime — run, inspect, and manage containers, images, volumes, networks, and machines, launch Compose stacks, and watch live stats, all from a clean SwiftUI app.",
+    "Container Desktop is a native macOS GUI for Apple's container runtime — run, inspect, and manage containers, images, volumes, networks, and machines, launch Compose stacks, watch live stats, and move your containers over from Docker in one click, data included.",
   url: "https://container-desktop.vercel.app",
   repo: "https://github.com/marcelbaklouti/container-desktop",
   releases: "https://github.com/marcelbaklouti/container-desktop/releases/latest",
-  version: "1.0.2",
+  version: "1.0.4",
   requirements: "Apple Silicon · macOS 26 Tahoe or later",
 };
 
@@ -31,7 +31,7 @@ export const hero = {
   badge: "Apple Silicon · macOS 26 · Free & open source",
   title: "The Apple container GUI for your Mac.",
   subtitle:
-    "Container Desktop is a native SwiftUI app for Apple's container runtime. Run and inspect containers, images, volumes, networks, and machines — launch whole Compose stacks, watch live stats, and keep everything a click away in the menu bar.",
+    "Container Desktop is a native SwiftUI app for Apple's container runtime. Run and inspect containers, images, volumes, networks, and machines — launch whole Compose stacks, watch live stats, and switch from Docker in one click, volume data included.",
   screenshot: {
     src: "/screens/Container.png",
     label: "Containers",
@@ -44,6 +44,11 @@ export type Highlight = { icon: IconName; title: string; body: string };
 
 export const highlights: Highlight[] = [
   {
+    icon: "arrow-right",
+    title: "Migrate from Docker",
+    body: "Move containers over in one click — images, settings, and volume data. Originals are stopped, never deleted.",
+  },
+  {
     icon: "bolt",
     title: "Native, not a wrapper",
     body: "Built in SwiftUI with Liquid Glass — no Electron. Every action maps to the container CLI.",
@@ -51,17 +56,12 @@ export const highlights: Highlight[] = [
   {
     icon: "layers",
     title: "Launch Compose stacks",
-    body: "Open a docker-compose.yml and run the whole thing — volumes, project network, dependency order.",
+    body: "Open a docker-compose.yml and run the whole thing — builds, volumes, project network, dependency order.",
   },
   {
     icon: "activity",
     title: "Live stats & menu bar",
     body: "Real-time CPU and memory on every container, per-project totals, and a menu-bar summary.",
-  },
-  {
-    icon: "terminal",
-    title: "Logs, shell & files",
-    body: "Follow logs, open a terminal inside any container, and copy files in and out.",
   },
 ];
 
@@ -76,6 +76,19 @@ export type FeatureSection = {
 };
 
 export const features: FeatureSection[] = [
+  {
+    id: "migrate",
+    eyebrow: "Migration",
+    icon: "arrow-right",
+    title: "Leave Docker Desktop in one afternoon.",
+    body: "Already on Docker? Container Desktop finds your containers, groups them by Compose project, and moves the ones you pick — the image, the configuration, and the data in named volumes all come along. Each container's Docker original is stopped only once its replacement is running, and never deleted, so there's nothing to lose by trying.",
+    bullets: [
+      "Pick containers — Compose groups carry over",
+      "Images and volume data move with them",
+      "Originals are stopped, never deleted",
+    ],
+    screenshot: { label: "Migrate from Docker", width: 2402, height: 1528 },
+  },
   {
     id: "images",
     eyebrow: "Images",
@@ -155,14 +168,15 @@ export type Capability = { icon: IconName; title: string; body: string };
 
 export const capabilities: Capability[] = [
   { icon: "bolt", title: "Getting started", body: "Install the runtime, start the system, and run your first container." },
+  { icon: "arrow-right", title: "Migrate from Docker", body: "Move containers over in one click — images, settings, and volume data." },
   { icon: "box", title: "Containers", body: "Run, inspect, and control lifecycle; logs, stats, shell, and ports." },
-  { icon: "layers", title: "Compose stacks", body: "Launch multi-container stacks from a Compose file, grouped by project." },
+  { icon: "layers", title: "Compose stacks", body: "Launch stacks from a Compose file — build: services build automatically." },
   { icon: "box", title: "Images", body: "Pull, build, tag, push, import/export, view history, and prune." },
   { icon: "network", title: "Networks & volumes", body: "Isolate containers and store data that outlives them, with real usage." },
   { icon: "server", title: "Machines", body: "Manage the Linux VMs, set a default, and open an interactive shell." },
   { icon: "globe", title: "DNS & hostnames", body: "Create local DNS domains and reach containers at name.domain." },
   { icon: "menubar", title: "Menu bar & notifications", body: "Quick actions from the menu bar; alerts for exits and daemon stops." },
-  { icon: "shield", title: "Updates", body: "Keep the runtime and the app current, with verified, notarized updates." },
+  { icon: "shield", title: "Updates", body: "The app updates itself in the background — one click to restart and apply." },
 ];
 
 export const legal = {

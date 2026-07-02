@@ -99,8 +99,23 @@ extension HelpTopic {
             sections: [
                 .init(heading: "Launching a stack",
                       body: "Use “Launch Stack” in the Containers toolbar to pick a docker-compose.yml. Container Desktop reads the services, creates the named volumes and a project network, and starts each service in dependency order with live per-service progress."),
+                .init(heading: "Services that build",
+                      body: "Services with a build: section are built automatically — the builder starts on its own when needed, the image is tagged the Compose way, and the build streams its progress right in the launch sheet. If a build fails, only that service and the ones that depend on it are held back."),
                 .init(heading: "Grouping and totals",
                       body: "Containers are grouped by their Compose project. Each group header shows the combined CPU and memory of its running services, and the overall total appears beneath the Containers title."),
+            ]
+        ),
+        HelpTopic(
+            id: "migrate",
+            title: "Migrate from Docker",
+            systemImage: "shippingbox.and.arrow.backward",
+            sections: [
+                .init(heading: "Moving over in one click",
+                      body: "If Docker is installed, “Migrate from Docker” appears in the Containers toolbar. It lists every Docker container grouped by Compose project — running ones preselected — and moves the ones you choose: the image, the settings, and the data in named volumes all come along."),
+                .init(heading: "Your Docker containers are safe",
+                      body: "A container’s Docker original is stopped only after its copy here starts successfully, and it is never deleted — if starting fails, the original is started again automatically. Docker must be running during the migration so its data can be read."),
+                .init(heading: "What doesn’t carry over",
+                      body: "Apple’s runtime has no restart policies and doesn’t share Docker’s custom networks, so those are dropped — each migrated container lists exactly what changed. Compose project labels carry over, so your stacks stay grouped."),
             ]
         ),
         HelpTopic(
@@ -163,6 +178,8 @@ extension HelpTopic {
             title: "Updates",
             systemImage: "arrow.down.circle",
             sections: [
+                .init(heading: "App updates install themselves",
+                      body: "Container Desktop checks for its own updates daily, downloads them in the background, and verifies the developer signature before anything is installed. When one is ready, “Restart to Update” appears in the menu bar and in Settings → Updates — the app never restarts on its own. Automatic downloads and update notifications can be turned off in Settings."),
                 .init(heading: "Keeping the runtime current",
                       body: "Container Desktop’s version tracks the container runtime release it’s built for. System → Software Update shows the latest release from Apple and installs verified updates after an administrator prompt — Container Desktop only accepts packages signed and notarized by Apple."),
             ]
