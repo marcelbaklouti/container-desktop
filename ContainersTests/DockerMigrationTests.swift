@@ -50,9 +50,15 @@ struct DockerMigrationTests {
         },
         {
           "Type": "bind",
-          "Source": "/Users/container-desktop-test/config",
+          "Source": "/host_mnt/private/tmp",
           "Destination": "/etc/app",
           "RW": false
+        },
+        {
+          "Type": "bind",
+          "Source": "/Users/container-desktop-test/missing",
+          "Destination": "/etc/gone",
+          "RW": true
         }
       ]
     }]
@@ -125,7 +131,9 @@ struct DockerMigrationTests {
 
         let volumes = args.indices.filter { args[$0] == "-v" }.map { args[$0 + 1] }
         #expect(volumes.contains("container-desktop-test-data:/data"))
-        #expect(volumes.contains("/Users/container-desktop-test/config:/etc/app:ro"))
+        #expect(volumes.contains("/private/tmp:/etc/app:ro"))
+        #expect(!volumes.contains { $0.contains("/etc/gone") })
+        #expect(plan.notes.contains { $0.contains("/etc/gone") })
 
         #expect(!args.contains("--entrypoint"))
         #expect(!args.contains("--workdir"))
@@ -177,6 +185,12 @@ struct DockerMigrationTests {
         #expect(labels.contains("com.docker.compose.service=cache"))
         #expect(labels.contains("\(DockerMigrator.migrationLabelKey)=docker"))
         #expect(!labels.contains("custom.container.label=kept"))
+    }
+
+    @Test func hostMountPathsNormalizeToTheMacFilesystem() {
+        #expect(DockerMigrator.normalizedHostPath("/host_mnt/Users/dev/project") == "/Users/dev/project")
+        #expect(DockerMigrator.normalizedHostPath("/Users/dev/project") == "/Users/dev/project")
+        #expect(DockerMigrator.normalizedHostPath("/host_mnt/private/tmp") == "/private/tmp")
     }
 
     @Test func dockerSubprocessPathIncludesCredentialHelperDirectories() {

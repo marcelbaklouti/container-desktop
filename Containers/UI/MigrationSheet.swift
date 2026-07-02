@@ -97,14 +97,56 @@ struct MigrationSheet: View {
                 Toggle("Stop originals in Docker", isOn: Bindable(migrator).stopOriginals)
             }
             ForEach(candidateGroups, id: \.title) { group in
-                Section(group.title) {
+                Section {
                     ForEach(group.containers) { container in
                         candidateRow(container)
                     }
+                } header: {
+                    groupHeader(group)
                 }
             }
         }
         .formStyle(.grouped)
+    }
+
+    private struct GroupMember: Identifiable {
+        let id: String
+        var isSelected: Bool
+    }
+
+    /// A checkbox for the whole stack: checked when every container is selected, mixed when
+    /// only some are, and one click selects or clears the entire Compose project.
+    private func groupHeader(_ group: CandidateGroup) -> some View {
+        let selectedCount = group.containers.count { selection.contains($0.id) }
+        return HStack {
+            Toggle(sources: groupBinding(group), isOn: \.isSelected) {
+                Text(group.title)
+            }
+            .toggleStyle(.checkbox)
+            Spacer()
+            Text("\(selectedCount) of \(group.containers.count)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textCase(nil)
+                .monospacedDigit()
+        }
+    }
+
+    private func groupBinding(_ group: CandidateGroup) -> Binding<[GroupMember]> {
+        Binding(
+            get: {
+                group.containers.map { GroupMember(id: $0.id, isSelected: selection.contains($0.id)) }
+            },
+            set: { members in
+                for member in members {
+                    if member.isSelected {
+                        selection.insert(member.id)
+                    } else {
+                        selection.remove(member.id)
+                    }
+                }
+            }
+        )
     }
 
     private func candidateRow(_ container: DockerContainer) -> some View {

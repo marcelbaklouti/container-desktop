@@ -311,6 +311,12 @@ final class DockerMigrator {
         })
     }
 
+    /// Docker Desktop reports bind sources as paths inside its Linux VM, where the Mac's
+    /// filesystem is mounted at /host_mnt — strip that prefix to get back to the host path.
+    nonisolated static func normalizedHostPath(_ source: String) -> String {
+        source.hasPrefix("/host_mnt/") ? String(source.dropFirst("/host_mnt".count)) : source
+    }
+
     /// Apple's runtime canonicalizes references on load (`alpine:latest` becomes
     /// `docker.io/library/alpine:latest`), so presence checks normalize the same way.
     nonisolated static func canonicalReference(_ reference: String) -> String {
@@ -362,7 +368,12 @@ final class DockerMigrator {
                 args += ["-v", spec]
             case "bind":
                 guard let source = mount.source else { continue }
-                var spec = "\(source):\(mount.destination)"
+                let hostPath = normalizedHostPath(source)
+                guard FileManager.default.fileExists(atPath: hostPath) else {
+                    notes.append(String(localized: "Bind mount to \(mount.destination) was skipped — \(hostPath) doesn’t exist on this Mac."))
+                    continue
+                }
+                var spec = "\(hostPath):\(mount.destination)"
                 if mount.rw == false { spec += ":ro" }
                 args += ["-v", spec]
             case "tmpfs":

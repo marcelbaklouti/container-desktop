@@ -1409,6 +1409,9 @@
     "Software Update" : {
 
     },
+    "Some labels weren’t accepted by Apple’s runtime and were left behind; Compose grouping is preserved." : {
+
+    },
     "Something Went Wrong" : {
 
     },
