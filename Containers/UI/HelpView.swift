@@ -87,22 +87,39 @@ extension HelpTopic {
                 .init(heading: "Lifecycle",
                       body: "Right-click any container to Start, Stop, Restart, Kill, or Delete it. Select several with ⌘-click or ⇧-click to act on them together, or use Start All and Stop All in a Compose project’s group header to bring a whole stack up or down. Quitting Container Desktop does not stop your containers — they keep running under the system service until you stop them or the service."),
                 .init(heading: "Logs, stats, and a shell",
-                      body: "Select a container to open the inspector, then switch tabs to follow live logs, watch CPU and memory charts, or open an interactive terminal inside the container."),
+                      body: "Select a container to open the inspector, then switch tabs to follow live logs, watch CPU and memory charts, or open an interactive terminal inside the container. Logs are searchable (⌘F) with match navigation (⌘G), can load just the recent tail or everything, and can be copied or saved to a file. A stopped container shows the final logs from its last run."),
+                .init(heading: "Duplicate and copy as a command",
+                      body: "Right-click a container to Duplicate it — the Run sheet opens prefilled with its settings, ports, volumes, and resources, ready to tweak. Copy Run Command puts the complete container run command on the clipboard, ready to paste into Terminal or share."),
                 .init(heading: "Published ports",
                       body: "Ports appear in the inspector. Click a port to open it in your browser, or copy its address. Running rows offer the same “Open” action in their context menu."),
             ]
         ),
         HelpTopic(
-            id: "compose",
-            title: "Compose Stacks",
+            id: "stacks",
+            title: "Stacks",
             systemImage: "rectangle.3.group",
             sections: [
+                .init(heading: "One app, one unit",
+                      body: "A stack is a whole app — several containers described by one compose file, managed together. The Stacks area lists each one with its services, live CPU and memory, and a single badge for the whole stack. Start, stop, or restart everything at once, or drill into a single service."),
                 .init(heading: "Launching a stack",
-                      body: "Use “Launch Stack” in the Containers toolbar to pick a docker-compose.yml. Container Desktop reads the services, creates the named volumes and a project network, and starts each service in dependency order with live per-service progress."),
+                      body: "Click + in Stacks (or ⌘N there) and pick a docker-compose.yml. Container Desktop creates the named volumes and a project network, builds services that declare build: — starting the builder automatically when needed — and starts everything in dependency order with live progress."),
+                .init(heading: "Combined logs",
+                      body: "The stack inspector’s Logs tab merges every service’s output into one live view, each line prefixed with its service in a stable color. Click a chip to hide a service, Option-click to show only it, search with ⌘F, and open the whole thing in its own window with ⇧⌘L. Lines appear in arrival order — the runtime doesn’t timestamp them."),
+                .init(heading: "Relaunching and the compose file",
+                      body: "Stacks remember the compose file they were launched from — including stacks migrated from Docker — so Relaunch Stack re-reads the file and recreates every service, and Open Compose File jumps straight to it in Finder. Deleting a stack removes its containers but keeps volumes and the network."),
+            ]
+        ),
+        HelpTopic(
+            id: "compose",
+            title: "Compose Files",
+            systemImage: "doc.text",
+            sections: [
+                .init(heading: "What’s supported",
+                      body: "Services with image: or build: (context, dockerfile, args, and target), ports in short and long form, environment lists and maps with ${VARIABLE} interpolation and a sibling .env file, named volumes, labels, and depends_on ordering."),
                 .init(heading: "Services that build",
                       body: "Services with a build: section are built automatically — the builder starts on its own when needed, the image is tagged the Compose way, and the build streams its progress right in the launch sheet. If a build fails, only that service and the ones that depend on it are held back."),
                 .init(heading: "Grouping and totals",
-                      body: "Containers are grouped by their Compose project. Each group header shows the combined CPU and memory of its running services, and the overall total appears beneath the Containers title."),
+                      body: "Containers are grouped by their Compose project in the Containers area too. Each group header shows the combined CPU and memory of its running services, and group Start All/Stop All buttons."),
             ]
         ),
         HelpTopic(
@@ -137,7 +154,7 @@ extension HelpTopic {
                 .init(heading: "Networks",
                       body: "Create networks to isolate groups of containers so they can reach each other by name. The built-in default network can’t be removed."),
                 .init(heading: "Volumes",
-                      body: "Volumes store data that outlives a container. Each row shows real disk usage against the allocated size. Deleting a volume permanently deletes its data — this can’t be undone."),
+                      body: "Volumes store data that outlives a container. Each row shows real disk usage against the allocated size, plus an In Use badge, and the inspector names the containers mounting it — click one to jump there. Deleting a volume permanently deletes its data — this can’t be undone."),
             ]
         ),
         HelpTopic(
@@ -194,7 +211,7 @@ extension HelpTopic {
                 .init(heading: "Acting on a whole stack",
                       body: "Containers are grouped by their Compose project. Each group header has Start All and Stop All, so an entire stack goes up or down without selecting its containers one by one."),
                 .init(heading: "Keyboard shortcuts",
-                      body: "⌘N is each area’s primary action — Run Container, Build or Pull an image, Create, or Log In. In Containers, ⇧⌘N launches a Compose stack. ⌘F filters the current list, ⌘, opens Settings, and ⌘? opens this Help. The empty screens also list the shortcuts that apply there."),
+                      body: "⌘1 through ⌘9 jump between areas. ⌘N is each area’s primary action — Run Container, Launch Stack, Pull an image, Create, or Log In — and ⇧⌘N launches a stack from Containers. ⌘R refreshes, ⌥⌘I toggles the inspector, and ⌘⌫ deletes the selection after a confirmation. In logs, ⌘F searches, ⌘G and ⇧⌘G step through matches, and ⇧⌘L opens a stack’s logs in their own window. ⌘, opens Settings and ⌘? opens this Help."),
             ]
         ),
     ]

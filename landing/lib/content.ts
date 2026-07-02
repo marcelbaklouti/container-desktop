@@ -4,11 +4,11 @@ export const site = {
   name: "Container Desktop",
   tagline: "A native Mac GUI for Apple's container runtime",
   description:
-    "Container Desktop is a native macOS GUI for Apple's container runtime — run, inspect, and manage containers, images, volumes, networks, and machines, launch Compose stacks, watch live stats, and move your containers over from Docker in one click, data included.",
+    "Container Desktop is a native macOS GUI for Apple's container runtime — manage whole Compose stacks with combined live logs, run and inspect containers, images, volumes, networks, and machines, and move over from Docker in one click, data included.",
   url: "https://container-desktop.vercel.app",
   repo: "https://github.com/marcelbaklouti/container-desktop",
   releases: "https://github.com/marcelbaklouti/container-desktop/releases/latest",
-  version: "1.0.4",
+  version: "1.0.5",
   requirements: "Apple Silicon · macOS 26 Tahoe or later",
 };
 
@@ -31,7 +31,7 @@ export const hero = {
   badge: "Apple Silicon · macOS 26 · Free & open source",
   title: "The Apple container GUI for your Mac.",
   subtitle:
-    "Container Desktop is a native SwiftUI app for Apple's container runtime. Run and inspect containers, images, volumes, networks, and machines — launch whole Compose stacks, watch live stats, and switch from Docker in one click, volume data included.",
+    "Container Desktop is a native SwiftUI app for Apple's container runtime. Manage whole Compose stacks as one unit — combined live logs included — inspect containers, images, volumes, networks, and machines, and switch from Docker in one click, volume data included.",
   screenshot: {
     src: "/screens/Container.png",
     label: "Containers",
@@ -55,8 +55,8 @@ export const highlights: Highlight[] = [
   },
   {
     icon: "layers",
-    title: "Launch Compose stacks",
-    body: "Open a docker-compose.yml and run the whole thing — builds, volumes, project network, dependency order.",
+    title: "Stacks, first-class",
+    body: "Every Compose project is one unit — combined color-coded logs, per-service controls, one-click relaunch.",
   },
   {
     icon: "activity",
@@ -76,6 +76,19 @@ export type FeatureSection = {
 };
 
 export const features: FeatureSection[] = [
+  {
+    id: "stacks",
+    eyebrow: "Stacks",
+    icon: "layers",
+    title: "Your whole app, as one unit.",
+    body: "The Stacks area treats every Compose project the way you think about it: one thing. See all services with live status and resource use, start, stop, or relaunch the whole stack, and read every service's output in one combined, color-coded live log — searchable, filterable per service, and detachable into its own window. No other GUI for Apple's runtime does this.",
+    bullets: [
+      "Combined live logs with per-service colors and search",
+      "Start, stop, restart — per service or the whole stack",
+      "Relaunch from the remembered compose file",
+    ],
+    screenshot: { label: "Stacks", width: 2402, height: 1528 },
+  },
   {
     id: "migrate",
     eyebrow: "Migration",
@@ -169,8 +182,8 @@ export type Capability = { icon: IconName; title: string; body: string };
 export const capabilities: Capability[] = [
   { icon: "bolt", title: "Getting started", body: "Install the runtime, start the system, and run your first container." },
   { icon: "arrow-right", title: "Migrate from Docker", body: "Move containers over in one click — images, settings, and volume data." },
-  { icon: "box", title: "Containers", body: "Run, inspect, and control lifecycle; logs, stats, shell, and ports." },
-  { icon: "layers", title: "Compose stacks", body: "Launch stacks from a Compose file — build: services build automatically." },
+  { icon: "box", title: "Containers", body: "Run, inspect, duplicate, copy-as-command; searchable logs, stats, shell, ports." },
+  { icon: "layers", title: "Stacks", body: "Manage Compose projects as one unit — combined logs, per-service controls, relaunch." },
   { icon: "box", title: "Images", body: "Pull, build, tag, push, import/export, view history, and prune." },
   { icon: "network", title: "Networks & volumes", body: "Isolate containers and store data that outlives them, with real usage." },
   { icon: "server", title: "Machines", body: "Manage the Linux VMs, set a default, and open an interactive shell." },

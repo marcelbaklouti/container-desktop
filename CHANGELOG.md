@@ -4,6 +4,21 @@ All notable changes to Container Desktop are documented here. The format is base
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] — 2026-07-02
+
+### Added
+
+- **Stacks are now first-class.** A new sidebar area lists every Compose project as one unit — services with live status and per-service start/stop/restart, stack-wide controls, and **combined logs**: every service's output merged live with stable per-service colors, chips to show or hide services (⌥-click isolates one), search, and a detachable window (⇧⌘L). Stacks remember their compose file — including stacks migrated from Docker — so *Relaunch Stack* re-reads it and *Open Compose File* jumps to Finder. Deleting a stack keeps its volumes and network. The menu bar groups running containers by stack with one-click stop-all.
+- **Logs became a place to work.** Search with live highlighting and ⌘G match navigation, a tail control (last 500 / 5,000 / everything) so logs open instantly, Copy All and Save…, and stopped containers show the final logs from their last run instead of an empty view. The buffer doubled to 10,000 lines and log storms no longer churn the UI.
+- **Duplicate and Copy Run Command.** Right-click any container to duplicate it into a prefilled Run sheet — settings diffed against the image's own defaults so only real overrides carry over, with a note for anything that can't — or copy the complete, shell-quoted `container run` one-liner to paste anywhere.
+- **Advanced run options.** The Run sheet gains entrypoint, user, working directory, labels, tmpfs, SSH agent forwarding, and a Platform picker — run **Intel-only images via Rosetta** at near-native speed with one selection.
+- **Know what's using what.** Volume inspectors list the containers mounting them (with an In Use badge on rows), network inspectors list attached members — click any to jump to it. *Remove Stopped Containers* joins the Containers toolbar with a counted confirmation.
+- **Settings: Refresh rate and Open at Login.** Choose Fast, Default, or Relaxed polling (applies immediately), and have Container Desktop start at login so the menu bar is always there.
+
+### Changed
+
+- **Keyboard-first polish.** ⌘1–⌘9 switch areas, ⌘R refreshes, ⌥⌘I toggles the inspector, ⌘⌫ deletes the selection (with the usual confirmation), and log search follows the system Find conventions. Lists, badges, and counts animate smoothly — and not at all when Reduce Motion is on. Badges, empty screens, and shortcut hints scale with the system text size.
+
 ## [1.0.4] — 2026-07-02
 
 ### Added
@@ -74,6 +89,7 @@ Initial public release.
 
 A native macOS app for Apple’s `container` runtime — run, inspect, and manage containers, images, volumes, networks, and machines; launch Compose stacks; stream logs and an embedded terminal; watch live CPU/memory; and control everything from the menu bar. Apple Silicon, macOS 26+. Developer ID-signed and notarized, with a guided `container` CLI install and a signed in-app self-update.
 
+[1.0.5]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.5
 [1.0.4]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.4
 [1.0.3]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.3
 [1.0.2]: https://github.com/marcelbaklouti/container-desktop/releases/tag/v1.0.2
