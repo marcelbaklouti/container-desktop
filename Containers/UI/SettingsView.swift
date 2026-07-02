@@ -30,6 +30,8 @@ struct SettingsView: View {
     @AppStorage("defaultMemory") private var defaultMemory = ""
     @AppStorage("notifyExits") private var notifyExits = true
     @AppStorage("notifyDaemon") private var notifyDaemon = true
+    @AppStorage("notifyUpdates") private var notifyUpdates = true
+    @AppStorage("autoDownloadUpdates") private var autoDownloadUpdates = true
     @Environment(AppUpdater.self) private var updater
 
     var body: some View {
@@ -59,6 +61,7 @@ struct SettingsView: View {
                 Section("Notifications") {
                     Toggle("Container exits unexpectedly", isOn: $notifyExits)
                     Toggle("Daemon stops", isOn: $notifyDaemon)
+                    Toggle("App update is available", isOn: $notifyUpdates)
                 }
             }
             .formStyle(.grouped)
@@ -70,6 +73,7 @@ struct SettingsView: View {
                     if let latest = updater.latestVersion {
                         LabeledContent("Latest Version", value: latest)
                     }
+                    Toggle("Download updates automatically", isOn: $autoDownloadUpdates)
                     updateRow
                 }
             }
@@ -95,6 +99,19 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        case .verifying:
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Verifying…").foregroundStyle(.secondary)
+            }
+        case .readyToInstall(let version):
+            LabeledContent {
+                Button("Restart to Update") {
+                    Task { await updater.installStagedUpdate() }
+                }
+            } label: {
+                Label("Version \(version) is ready to install.", systemImage: "checkmark.seal")
+            }
         case .installing:
             HStack(spacing: 8) {
                 ProgressView().controlSize(.small)
@@ -107,7 +124,7 @@ struct SettingsView: View {
         case .idle:
             if updater.isUpdateAvailable {
                 Button {
-                    Task { await updater.downloadUpdate() }
+                    Task { await updater.stageUpdate() }
                 } label: {
                     Label("Download Update", systemImage: "arrow.down.circle")
                 }

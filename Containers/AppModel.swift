@@ -19,12 +19,18 @@ final class AppModel {
     let navigator = Navigator()
 
     private var pollTask: Task<Void, Never>?
+    private var updateTask: Task<Void, Never>?
     private var previousStates: [String: String] = [:]
     private var wasDaemonRunning = false
 
     init() {
         installer = ContainerInstaller(system: system)
-        UserDefaults.standard.register(defaults: ["notifyExits": true, "notifyDaemon": true])
+        UserDefaults.standard.register(defaults: [
+            "notifyExits": true,
+            "notifyDaemon": true,
+            "notifyUpdates": true,
+            "autoDownloadUpdates": true,
+        ])
     }
 
     var runningContainers: [Container] {
@@ -36,6 +42,48 @@ final class AppModel {
     var daemonRunning: Bool {
         if case .running = system.state { return true }
         return false
+    }
+
+    /// Checks for an app update on launch and daily after that: notify once per version, stage
+    /// the download in the background when allowed, and wait for the user to restart — nothing
+    /// ever quits the app on its own.
+    func startUpdateCycle() {
+        guard updateTask == nil else { return }
+        updateTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.runUpdatePass()
+                try? await Task.sleep(for: .seconds(24 * 3600))
+            }
+        }
+    }
+
+    private func runUpdatePass() async {
+        await updater.checkForUpdates()
+        guard updater.isUpdateAvailable, let version = updater.latestVersion else { return }
+        let defaults = UserDefaults.standard
+        let notify = defaults.bool(forKey: "notifyUpdates")
+        let autoDownload = defaults.bool(forKey: "autoDownloadUpdates")
+
+        if autoDownload, case .idle = updater.phase {
+            await updater.stageUpdate()
+        }
+
+        guard notify else { return }
+        if case .readyToInstall(let staged) = updater.phase {
+            if defaults.string(forKey: "notifiedStagedVersion") != staged {
+                defaults.set(staged, forKey: "notifiedStagedVersion")
+                Notifier.post(
+                    title: String(localized: "Update ready to install"),
+                    body: String(localized: "Restart Container Desktop to update to \(staged).")
+                )
+            }
+        } else if defaults.string(forKey: "notifiedAvailableVersion") != version {
+            defaults.set(version, forKey: "notifiedAvailableVersion")
+            Notifier.post(
+                title: String(localized: "Update available"),
+                body: String(localized: "Container Desktop \(version) is available to download.")
+            )
+        }
     }
 
     func perform(_ remedy: RuntimeIssue.Remedy) async {

@@ -17,7 +17,7 @@ struct ContainersApp: App {
                     Notifier.requestAuthorization()
                     await appModel.system.refresh()
                     appModel.startPolling()
-                    await appModel.updater.checkForUpdates()
+                    appModel.startUpdateCycle()
                 }
         }
         .windowStyle(.titleBar)

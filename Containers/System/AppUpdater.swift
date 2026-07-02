@@ -16,6 +16,8 @@ final class AppUpdater {
         case idle
         case checking
         case downloading(Double)
+        case verifying
+        case readyToInstall(version: String)
         case installing
         case failed(String)
     }
@@ -23,6 +25,8 @@ final class AppUpdater {
     private(set) var phase: Phase = .idle
     private(set) var latestVersion: String?
     private var assetURL: URL?
+    private var stagedApp: URL?
+    private var stagedVersion: String?
 
     var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
@@ -33,17 +37,27 @@ final class AppUpdater {
         return ContainerInstaller.compare(latest, currentVersion) == .orderedDescending
     }
 
+    /// `readyToInstall` is deliberately not busy: checks keep running while an update sits staged,
+    /// so a newer release found later replaces the stale staging.
     var isBusy: Bool {
         switch phase {
-        case .idle, .failed: false
-        default: true
+        case .idle, .failed, .readyToInstall: false
+        case .checking, .downloading, .verifying, .installing: true
         }
     }
 
     func checkForUpdates() async {
         guard !isBusy else { return }
         phase = .checking
-        defer { if case .checking = phase { phase = .idle } }
+        defer {
+            if case .checking = phase {
+                if let stagedVersion, stagedApp != nil {
+                    phase = .readyToInstall(version: stagedVersion)
+                } else {
+                    phase = .idle
+                }
+            }
+        }
 
         guard let endpoint = URL(string: "https://api.github.com/repos/\(Self.repository)/releases/latest") else { return }
         var request = URLRequest(url: endpoint)
@@ -55,14 +69,18 @@ final class AppUpdater {
             let release = try JSONDecoder().decode(GitHubRelease.self, from: data)
             latestVersion = release.tagName.hasPrefix("v") ? String(release.tagName.dropFirst()) : release.tagName
             assetURL = release.assets.first(where: { $0.name.hasSuffix(".dmg") })?.browserDownloadURL
+            await reconcileStaging()
         } catch {
             // A failed update check is non-fatal.
         }
     }
 
-    func downloadUpdate() async {
+    /// Downloads, verifies, and stages the update, then holds at `readyToInstall` until the user
+    /// chooses to restart. Nothing terminates the app from here.
+    func stageUpdate() async {
         guard !isBusy else { return }
-        guard let url = assetURL else {
+        if case .readyToInstall = phase { return }
+        guard let url = assetURL, let version = latestVersion else {
             await checkForUpdates()
             return
         }
@@ -72,22 +90,49 @@ final class AppUpdater {
         }
         phase = .downloading(0)
         do {
-            let destination = FileManager.default.temporaryDirectory.appendingPathComponent("Container Desktop.dmg")
-            let dmg = try await PackageDownloader().download(from: url, to: destination) { fraction in
+            let staging = Self.stagingDirectory(for: version)
+            try? FileManager.default.removeItem(at: staging)
+            try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true)
+            let dmg = try await PackageDownloader().download(from: url, to: staging.appendingPathComponent("Container-Desktop.dmg")) { fraction in
                 Task { @MainActor in
                     if case .downloading = self.phase { self.phase = .downloading(fraction) }
                 }
             }
-            try await installAndRelaunch(fromDMG: dmg)
+            try await stage(dmg: dmg, version: version, staging: staging)
         } catch {
             phase = .failed((error as? RuntimeError)?.localizedMessage ?? error.localizedDescription)
         }
     }
 
-    /// Mounts the downloaded DMG, copies and verifies the new app, then hands off to a detached
-    /// helper that waits for this process to quit, swaps the bundle in place, and relaunches.
-    private func installAndRelaunch(fromDMG dmg: URL) async throws {
+    /// Swaps the staged build in place and relaunches. Re-verifies the signature immediately
+    /// before the swap so a bundle tampered with after staging is refused.
+    func installStagedUpdate() async {
+        guard case let .readyToInstall(version) = phase, let stagedApp else { return }
+        let destination = Bundle.main.bundleURL
+        let parent = destination.deletingLastPathComponent()
+        guard FileManager.default.isWritableFile(atPath: parent.path) else {
+            let dmg = stagedApp.deletingLastPathComponent().appendingPathComponent("Container-Desktop.dmg")
+            if FileManager.default.fileExists(atPath: dmg.path) {
+                NSWorkspace.shared.open(dmg)
+            }
+            return
+        }
         phase = .installing
+        do {
+            guard try await isTrustedBuild(stagedApp) else {
+                discardStaging(for: version)
+                phase = .failed(String(localized: "The downloaded update is no longer intact, so it wasn’t installed."))
+                return
+            }
+            try launchSwapHelper(stagedApp: stagedApp, destination: destination, scriptDirectory: stagedApp.deletingLastPathComponent())
+            NSApp.terminate(nil)
+        } catch {
+            phase = .failed((error as? RuntimeError)?.localizedMessage ?? error.localizedDescription)
+        }
+    }
+
+    private func stage(dmg: URL, version: String, staging: URL) async throws {
+        phase = .verifying
 
         let mountPoint = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: mountPoint, withIntermediateDirectories: true)
@@ -106,33 +151,74 @@ final class AppUpdater {
             return
         }
 
-        let staging = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true)
-        let stagedApp = staging.appendingPathComponent(mountedApp.lastPathComponent)
-        let copy = try await run("/usr/bin/ditto", [mountedApp.path, stagedApp.path])
+        let destination = staging.appendingPathComponent(mountedApp.lastPathComponent)
+        try? FileManager.default.removeItem(at: destination)
+        let copy = try await run("/usr/bin/ditto", [mountedApp.path, destination.path])
         await detach()
         guard copy.code == 0 else {
             phase = .failed(String(localized: "Couldn’t prepare the update."))
             return
         }
 
-        guard try await isTrustedBuild(stagedApp) else {
-            try? FileManager.default.removeItem(at: staging)
+        guard try await isTrustedBuild(destination) else {
+            discardStaging(for: version)
             phase = .failed(String(localized: "The update isn’t signed by the expected developer, so it wasn’t installed."))
             return
         }
 
-        let destination = Bundle.main.bundleURL
-        let parent = destination.deletingLastPathComponent()
-        guard FileManager.default.isWritableFile(atPath: parent.path) else {
-            // Can't replace the running app in place (e.g. not the owner) — fall back to the manual drag.
-            NSWorkspace.shared.open(dmg)
-            phase = .idle
+        stagedApp = destination
+        stagedVersion = version
+        phase = .readyToInstall(version: version)
+    }
+
+    /// Removes staging for versions other than the latest and, when a still-trusted staged build
+    /// of the latest version already exists (e.g. from before a relaunch), re-adopts it. The
+    /// caller's phase bookkeeping turns an adopted staging back into `readyToInstall`.
+    private func reconcileStaging() async {
+        guard isUpdateAvailable, let version = latestVersion else {
+            pruneStaging(keeping: nil)
+            stagedApp = nil
+            stagedVersion = nil
             return
         }
+        pruneStaging(keeping: version)
+        if stagedVersion != version {
+            stagedApp = nil
+            stagedVersion = nil
+        }
+        guard stagedApp == nil else { return }
+        let staging = Self.stagingDirectory(for: version)
+        guard let app = ((try? FileManager.default.contentsOfDirectory(at: staging, includingPropertiesForKeys: nil)) ?? [])
+            .first(where: { $0.pathExtension == "app" }) else { return }
+        guard (try? await isTrustedBuild(app)) == true else {
+            discardStaging(for: version)
+            return
+        }
+        stagedApp = app
+        stagedVersion = version
+    }
 
-        try launchSwapHelper(stagedApp: stagedApp, destination: destination, scriptDirectory: staging)
-        NSApp.terminate(nil)
+    private func discardStaging(for version: String) {
+        try? FileManager.default.removeItem(at: Self.stagingDirectory(for: version))
+        stagedApp = nil
+        stagedVersion = nil
+    }
+
+    private func pruneStaging(keeping version: String?) {
+        let root = Self.updateRoot
+        let entries = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
+        for entry in entries where entry.lastPathComponent != version {
+            try? FileManager.default.removeItem(at: entry)
+        }
+    }
+
+    private static var updateRoot: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Container Desktop/Update", isDirectory: true)
+    }
+
+    private static func stagingDirectory(for version: String) -> URL {
+        updateRoot.appendingPathComponent(version, isDirectory: true)
     }
 
     /// True only if the staged app is a valid, notarized build signed by our team.
@@ -156,7 +242,7 @@ final class AppUpdater {
         /bin/mv "$DEST.update" "$DEST"
         /usr/bin/xattr -dr com.apple.quarantine "$DEST" 2>/dev/null
         /usr/bin/open "$DEST"
-        /bin/rm -rf "$SOURCE"
+        /bin/rm -rf "$(/usr/bin/dirname "$SOURCE")"
         """
         let helper = scriptDirectory.appendingPathComponent("update-helper.sh")
         try script.write(to: helper, atomically: true, encoding: .utf8)

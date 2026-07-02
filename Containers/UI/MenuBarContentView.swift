@@ -15,12 +15,47 @@ struct MenuBarContentView: View {
             header
             Divider()
             content
+            updateRow
             Divider()
             footer
         }
         .frame(minWidth: 320)
         .onAppear { stats.start() }
         .onDisappear { stats.stop() }
+    }
+
+    @ViewBuilder
+    private var updateRow: some View {
+        switch appModel.updater.phase {
+        case .readyToInstall(let version):
+            Divider()
+            HStack(spacing: 8) {
+                Label("Update available — \(version)", systemImage: "arrow.down.circle")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Restart to Update") {
+                    Task { await appModel.updater.installStagedUpdate() }
+                }
+                .controlSize(.small)
+                .buttonStyle(.borderedProminent)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+        case .downloading(let fraction):
+            Divider()
+            HStack(spacing: 8) {
+                ProgressView(value: fraction)
+                Text("Downloading update…")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .layoutPriority(1)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+        default:
+            EmptyView()
+        }
     }
 
     private var running: [Container] {
