@@ -34,10 +34,10 @@ nonisolated enum PrivilegedRunner {
         return "do shell script \"\(appleScriptEscaped(shellCommand))\" with administrator privileges"
     }
 
-    /// POSIX-safe single quoting: wrap in single quotes, replacing every embedded single quote with the
-    /// sequence `'\''` (close quote, escaped literal quote, reopen quote).
+    /// POSIX-safe single quoting via the shared helper — privileged commands always quote,
+    /// never the bare-when-safe form.
     static func posixQuoted(_ argument: String) -> String {
-        "'" + argument.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        ShellQuoting.alwaysQuoted(argument)
     }
 
     /// Escapes a string for inclusion inside an AppleScript double-quoted literal (backslash first, then

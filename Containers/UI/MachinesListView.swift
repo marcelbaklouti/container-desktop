@@ -11,12 +11,14 @@ struct MachinesListView: View {
     @State private var shellMachine: Machine?
     @State private var pendingDeletion: [Machine] = []
 
+    @AppStorage("pollInterval") private var pollIntervalRaw = PollInterval.standard.rawValue
+
     var body: some View {
         decoratedList
             .navigationTitle("Machines")
             .searchable(text: $searchText, prompt: "Filter machines")
             .toolbar { toolbarContent }
-            .task { await store.poll(every: .seconds(4)) }
+            .task(id: pollIntervalRaw) { await store.poll(every: (PollInterval(rawValue: pollIntervalRaw) ?? .standard).secondary) }
             .inspector(isPresented: $showInspector) {
                 inspectorContent
                     .inspectorColumnWidth(min: 300, ideal: 340, max: 520)

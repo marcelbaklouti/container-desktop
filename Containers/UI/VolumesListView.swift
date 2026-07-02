@@ -11,12 +11,14 @@ struct VolumesListView: View {
     @State private var pendingDeletion: [Volume] = []
     @State private var confirmingPrune = false
 
+    @AppStorage("pollInterval") private var pollIntervalRaw = PollInterval.standard.rawValue
+
     var body: some View {
         decoratedList
             .navigationTitle("Volumes")
             .searchable(text: $searchText, prompt: "Filter volumes")
             .toolbar { toolbarContent }
-            .task { await store.poll(every: .seconds(4)) }
+            .task(id: pollIntervalRaw) { await store.poll(every: (PollInterval(rawValue: pollIntervalRaw) ?? .standard).secondary) }
             .inspector(isPresented: $showInspector) {
                 inspectorContent
                     .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
@@ -48,19 +50,19 @@ struct VolumesListView: View {
     }
 
     private func containersMounting(_ volume: Volume) -> [String] {
-        containerStore.containers
-            .filter { container in
-                container.configuration.mounts.contains { $0.type.volume?.name == volume.configuration.name }
-            }
-            .map(\.id)
+        UsageIndex.containersMounting(volume.configuration.name, in: containerStore.containers).map(\.id)
     }
 
     private var decoratedList: some View {
         List(selection: $selection) {
             ForEach(store.volumes.filter { searchText.isEmpty || $0.configuration.name.localizedCaseInsensitiveContains(searchText) }) { volume in
-                VolumeRow(volume: volume, usedBytes: store.usedSizes[volume.id])
-                    .tag(volume.id)
-                    .swipeActions(edge: .trailing) { deleteButton(volume) }
+                VolumeRow(
+                    volume: volume,
+                    usedBytes: store.usedSizes[volume.id],
+                    isInUse: !UsageIndex.containersMounting(volume.configuration.name, in: containerStore.containers).isEmpty
+                )
+                .tag(volume.id)
+                .swipeActions(edge: .trailing) { deleteButton(volume) }
             }
         }
         .contextMenu(forSelectionType: String.self) { ids in
@@ -148,6 +150,7 @@ struct VolumesListView: View {
 struct VolumeRow: View {
     let volume: Volume
     let usedBytes: Int?
+    var isInUse = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -162,6 +165,9 @@ struct VolumeRow: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            if isInUse {
+                StatusBadge(text: "In Use", tint: .blue)
+            }
             VStack(alignment: .trailing, spacing: 1) {
                 if let usedBytes {
                     Text(Int64(usedBytes), format: .byteCount(style: .file))
@@ -192,6 +198,8 @@ struct VolumeRow: View {
 struct VolumeDetailView: View {
     let volume: Volume
     let usedBytes: Int?
+    @Environment(AppModel.self) private var appModel
+    @Environment(ContainerStore.self) private var containerStore
 
     var body: some View {
         Form {
@@ -210,6 +218,30 @@ struct VolumeDetailView: View {
                     Text(Int64(volume.configuration.sizeInBytes), format: .byteCount(style: .file))
                 }
                 LabeledContent("Created", value: DateText.relative(volume.configuration.creationDate))
+            }
+            Section("Mounted By") {
+                let mounting = UsageIndex.containersMounting(volume.configuration.name, in: containerStore.containers)
+                if mounting.isEmpty {
+                    Text("Not mounted by any container")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(mounting) { container in
+                        Button {
+                            appModel.navigator.area = .containers
+                            appModel.navigator.containerSelection = [container.id]
+                        } label: {
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(container.status?.state == "running" ? Color.green : Color.gray)
+                                    .frame(width: 8, height: 8)
+                                    .accessibilityHidden(true)
+                                Text(container.id)
+                            }
+                        }
+                        .buttonStyle(.link)
+                        .accessibilityLabel("Show \(container.id) in Containers")
+                    }
+                }
             }
             Section("Source") {
                 Text(volume.configuration.source)

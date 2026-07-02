@@ -114,6 +114,10 @@ final class ContainerStore {
         await perform(["delete", container.id], context: .deleteContainer(id: container.id))
     }
 
+    func prune() async {
+        await perform(["prune"], context: .generic(actionTitle: String(localized: "Couldn’t Remove Stopped Containers")))
+    }
+
     func markManaged(_ id: String) { recentlyManaged.insert(id) }
 
     func consumeManaged(_ id: String) -> Bool {

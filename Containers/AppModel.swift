@@ -31,6 +31,7 @@ final class AppModel {
             "notifyDaemon": true,
             "notifyUpdates": true,
             "autoDownloadUpdates": true,
+            "pollInterval": PollInterval.standard.rawValue,
         ])
     }
 
@@ -110,7 +111,9 @@ final class AppModel {
         }
     }
 
-    func startPolling(every interval: Duration = .seconds(3)) {
+    /// The interval is re-read from defaults every tick so a Settings change applies immediately
+    /// without restarting the task.
+    func startPolling() {
         guard pollTask == nil else { return }
         pollTask = Task { [weak self] in
             var tick = 0
@@ -120,7 +123,7 @@ final class AppModel {
                 if tick.isMultiple(of: 3) { await self.system.refresh() }
                 self.processTransitions()
                 tick += 1
-                do { try await Task.sleep(for: interval) } catch { return }
+                do { try await Task.sleep(for: PollInterval.current().containers) } catch { return }
             }
         }
     }

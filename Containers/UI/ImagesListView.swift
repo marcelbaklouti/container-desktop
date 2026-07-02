@@ -15,9 +15,11 @@ struct ImagesListView: View {
     @State private var showBuild = false
     @State private var confirmingPrune = false
 
+    @AppStorage("pollInterval") private var pollIntervalRaw = PollInterval.standard.rawValue
+
     var body: some View {
         decoratedList
-            .task { await store.poll(every: .seconds(5)) }
+            .task(id: pollIntervalRaw) { await store.poll(every: (PollInterval(rawValue: pollIntervalRaw) ?? .standard).images) }
             .inspector(isPresented: $showInspector) {
                 inspectorContent
                     .inspectorColumnWidth(min: 300, ideal: 340, max: 520)

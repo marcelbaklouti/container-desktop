@@ -14,6 +14,7 @@ struct ContainersListView: View {
     @State private var pendingCopy: Container?
     @State private var launchProject: ComposeProject?
     @State private var showMigration = false
+    @State private var confirmingPrune = false
     @Environment(\.openURL) private var openURL
 
     private var visibleContainers: [Container] {
@@ -121,6 +122,13 @@ struct ContainersListView: View {
             }
         } message: {
             Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) containers.")
+        }
+        .confirmationDialog("Remove all stopped containers?", isPresented: $confirmingPrune) {
+            Button("Remove \(stoppedCount) Container\(stoppedCount == 1 ? "" : "s")", role: .destructive) {
+                Task { await store.prune() }
+            }
+        } message: {
+            Text("This permanently removes the \(stoppedCount) stopped container\(stoppedCount == 1 ? "" : "s"), including stopped services of your stacks. Running containers aren’t affected.")
         }
         .issueAlert(issueBinding) { remedy in
             Task { await appModel.perform(remedy) }
@@ -278,6 +286,21 @@ struct ContainersListView: View {
             }
             .help(showInspector ? "Hide Inspector" : "Show Inspector")
         }
+        ToolbarItem {
+            Menu {
+                Button(role: .destructive) { confirmingPrune = true } label: {
+                    Label("Remove Stopped Containers…", systemImage: "trash")
+                }
+                .disabled(stoppedCount == 0)
+            } label: {
+                Label("More", systemImage: "ellipsis.circle")
+            }
+            .help("More Actions")
+        }
+    }
+
+    private var stoppedCount: Int {
+        store.containers.count { $0.status?.state != "running" }
     }
 
     @ViewBuilder

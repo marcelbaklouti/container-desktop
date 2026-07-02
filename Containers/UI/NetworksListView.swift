@@ -11,12 +11,14 @@ struct NetworksListView: View {
     @State private var pendingDeletion: [Network] = []
     @State private var confirmingPrune = false
 
+    @AppStorage("pollInterval") private var pollIntervalRaw = PollInterval.standard.rawValue
+
     var body: some View {
         decoratedList
             .navigationTitle("Networks")
             .searchable(text: $searchText, prompt: "Filter networks")
             .toolbar { toolbarContent }
-            .task { await store.poll(every: .seconds(4)) }
+            .task(id: pollIntervalRaw) { await store.poll(every: (PollInterval(rawValue: pollIntervalRaw) ?? .standard).secondary) }
             .inspector(isPresented: $showInspector) {
                 inspectorContent
                     .inspectorColumnWidth(min: 300, ideal: 340, max: 520)
@@ -48,11 +50,7 @@ struct NetworksListView: View {
     }
 
     private func containersAttached(_ network: Network) -> [String] {
-        containerStore.containers
-            .filter { container in
-                container.configuration.networks.contains { $0.network == network.configuration.name }
-            }
-            .map(\.id)
+        UsageIndex.containersAttached(network.configuration.name, in: containerStore.containers).map(\.id)
     }
 
     private var decoratedList: some View {
@@ -176,6 +174,8 @@ struct NetworkRow: View {
 
 struct NetworkDetailView: View {
     let network: Network
+    @Environment(AppModel.self) private var appModel
+    @Environment(ContainerStore.self) private var containerStore
 
     var body: some View {
         Form {
@@ -185,6 +185,30 @@ struct NetworkDetailView: View {
                 LabeledContent("Mode", value: network.configuration.mode)
                 LabeledContent("Plugin", value: network.configuration.plugin)
                 LabeledContent("Created", value: DateText.relative(network.configuration.creationDate))
+            }
+            Section("Members") {
+                let members = UsageIndex.containersAttached(network.configuration.name, in: containerStore.containers)
+                if members.isEmpty {
+                    Text("No containers attached")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(members) { container in
+                        Button {
+                            appModel.navigator.area = .containers
+                            appModel.navigator.containerSelection = [container.id]
+                        } label: {
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(container.status?.state == "running" ? Color.green : Color.gray)
+                                    .frame(width: 8, height: 8)
+                                    .accessibilityHidden(true)
+                                Text(container.id)
+                            }
+                        }
+                        .buttonStyle(.link)
+                        .accessibilityLabel("Show \(container.id) in Containers")
+                    }
+                }
             }
             if let status = network.status {
                 Section("Addressing") {
