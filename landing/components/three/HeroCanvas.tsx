@@ -44,7 +44,7 @@ function useCubes(count: number): Cube[] {
   }, [count]);
 }
 
-function Field() {
+function Field({ subdued }: { subdued: boolean }) {
   const group = useRef<THREE.Group>(null);
   const cubes = useCubes(34);
   const pointer = useRef({ x: 0, y: 0 });
@@ -64,13 +64,13 @@ function Field() {
   return (
     <group ref={group}>
       {cubes.map((cube, i) => (
-        <FloatingCube key={i} cube={cube} />
+        <FloatingCube key={i} cube={cube} subdued={subdued} />
       ))}
     </group>
   );
 }
 
-function FloatingCube({ cube }: { cube: Cube }) {
+function FloatingCube({ cube, subdued }: { cube: Cube; subdued: boolean }) {
   const mesh = useRef<THREE.Mesh>(null);
   const material = useRef<THREE.MeshPhysicalMaterial>(null);
 
@@ -82,8 +82,10 @@ function FloatingCube({ cube }: { cube: Cube }) {
     mesh.current.rotation.x += delta * 0.1 * cube.speed;
     mesh.current.rotation.y += delta * 0.14 * cube.speed;
     if (cube.accent && material.current) {
-      material.current.emissiveIntensity =
-        0.9 + Math.sin(time * 1.4 + cube.offset) * 0.55;
+      const pulse = subdued
+        ? 0.3 + Math.sin(time * 1.4 + cube.offset) * 0.15
+        : 0.9 + Math.sin(time * 1.4 + cube.offset) * 0.55;
+      material.current.emissiveIntensity = pulse;
     }
   });
 
@@ -93,8 +95,8 @@ function FloatingCube({ cube }: { cube: Cube }) {
         <meshPhysicalMaterial
           ref={material}
           color={cube.accent ? "#0a84ff" : "#1c2029"}
-          emissive={cube.accent ? "#0a84ff" : "#0a84ff"}
-          emissiveIntensity={cube.accent ? 1 : 0.02}
+          emissive="#0a84ff"
+          emissiveIntensity={cube.accent ? (subdued ? 0.35 : 1) : 0.02}
           roughness={0.16}
           metalness={0.4}
           clearcoat={1}
@@ -105,7 +107,7 @@ function FloatingCube({ cube }: { cube: Cube }) {
   );
 }
 
-export default function HeroCanvas({ active }: { active: boolean }) {
+export default function HeroCanvas({ active, subdued }: { active: boolean; subdued: boolean }) {
   return (
     <Canvas
       frameloop={active ? "always" : "never"}
@@ -116,11 +118,16 @@ export default function HeroCanvas({ active }: { active: boolean }) {
       aria-hidden
     >
       <fog attach="fog" args={["#08090c", 8, 17]} />
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[4, 6, 6]} intensity={1.4} color="#dfe6ff" />
-      <pointLight position={[-6, -2, 2]} intensity={26} color="#0a84ff" distance={16} />
-      <pointLight position={[6, 3, 1]} intensity={12} color="#4aa3ff" distance={12} />
-      <Field />
+      <ambientLight intensity={subdued ? 0.4 : 0.5} />
+      <directionalLight position={[4, 6, 6]} intensity={subdued ? 1 : 1.4} color="#dfe6ff" />
+      <pointLight
+        position={[-6, -2, 2]}
+        intensity={subdued ? 8 : 26}
+        color="#0a84ff"
+        distance={16}
+      />
+      <pointLight position={[6, 3, 1]} intensity={subdued ? 4 : 12} color="#4aa3ff" distance={12} />
+      <Field subdued={subdued} />
     </Canvas>
   );
 }

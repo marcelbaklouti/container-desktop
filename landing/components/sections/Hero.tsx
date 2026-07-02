@@ -9,10 +9,10 @@ import { SplitReveal } from "@/components/SplitReveal";
 
 export function Hero() {
   return (
-    <section id="top" className="relative overflow-hidden px-5 pt-20 pb-16 sm:pt-28">
+    <section id="top" className="relative overflow-hidden px-5 pt-32 pb-16 sm:pt-36">
       <HeroGlow />
       <HeroScene />
-      <div className="mx-auto max-w-4xl text-center">
+      <div className="mx-auto max-w-5xl text-center">
         <Reveal>
           <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-fg-muted">
             {hero.badge}
@@ -40,9 +40,6 @@ export function Hero() {
               View on GitHub
             </Button>
           </div>
-          <p className="mt-4 text-xs text-fg-faint">
-            {site.requirements} · Free &amp; open source
-          </p>
         </Reveal>
         <Reveal delay={0.75}>
           <TerminalTease />

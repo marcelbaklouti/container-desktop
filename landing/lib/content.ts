@@ -18,7 +18,6 @@ export const nav = {
     { label: "How it works", href: "#how-it-works" },
     { label: "Compare", href: "#compare" },
     { label: "FAQ", href: "#faq" },
-    { label: "Download", href: "#download" },
   ],
 };
 
@@ -30,7 +29,7 @@ export type Screenshot = {
 };
 
 export const hero = {
-  badge: "Free & open source · Apple Silicon · macOS 26",
+  badge: "Free & open source · Built for macOS 26 on Apple Silicon",
   title: "Your containers, finally at home on the Mac.",
   subtitle:
     "Apple built a fast, lightweight container runtime into macOS. Container Desktop gives it the app it deserves: launch whole Compose stacks, read every service's logs in one place, and switch from Docker in a single click. Your data comes with you.",
@@ -100,7 +99,7 @@ export const features: FeatureSection[] = [
       "Start, stop, and restart the stack or one service",
       "Relaunch any time from the remembered compose file",
     ],
-    screenshot: { src: "/screens/Stacks.png", label: "Stacks", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/Stacks.png", label: "Stacks", width: 2178, height: 1304 },
   },
   {
     id: "migrate",
@@ -113,7 +112,7 @@ export const features: FeatureSection[] = [
       "Compose groups and labels carry over",
       "Originals are stopped, never deleted",
     ],
-    screenshot: { src: "/screens/Migration.png", label: "Migrate from Docker", width: 2144, height: 1528 },
+    screenshot: { src: "/screens/Migration.png", label: "Migrate from Docker", width: 1920, height: 1304 },
   },
   {
     id: "images",
@@ -126,7 +125,7 @@ export const features: FeatureSection[] = [
       "Push and pull private images with saved logins",
       "See what is in use before you prune",
     ],
-    screenshot: { src: "/screens/Images.png", label: "Images", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/Images.png", label: "Images", width: 2178, height: 1304 },
   },
   {
     id: "machines",
@@ -139,7 +138,7 @@ export const features: FeatureSection[] = [
       "Set the default machine in one click",
       "Open an interactive shell right from the list",
     ],
-    screenshot: { src: "/screens/Machines.png", label: "Machines", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/Machines.png", label: "Machines", width: 2178, height: 1304 },
   },
   {
     id: "system",
@@ -152,9 +151,12 @@ export const features: FeatureSection[] = [
       "Background app updates with one click to apply",
       "Local DNS domains for container hostnames",
     ],
-    screenshot: { src: "/screens/System.png", label: "System", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/System.png", label: "System", width: 2178, height: 1304 },
   },
 ];
+
+export const manifesto =
+  "No accounts. No tracking. No license fees. Just your containers, running the way Apple intended.";
 
 export type Step = {
   number: string;
@@ -220,25 +222,25 @@ export const bento: BentoCard[] = [
     icon: "network",
     title: "Networks",
     body: "Give related containers their own network so they find each other by name. The built in one stays protected.",
-    screenshot: { src: "/screens/Networks.png", label: "Networks", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/Networks.png", label: "Networks", width: 2178, height: 1304 },
   },
   {
     icon: "drive",
     title: "Volumes",
     body: "See the real disk usage of every volume and exactly which containers mount it, one click away.",
-    screenshot: { src: "/screens/Volumes.png", label: "Volumes", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/Volumes.png", label: "Volumes", width: 2178, height: 1304 },
   },
   {
     icon: "key",
     title: "Registries",
     body: "Sign in once to pull and push private images. Your password goes to the keychain, never the command line.",
-    screenshot: { src: "/screens/Registries.png", label: "Registries", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/Registries.png", label: "Registries", width: 2178, height: 1304 },
   },
   {
     icon: "hammer",
     title: "Builder",
     body: "The build service starts itself when a build needs it. Watch it, stop it, or forget it exists.",
-    screenshot: { src: "/screens/Builder.png", label: "Builder", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/Builder.png", label: "Builder", width: 2178, height: 1304 },
   },
 ];
 

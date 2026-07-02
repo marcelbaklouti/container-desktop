@@ -6,40 +6,39 @@ import { Icon } from "./Icon";
 
 export function Nav() {
   return (
-    <header className="glass sticky top-0 z-50 border-x-0 border-t-0">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+    <header className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">
+      <div className="glass flex h-14 w-full max-w-3xl items-center justify-between rounded-full pl-5 pr-2 shadow-[0_12px_48px_rgba(0,0,0,0.4)]">
         <Link
           href="#top"
-          className="flex items-center gap-2.5 font-semibold tracking-tight"
+          className="flex items-center gap-2.5 text-sm font-semibold tracking-tight"
         >
-          <Image src="/logo.png" alt="" width={28} height={28} priority />
-          {site.name}
+          <Image src="/logo.png" alt="" width={26} height={26} priority />
+          <span>{site.name}</span>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-sm text-fg-muted sm:flex">
+        <nav className="hidden items-center gap-6 text-sm text-fg-muted sm:flex">
           {nav.links.map((l) => (
-            <a key={l.href} href={l.href} className="transition-colors hover:text-fg">
+            <a
+              key={l.href}
+              href={l.href}
+              className="transition-colors duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-fg"
+            >
               {l.label}
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <a
             href={site.repo}
             target="_blank"
             rel="noreferrer"
             aria-label="GitHub repository"
-            className="hidden text-fg-muted transition-colors hover:text-fg sm:inline-flex"
+            className="hidden p-2 text-fg-muted transition-colors duration-300 hover:text-fg sm:inline-flex"
           >
-            <Icon name="github" size={20} />
+            <Icon name="github" size={19} />
           </a>
-          <Button
-            href={site.releases}
-            icon="download"
-            external
-            className="px-4 py-2"
-          >
+          <Button href={site.releases} icon="download" external compact>
             Download
           </Button>
         </div>

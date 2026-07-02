@@ -11,6 +11,17 @@ export function HeroScene() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   const [ready, setReady] = useState(false);
+  const [wide, setWide] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)");
+    const update = () => setWide(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const idle = window.requestAnimationFrame(() => setReady(true));
@@ -34,9 +45,9 @@ export function HeroScene() {
     <div
       ref={ref}
       aria-hidden
-      className="hero-scene pointer-events-none absolute inset-0 -z-10"
+      className="hero-scene pointer-events-none absolute inset-0 -z-10 max-md:opacity-80"
     >
-      {ready && <HeroCanvas active={visible} />}
+      {ready && <HeroCanvas active={visible} subdued={!wide} />}
     </div>
   );
 }

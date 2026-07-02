@@ -28,17 +28,19 @@ export function TerminalTease() {
 
   return (
     <div ref={ref} className="mx-auto mt-10 w-full max-w-xl">
-      <div className="glass overflow-hidden rounded-xl text-left">
-        <div className="flex items-center gap-1.5 border-b border-border px-4 py-2.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" aria-hidden />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" aria-hidden />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" aria-hidden />
-          <span className="ml-2 text-xs text-fg-faint">zsh</span>
-        </div>
-        <div className="px-4 py-3.5 font-mono text-[13px] leading-relaxed">
-          <span className="text-accent-soft">$ </span>
-          <span className="text-fg">{typed}</span>
-          {!done && <span className="terminal-caret text-fg" aria-hidden>▍</span>}
+      <div className="bezel text-left">
+        <div className="bezel-core">
+          <div className="flex items-center gap-1.5 border-b border-border px-4 py-2.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" aria-hidden />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" aria-hidden />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" aria-hidden />
+            <span className="ml-2 text-xs text-fg-faint">zsh</span>
+          </div>
+          <div className="px-4 py-3.5 font-mono text-[13px] leading-relaxed">
+            <span className="text-accent-soft">$ </span>
+            <span className="text-fg">{typed}</span>
+            {!done && <span className="terminal-caret text-fg" aria-hidden>▍</span>}
+          </div>
         </div>
       </div>
       <p

@@ -7,16 +7,15 @@ export function Marquee() {
       className="marquee relative overflow-hidden border-b border-border/70 bg-bg-soft/30 py-3.5"
       aria-hidden
     >
-      <div className="marquee-track flex w-max items-center gap-10">
+      <div className="marquee-track flex w-max items-center gap-14">
         {[0, 1].map((copy) => (
-          <ul key={copy} className="flex items-center gap-10 pr-10">
+          <ul key={copy} className="flex items-center gap-14 pr-14">
             {items.map((item) => (
               <li
                 key={`${copy}-${item}`}
-                className="flex items-center gap-10 whitespace-nowrap text-sm font-medium tracking-wide text-fg-faint"
+                className="whitespace-nowrap text-sm font-medium tracking-wide text-fg-faint"
               >
                 {item}
-                <span className="h-1 w-1 rounded-full bg-accent/60" />
               </li>
             ))}
           </ul>

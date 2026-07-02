@@ -16,27 +16,33 @@ export function BentoGrid() {
           </p>
         </Reveal>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2">
+        <div className="mt-10 grid grid-flow-dense gap-5 lg:grid-cols-12">
           {bento.map((card, i) => (
-            <Reveal key={card.title} delay={(i % 2) * 0.06} className="h-full">
-              <div className="glass h-full overflow-hidden rounded-2xl transition-transform duration-200 ease-apple hover:-translate-y-0.5">
-                <div className="relative aspect-[16/10] border-b border-border bg-bg">
-                  <Image
-                    src={card.screenshot.src!}
-                    alt={card.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 520px"
-                    className="object-cover object-top"
-                  />
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent/12 text-accent-soft">
-                      <Icon name={card.icon} size={17} />
-                    </span>
-                    <h3 className="text-lg font-semibold">{card.title}</h3>
+            <Reveal
+              key={card.title}
+              delay={(i % 2) * 0.06}
+              className={`h-full ${i % 4 === 0 || i % 4 === 3 ? "lg:col-span-7" : "lg:col-span-5"}`}
+            >
+              <div className="bezel group h-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1">
+                <div className="bezel-core flex h-full flex-col">
+                  <div className="relative aspect-[16/10] overflow-hidden border-b border-border bg-bg">
+                    <Image
+                      src={card.screenshot.src!}
+                      alt={card.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 620px"
+                      className="object-cover object-top transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.03]"
+                    />
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-fg-muted">{card.body}</p>
+                  <div className="p-6">
+                    <div className="flex items-center gap-2.5">
+                      <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent/12 text-accent-soft">
+                        <Icon name={card.icon} size={17} />
+                      </span>
+                      <h3 className="text-lg font-semibold">{card.title}</h3>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-fg-muted">{card.body}</p>
+                  </div>
                 </div>
               </div>
             </Reveal>
