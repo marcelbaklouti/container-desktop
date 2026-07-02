@@ -6,7 +6,7 @@ import Observation
 final class VolumeStore {
     private(set) var volumes: [Volume] = []
     private(set) var hasLoaded = false
-    var errorMessage: String?
+    var issue: RuntimeIssue?
     private(set) var usedSizes: [String: Int] = [:]
 
     private let client: any RuntimeClient
@@ -24,9 +24,9 @@ final class VolumeStore {
             usedSizes = Dictionary(uniqueKeysWithValues: updated.compactMap { volume in
                 VolumeStore.usedBytes(path: volume.configuration.source).map { (volume.id, $0) }
             })
-            if surfacingErrors { errorMessage = nil }
+            if surfacingErrors { issue = nil }
         } catch {
-            if surfacingErrors { errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription }
+            if surfacingErrors { issue = IssueMapper.issue(for: error, context: .generic(actionTitle: String(localized: "Couldn’t Refresh Volumes"))) }
         }
         hasLoaded = true
     }
@@ -46,26 +46,38 @@ final class VolumeStore {
         await refresh()
     }
 
-    func delete(_ volume: Volume) async { await perform(["volume", "delete", volume.id]) }
-    func prune() async { await perform(["volume", "prune"]) }
-    func delete(_ ids: [String]) async { await performBulk(ids.map { ["volume", "delete", $0] }) }
+    func delete(_ volume: Volume) async {
+        await perform(["volume", "delete", volume.id], context: .deleteVolume(name: volume.configuration.name, mountedBy: []))
+    }
 
-    private func performBulk(_ commands: [[String]]) async {
-        var firstError: String?
+    func prune() async {
+        await perform(["volume", "prune"], context: .generic(actionTitle: String(localized: "Couldn’t Prune Volumes")))
+    }
+
+    func delete(_ ids: [String], mountedBy: [String: [String]] = [:]) async {
+        await performBulk(ids.map { ["volume", "delete", $0] }) {
+            .deleteVolume(name: $0, mountedBy: mountedBy[$0] ?? [])
+        }
+    }
+
+    private func performBulk(_ commands: [[String]], context: (String) -> IssueMapper.Context) async {
+        var firstIssue: RuntimeIssue?
         for command in commands {
             do { _ = try await client.data(for: command) }
-            catch { if firstError == nil { firstError = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription } }
+            catch {
+                if firstIssue == nil { firstIssue = IssueMapper.issue(for: error, context: context(command.last ?? "")) }
+            }
         }
-        if let firstError { errorMessage = firstError }
+        if let firstIssue { issue = firstIssue }
         await refresh()
     }
 
-    private func perform(_ arguments: [String]) async {
+    private func perform(_ arguments: [String], context: IssueMapper.Context) async {
         do {
             _ = try await client.data(for: arguments)
             await refresh()
         } catch {
-            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            issue = IssueMapper.issue(for: error, context: context)
         }
     }
 

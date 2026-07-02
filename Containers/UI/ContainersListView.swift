@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 
 struct ContainersListView: View {
+    @Environment(AppModel.self) private var appModel
     @Environment(ContainerStore.self) private var store
     @Environment(ContainerStatsStore.self) private var stats
     @State private var searchText = ""
@@ -78,6 +79,11 @@ struct ContainersListView: View {
                 let trimmed = selection.intersection(Set(items.map(\.id)))
                 if trimmed != selection { selection = trimmed }
             }
+            .onChange(of: appModel.navigator.containerSelection, initial: true) { _, requested in
+                guard !requested.isEmpty else { return }
+                selection = requested
+                appModel.navigator.containerSelection = []
+            }
     }
 
     private var decoratedList: some View {
@@ -112,10 +118,8 @@ struct ContainersListView: View {
         } message: {
             Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) containers.")
         }
-        .alert("Something went wrong", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(store.errorMessage ?? "")
+        .issueAlert(issueBinding) { remedy in
+            Task { await appModel.perform(remedy) }
         }
     }
 
@@ -311,7 +315,10 @@ struct ContainersListView: View {
         panel.message = String(localized: "Choose a docker-compose.yml file")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         guard let project = ComposeProject.load(from: url) else {
-            store.errorMessage = String(localized: "Could not read services from that compose file.")
+            store.issue = .plain(
+                title: String(localized: "Couldn’t Read the Compose File"),
+                reason: String(localized: "No services could be read from that file. Make sure it’s a docker-compose.yml with a services section.")
+            )
             return
         }
         launchProject = project
@@ -326,7 +333,7 @@ struct ContainersListView: View {
             do {
                 try await store.export(container, to: url)
             } catch {
-                store.errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+                store.issue = IssueMapper.issue(for: error, context: .generic(actionTitle: String(localized: "Couldn’t Export the Filesystem")))
             }
         }
     }
@@ -335,8 +342,8 @@ struct ContainersListView: View {
         Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
-    private var errorBinding: Binding<Bool> {
-        Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })
+    private var issueBinding: Binding<RuntimeIssue?> {
+        Binding(get: { store.issue }, set: { store.issue = $0 })
     }
 }
 

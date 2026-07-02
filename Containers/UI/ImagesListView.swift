@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 
 struct ImagesListView: View {
+    @Environment(AppModel.self) private var appModel
     @Environment(ContainerStore.self) private var containerStore
     @State private var store = ImageStore()
     @State private var searchText = ""
@@ -56,18 +57,31 @@ struct ImagesListView: View {
                 Task { await store.delete(names) }
             }
         } message: {
-            Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.configuration.name ?? "") : "This permanently deletes \(pendingDeletion.count) images.")
+            Text(deletionMessage)
         }
         .confirmationDialog("Remove all unused images?", isPresented: $confirmingPrune) {
             Button("Remove Unused Images", role: .destructive) { Task { await store.prune() } }
         } message: {
             Text("This permanently deletes every image not used by a container.")
         }
-        .alert("Something went wrong", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(store.errorMessage ?? "")
+        .issueAlert(issueBinding) { remedy in
+            Task { await appModel.perform(remedy) }
         }
+    }
+
+    /// Apple's runtime deletes an image even while containers reference it, so the honest place
+    /// to warn about in-use images is the confirmation, not an error afterwards.
+    private var deletionMessage: String {
+        let inUse = pendingDeletion.filter { inUseDigests.contains($0.configuration.descriptor.digest) }
+        let base = pendingDeletion.count == 1
+            ? (pendingDeletion.first.map { ImageName.short($0.configuration.name) } ?? "")
+            : String(localized: "This permanently deletes \(pendingDeletion.count) images.")
+        guard !inUse.isEmpty else { return base }
+        let names = inUse.map { ImageName.short($0.configuration.name) }.formatted(.list(type: .and))
+        let warning = inUse.count == 1
+            ? String(localized: "\(names) is still used by a container.")
+            : String(localized: "\(names) are still used by containers.")
+        return "\(base)\n\(warning)"
     }
 
     @ToolbarContentBuilder
@@ -146,7 +160,7 @@ struct ImagesListView: View {
             do {
                 try await store.save(image, to: url)
             } catch {
-                store.errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+                store.issue = IssueMapper.issue(for: error, context: .generic(actionTitle: String(localized: "Couldn’t Export the Image")))
             }
         }
     }
@@ -160,7 +174,7 @@ struct ImagesListView: View {
             do {
                 try await store.load(from: url)
             } catch {
-                store.errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+                store.issue = IssueMapper.issue(for: error, context: .generic(actionTitle: String(localized: "Couldn’t Import the Image")))
             }
         }
     }
@@ -193,8 +207,8 @@ struct ImagesListView: View {
         Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
-    private var errorBinding: Binding<Bool> {
-        Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })
+    private var issueBinding: Binding<RuntimeIssue?> {
+        Binding(get: { store.issue }, set: { store.issue = $0 })
     }
 }
 

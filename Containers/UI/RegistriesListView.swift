@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RegistriesListView: View {
+    @Environment(AppModel.self) private var appModel
     @State private var store = RegistryStore()
     @State private var searchText = ""
     @State private var selection: Set<String> = []
@@ -68,10 +69,8 @@ struct RegistriesListView: View {
         } message: {
             Text(pendingLogout.count == 1 ? (pendingLogout.first?.hostname ?? "") : "This logs out of \(pendingLogout.count) registries.")
         }
-        .alert("Something went wrong", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(store.errorMessage ?? "")
+        .issueAlert(issueBinding) { remedy in
+            Task { await appModel.perform(remedy) }
         }
     }
 
@@ -109,8 +108,8 @@ struct RegistriesListView: View {
         Binding(get: { !pendingLogout.isEmpty }, set: { if !$0 { pendingLogout = [] } })
     }
 
-    private var errorBinding: Binding<Bool> {
-        Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })
+    private var issueBinding: Binding<RuntimeIssue?> {
+        Binding(get: { store.issue }, set: { store.issue = $0 })
     }
 }
 

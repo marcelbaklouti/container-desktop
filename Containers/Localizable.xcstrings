@@ -23,6 +23,19 @@
         }
       }
     },
+    "%@ didn’t finish %@ — check its logs." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ didn’t finish %2$@ — check its logs."
+          }
+        }
+      }
+    },
+    "%@ didn’t finish stopping." : {
+
+    },
     "%@ is no longer running." : {
 
     },
@@ -30,6 +43,9 @@
 
     },
     "%lld Selected" : {
+
+    },
+    "⌘N is each area’s primary action — Run Container, Build or Pull an image, Create, or Log In. In Containers, ⇧⌘N launches a Compose stack. ⌘F filters the current list, ⌘, opens Settings, and ⌘? opens this Help. The empty screens also list the shortcuts that apply there." : {
 
     },
     "10.10.0.0/24 (optional)" : {
@@ -45,6 +61,9 @@
 
     },
     "About Container Desktop" : {
+
+    },
+    "Acting on a whole stack" : {
 
     },
     "Add" : {
@@ -207,6 +226,9 @@
 
     },
     "Containers" : {
+
+    },
+    "Containers are grouped by their Compose project. Each group header has Start All and Stop All, so an entire stack goes up or down without selecting its containers one by one." : {
 
     },
     "Containers are grouped by their Compose project. Each group header shows the combined CPU and memory of its running services, and the overall total appears beneath the Containers title." : {
@@ -440,6 +462,9 @@
     "Environment" : {
 
     },
+    "Every list — containers, images, networks, volumes, machines, and registry logins — supports multiple selection. Click an item, then ⌘-click to add others or ⇧-click to extend the range, and right-click to apply one action to all of them. The menu only shows actions that fit the selection, so you’ll see Stop only when something selected is running." : {
+
+    },
     "Executable" : {
 
     },
@@ -579,6 +604,9 @@
 
     },
     "Keeping the runtime current" : {
+
+    },
+    "Keyboard shortcuts" : {
 
     },
     "Kill" : {
@@ -959,7 +987,16 @@
     "Restart %@" : {
 
     },
-    "Right-click any container to Start, Stop, Restart, Kill, or Delete it. Quitting Container Desktop does not stop your containers — they keep running under the system service until you stop them or the service." : {
+    "Restarting" : {
+
+    },
+    "Restarting %@" : {
+
+    },
+    "Restarting…" : {
+
+    },
+    "Right-click any container to Start, Stop, Restart, Kill, or Delete it. Select several with ⌘-click or ⇧-click to act on them together, or use Start All and Stop All in a Compose project’s group header to bring a whole stack up or down. Quitting Container Desktop does not stop your containers — they keep running under the system service until you stop them or the service." : {
 
     },
     "Run" : {
@@ -1028,6 +1065,12 @@
     "Select an image to inspect it." : {
 
     },
+    "Selecting several at once" : {
+
+    },
+    "Selection & Shortcuts" : {
+
+    },
     "Server" : {
 
     },
@@ -1088,7 +1131,16 @@
     "Start the container to open a shell." : {
 
     },
+    "starting" : {
+
+    },
     "Starting" : {
+
+    },
+    "Starting %@" : {
+
+    },
+    "Starting the container system…" : {
 
     },
     "Starting the system" : {
@@ -1133,7 +1185,19 @@
     "Stopped" : {
 
     },
+    "stopping" : {
+
+    },
     "Stopping" : {
+
+    },
+    "Stopping %@" : {
+
+    },
+    "Stopping the container system…" : {
+
+    },
+    "Stopping…" : {
 
     },
     "Subnet" : {
@@ -1173,6 +1237,9 @@
 
     },
     "The container runtime is no longer running." : {
+
+    },
+    "The container system didn’t report ready in time." : {
 
     },
     "The container system is not running." : {

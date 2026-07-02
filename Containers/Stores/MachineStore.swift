@@ -6,7 +6,7 @@ import Observation
 final class MachineStore {
     private(set) var machines: [Machine] = []
     private(set) var hasLoaded = false
-    var errorMessage: String?
+    var issue: RuntimeIssue?
     private(set) var pendingStops: Set<String> = []
     private var stopDeadlines: [String: ContinuousClock.Instant] = [:]
 
@@ -22,9 +22,9 @@ final class MachineStore {
             if updated != machines {
                 machines = updated
             }
-            if surfacingErrors { errorMessage = nil }
+            if surfacingErrors { issue = nil }
         } catch {
-            if surfacingErrors { errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription }
+            if surfacingErrors { issue = IssueMapper.issue(for: error, context: .generic(actionTitle: String(localized: "Couldn’t Refresh Machines"))) }
         }
         reconcileStops()
         hasLoaded = true
@@ -40,7 +40,10 @@ final class MachineStore {
                 clearStop(id)
             } else if let deadline = stopDeadlines[id], deadline < ContinuousClock.now {
                 clearStop(id)
-                errorMessage = String(localized: "\(id) didn’t finish stopping.")
+                issue = .plain(
+                    title: String(localized: "“\(id)” Didn’t Respond"),
+                    reason: String(localized: "It didn’t finish stopping.")
+                )
             }
         }
     }
@@ -78,34 +81,45 @@ final class MachineStore {
         await refresh()
     }
 
-    func setDefault(_ machine: Machine) async { await perform(["machine", "set-default", machine.id]) }
+    func setDefault(_ machine: Machine) async {
+        await perform(["machine", "set-default", machine.id], context: .generic(actionTitle: String(localized: "Couldn’t Set the Default Machine")))
+    }
 
     func stop(_ machine: Machine) async {
         pendingStops.insert(machine.id)
         stopDeadlines[machine.id] = ContinuousClock.now + .seconds(30)
-        await perform(["machine", "stop", machine.id], stopping: machine.id)
+        await perform(["machine", "stop", machine.id], stopping: machine.id, context: .generic(actionTitle: String(localized: "Couldn’t Stop the Machine")))
     }
 
-    func delete(_ machine: Machine) async { await perform(["machine", "delete", machine.id]) }
-    func delete(_ ids: [String]) async { await performBulk(ids.map { ["machine", "delete", $0] }) }
+    func delete(_ machine: Machine) async {
+        await perform(["machine", "delete", machine.id], context: .generic(actionTitle: String(localized: "Couldn’t Delete the Machine")))
+    }
 
-    private func performBulk(_ commands: [[String]]) async {
-        var firstError: String?
+    func delete(_ ids: [String]) async {
+        await performBulk(ids.map { ["machine", "delete", $0] }) { _ in
+            .generic(actionTitle: String(localized: "Couldn’t Delete the Machine"))
+        }
+    }
+
+    private func performBulk(_ commands: [[String]], context: (String) -> IssueMapper.Context) async {
+        var firstIssue: RuntimeIssue?
         for command in commands {
             do { _ = try await client.data(for: command) }
-            catch { if firstError == nil { firstError = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription } }
+            catch {
+                if firstIssue == nil { firstIssue = IssueMapper.issue(for: error, context: context(command.last ?? "")) }
+            }
         }
-        if let firstError { errorMessage = firstError }
+        if let firstIssue { issue = firstIssue }
         await refresh()
     }
 
-    private func perform(_ arguments: [String], stopping id: String? = nil) async {
+    private func perform(_ arguments: [String], stopping id: String? = nil, context: IssueMapper.Context) async {
         do {
             _ = try await client.data(for: arguments)
             await refresh()
         } catch {
             if let id { clearStop(id) }
-            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            issue = IssueMapper.issue(for: error, context: context)
         }
     }
 }

@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct VolumesListView: View {
+    @Environment(AppModel.self) private var appModel
+    @Environment(ContainerStore.self) private var containerStore
     @State private var store = VolumeStore()
     @State private var searchText = ""
     @State private var selection: Set<String> = []
@@ -28,8 +30,9 @@ struct VolumesListView: View {
         .confirmationDialog(pendingDeletion.count == 1 ? "Delete this volume?" : "Delete \(pendingDeletion.count) volumes?", isPresented: deletionBinding) {
             Button("Delete", role: .destructive) {
                 let ids = pendingDeletion.map(\.id)
+                let mountedBy = Dictionary(uniqueKeysWithValues: pendingDeletion.map { ($0.id, containersMounting($0)) })
                 pendingDeletion = []
-                Task { await store.delete(ids) }
+                Task { await store.delete(ids, mountedBy: mountedBy) }
             }
         } message: {
             Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) volumes, including their data.")
@@ -39,11 +42,17 @@ struct VolumesListView: View {
         } message: {
             Text("This permanently deletes every volume not used by a container, including its data.")
         }
-        .alert("Something went wrong", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(store.errorMessage ?? "")
+        .issueAlert(issueBinding) { remedy in
+            Task { await appModel.perform(remedy) }
         }
+    }
+
+    private func containersMounting(_ volume: Volume) -> [String] {
+        containerStore.containers
+            .filter { container in
+                container.configuration.mounts.contains { $0.type.volume?.name == volume.configuration.name }
+            }
+            .map(\.id)
     }
 
     private var decoratedList: some View {
@@ -131,8 +140,8 @@ struct VolumesListView: View {
         Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
-    private var errorBinding: Binding<Bool> {
-        Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })
+    private var issueBinding: Binding<RuntimeIssue?> {
+        Binding(get: { store.issue }, set: { store.issue = $0 })
     }
 }
 

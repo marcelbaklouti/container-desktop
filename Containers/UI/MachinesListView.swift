@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MachinesListView: View {
+    @Environment(AppModel.self) private var appModel
     @State private var store = MachineStore()
     @State private var searchText = ""
     @State private var selection: Set<String> = []
@@ -37,10 +38,8 @@ struct MachinesListView: View {
         } message: {
             Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) machines.")
         }
-        .alert("Something went wrong", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(store.errorMessage ?? "")
+        .issueAlert(issueBinding) { remedy in
+            Task { await appModel.perform(remedy) }
         }
     }
 
@@ -129,8 +128,8 @@ struct MachinesListView: View {
         Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
-    private var errorBinding: Binding<Bool> {
-        Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })
+    private var issueBinding: Binding<RuntimeIssue?> {
+        Binding(get: { store.issue }, set: { store.issue = $0 })
     }
 }
 

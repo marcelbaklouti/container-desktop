@@ -3,12 +3,20 @@ import Observation
 
 @Observable
 @MainActor
+final class Navigator {
+    var area: Area? = .containers
+    var containerSelection: Set<String> = []
+}
+
+@Observable
+@MainActor
 final class AppModel {
     let system = SystemController()
     let containers = ContainerStore()
     let stats = ContainerStatsStore()
     let installer: ContainerInstaller
     let updater = AppUpdater()
+    let navigator = Navigator()
 
     private var pollTask: Task<Void, Never>?
     private var previousStates: [String: String] = [:]
@@ -28,6 +36,23 @@ final class AppModel {
     var daemonRunning: Bool {
         if case .running = system.state { return true }
         return false
+    }
+
+    func perform(_ remedy: RuntimeIssue.Remedy) async {
+        switch remedy {
+        case let .stopContainers(ids):
+            await containers.stop(ids)
+        case let .stopAndDeleteContainer(id):
+            await containers.stop([id])
+            await containers.delete([id])
+        case let .revealContainers(ids):
+            navigator.area = .containers
+            if !ids.isEmpty { navigator.containerSelection = Set(ids) }
+        case .startDaemon:
+            try? await system.start()
+        case .none:
+            break
+        }
     }
 
     func startPolling(every interval: Duration = .seconds(3)) {

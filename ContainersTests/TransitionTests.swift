@@ -137,7 +137,7 @@ struct ContainerTransitionTests {
         try await Task.sleep(for: .milliseconds(20))
         await store.refresh()
         #expect(store.pendingTransitions["slow"] == nil)
-        #expect(store.errorMessage?.contains("slow") == true)
+        #expect(store.issue?.title.contains("slow") == true)
     }
 
     @Test func failedCommandClearsTransitionImmediately() async throws {
@@ -150,7 +150,7 @@ struct ContainerTransitionTests {
         client.fail(subcommand: "start")
         await store.start(stopped)
         #expect(store.pendingTransitions["broken"] == nil)
-        #expect(store.errorMessage != nil)
+        #expect(store.issue != nil)
     }
 
     @Test func disappearedContainerClearsTransitionSilently() async throws {
@@ -164,7 +164,7 @@ struct ContainerTransitionTests {
         client.setContainers([])
         await store.refresh()
         #expect(store.pendingTransitions["gone"] == nil)
-        #expect(store.errorMessage == nil)
+        #expect(store.issue == nil)
     }
 }
 

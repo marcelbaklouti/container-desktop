@@ -6,7 +6,7 @@ import Observation
 final class RegistryStore {
     private(set) var logins: [RegistryLogin] = []
     private(set) var hasLoaded = false
-    var errorMessage: String?
+    var issue: RuntimeIssue?
 
     private let client: any RuntimeClient
 
@@ -17,9 +17,9 @@ final class RegistryStore {
     func refresh() async {
         do {
             logins = try await client.decode([RegistryLogin].self, from: ["registry", "list", "--format", "json"])
-            errorMessage = nil
+            issue = nil
         } catch {
-            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            issue = IssueMapper.issue(for: error, context: .generic(actionTitle: String(localized: "Couldn’t Read Registry Logins")))
         }
         hasLoaded = true
     }
@@ -37,12 +37,14 @@ final class RegistryStore {
     }
 
     func logout(_ hostnames: [String]) async {
-        var firstError: String?
+        var firstIssue: RuntimeIssue?
         for hostname in hostnames {
             do { _ = try await client.data(for: ["registry", "logout", hostname]) }
-            catch { if firstError == nil { firstError = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription } }
+            catch {
+                if firstIssue == nil { firstIssue = IssueMapper.issue(for: error, context: .generic(actionTitle: String(localized: "Couldn’t Log Out"))) }
+            }
         }
-        if let firstError { errorMessage = firstError }
+        if let firstIssue { issue = firstIssue }
         await refresh()
     }
 }

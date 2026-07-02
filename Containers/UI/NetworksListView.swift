@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct NetworksListView: View {
+    @Environment(AppModel.self) private var appModel
+    @Environment(ContainerStore.self) private var containerStore
     @State private var store = NetworkStore()
     @State private var searchText = ""
     @State private var selection: Set<String> = []
@@ -28,8 +30,9 @@ struct NetworksListView: View {
         .confirmationDialog(pendingDeletion.count == 1 ? "Delete this network?" : "Delete \(pendingDeletion.count) networks?", isPresented: deletionBinding) {
             Button("Delete", role: .destructive) {
                 let ids = pendingDeletion.map(\.id)
+                let attached = Dictionary(uniqueKeysWithValues: pendingDeletion.map { ($0.id, containersAttached($0)) })
                 pendingDeletion = []
-                Task { await store.delete(ids) }
+                Task { await store.delete(ids, attachedContainers: attached) }
             }
         } message: {
             Text(pendingDeletion.count == 1 ? (pendingDeletion.first?.id ?? "") : "This permanently deletes \(pendingDeletion.count) networks.")
@@ -39,11 +42,17 @@ struct NetworksListView: View {
         } message: {
             Text("This permanently deletes every network with no attached containers.")
         }
-        .alert("Something went wrong", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(store.errorMessage ?? "")
+        .issueAlert(issueBinding) { remedy in
+            Task { await appModel.perform(remedy) }
         }
+    }
+
+    private func containersAttached(_ network: Network) -> [String] {
+        containerStore.containers
+            .filter { container in
+                container.configuration.networks.contains { $0.network == network.configuration.name }
+            }
+            .map(\.id)
     }
 
     private var decoratedList: some View {
@@ -133,8 +142,8 @@ struct NetworksListView: View {
         Binding(get: { !pendingDeletion.isEmpty }, set: { if !$0 { pendingDeletion = [] } })
     }
 
-    private var errorBinding: Binding<Bool> {
-        Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })
+    private var issueBinding: Binding<RuntimeIssue?> {
+        Binding(get: { store.issue }, set: { store.issue = $0 })
     }
 }
 

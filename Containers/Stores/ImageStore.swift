@@ -6,7 +6,7 @@ import Observation
 final class ImageStore {
     private(set) var images: [ContainerImage] = []
     private(set) var hasLoaded = false
-    var errorMessage: String?
+    var issue: RuntimeIssue?
 
     private let client: any RuntimeClient
 
@@ -20,9 +20,9 @@ final class ImageStore {
             if updated != images {
                 images = updated
             }
-            if surfacingErrors { errorMessage = nil }
+            if surfacingErrors { issue = nil }
         } catch {
-            if surfacingErrors { errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription }
+            if surfacingErrors { issue = IssueMapper.issue(for: error, context: .generic(actionTitle: String(localized: "Couldn’t Refresh Images"))) }
         }
         hasLoaded = true
     }
@@ -48,26 +48,36 @@ final class ImageStore {
         await refresh()
     }
 
-    func delete(_ image: ContainerImage) async { await perform(["image", "delete", image.configuration.name]) }
-    func prune() async { await perform(["image", "prune"]) }
-    func delete(_ names: [String]) async { await performBulk(names.map { ["image", "delete", $0] }) }
+    func delete(_ image: ContainerImage) async {
+        await perform(["image", "delete", image.configuration.name], context: .deleteImage(reference: image.configuration.name))
+    }
 
-    private func performBulk(_ commands: [[String]]) async {
-        var firstError: String?
+    func prune() async {
+        await perform(["image", "prune"], context: .generic(actionTitle: String(localized: "Couldn’t Prune Images")))
+    }
+
+    func delete(_ names: [String]) async {
+        await performBulk(names.map { ["image", "delete", $0] }) { .deleteImage(reference: $0) }
+    }
+
+    private func performBulk(_ commands: [[String]], context: (String) -> IssueMapper.Context) async {
+        var firstIssue: RuntimeIssue?
         for command in commands {
             do { _ = try await client.data(for: command) }
-            catch { if firstError == nil { firstError = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription } }
+            catch {
+                if firstIssue == nil { firstIssue = IssueMapper.issue(for: error, context: context(command.last ?? "")) }
+            }
         }
-        if let firstError { errorMessage = firstError }
+        if let firstIssue { issue = firstIssue }
         await refresh()
     }
 
-    private func perform(_ arguments: [String]) async {
+    private func perform(_ arguments: [String], context: IssueMapper.Context) async {
         do {
             _ = try await client.data(for: arguments)
             await refresh()
         } catch {
-            errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
+            issue = IssueMapper.issue(for: error, context: context)
         }
     }
 }
