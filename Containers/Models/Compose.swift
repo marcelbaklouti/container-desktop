@@ -11,9 +11,17 @@ nonisolated indirect enum YAMLValue {
     }
 }
 
+nonisolated struct ComposeBuild: Equatable {
+    var context: String
+    var dockerfile: String?
+    var args: [String]
+    var target: String?
+}
+
 nonisolated struct ComposeService: Equatable, Identifiable {
     let name: String
     var image: String?
+    var build: ComposeBuild?
     var containerName: String?
     var command: [String]
     var ports: [String]
@@ -30,6 +38,29 @@ nonisolated struct ComposeService: Equatable, Identifiable {
         containerName ?? name
     }
 
+    /// The reference this service runs: its `image:` when present, otherwise the Compose
+    /// convention `<project>-<service>` for the image its `build:` produces.
+    func imageTag(in project: ComposeProject) -> String? {
+        if let image { return image }
+        guard build != nil else { return nil }
+        return "\(project.name.lowercased())-\(name)"
+    }
+
+    /// Build context and dockerfile resolve like Docker Compose: the context against the compose
+    /// file's directory, the dockerfile against the context.
+    func buildArguments(in project: ComposeProject) -> [String]? {
+        guard let build, let tag = imageTag(in: project) else { return nil }
+        let context = ComposeService.resolvedPath(build.context, relativeTo: project.directory)
+        var args = ["build", "--progress", "plain", "-t", tag]
+        if let dockerfile = build.dockerfile {
+            args += ["-f", ComposeService.resolvedPath(dockerfile, relativeTo: URL(fileURLWithPath: context, isDirectory: true))]
+        }
+        for buildArg in build.args { args += ["--build-arg", buildArg] }
+        if let target = build.target { args += ["--target", target] }
+        args.append(context)
+        return args
+    }
+
     func runArguments(in project: ComposeProject) -> [String] {
         var args = ["run", "-d", "--name", containerIdentifier(in: project), "--network", project.networkName]
         args += ["--label", "\(Container.projectLabelKey)=\(project.name)"]
@@ -40,12 +71,18 @@ nonisolated struct ComposeService: Equatable, Identifiable {
         for variable in environment { args += ["-e", variable] }
         for port in ports { args += ["-p", port] }
         for volume in volumes { args += ["-v", volume] }
-        if let image {
+        if let reference = imageTag(in: project) {
             args.append("--")
-            args.append(image)
+            args.append(reference)
             args += command
         }
         return args
+    }
+
+    nonisolated private static func resolvedPath(_ path: String, relativeTo base: URL?) -> String {
+        guard !path.hasPrefix("/") else { return path }
+        guard let base else { return path }
+        return URL(fileURLWithPath: path, relativeTo: base).standardizedFileURL.path
     }
 }
 
@@ -53,6 +90,7 @@ nonisolated struct ComposeProject: Equatable, Identifiable {
     let name: String
     let services: [ComposeService]
     let namedVolumes: [String]
+    var directory: URL?
 
     var id: String { name }
 
@@ -67,7 +105,7 @@ nonisolated struct ComposeProject: Equatable, Identifiable {
         let directory = url.deletingLastPathComponent()
         var environment = loadDotEnv(in: directory)
         environment.merge(ProcessInfo.processInfo.environment) { _, shell in shell }
-        return parse(text, defaultName: directory.lastPathComponent, environment: environment)
+        return parse(text, defaultName: directory.lastPathComponent, environment: environment, directory: directory)
     }
 
     static func loadDotEnv(in directory: URL) -> [String: String] {
@@ -83,7 +121,7 @@ nonisolated struct ComposeProject: Equatable, Identifiable {
         return values
     }
 
-    static func parse(_ source: String, defaultName: String, environment: [String: String] = [:]) -> ComposeProject? {
+    static func parse(_ source: String, defaultName: String, environment: [String: String] = [:], directory: URL? = nil) -> ComposeProject? {
         var parser = ComposeParser(source)
         let interpolated = ComposeInterpolation.interpolate(parser.parse(), environment: environment)
         guard case let .mapping(root) = interpolated else { return nil }
@@ -103,7 +141,7 @@ nonisolated struct ComposeProject: Equatable, Identifiable {
             named = volumesMap.map(\.0)
         }
 
-        return ComposeProject(name: name, services: services, namedVolumes: named)
+        return ComposeProject(name: name, services: services, namedVolumes: named, directory: directory)
     }
 
     /// Services in dependency order (depends_on before dependents); falls back to declared order on a cycle.
@@ -135,6 +173,7 @@ extension ComposeService {
     nonisolated init(name: String, fields: [(String, YAMLValue)]) {
         self.name = name
         self.image = fields.scalar("image")
+        self.build = ComposeService.buildConfiguration(fields.value("build"))
         self.containerName = fields.scalar("container_name")
         self.command = ComposeService.commandTokens(fields.value("command"))
         self.ports = ComposeService.portSpecs(fields.value("ports"))
@@ -142,6 +181,22 @@ extension ComposeService {
         self.volumes = ComposeService.scalarList(fields.value("volumes"))
         self.dependsOn = ComposeService.dependencyNames(fields.value("depends_on"))
         self.labels = ComposeService.labelMap(fields.value("labels"))
+    }
+
+    nonisolated private static func buildConfiguration(_ value: YAMLValue?) -> ComposeBuild? {
+        switch value {
+        case let .scalar(text) where !text.isEmpty:
+            return ComposeBuild(context: text, dockerfile: nil, args: [], target: nil)
+        case let .mapping(pairs):
+            return ComposeBuild(
+                context: pairs.scalar("context") ?? ".",
+                dockerfile: pairs.scalar("dockerfile"),
+                args: environmentPairs(pairs.value("args")),
+                target: pairs.scalar("target")
+            )
+        default:
+            return nil
+        }
     }
 
     nonisolated private static func commandTokens(_ value: YAMLValue?) -> [String] {

@@ -140,4 +140,82 @@ struct ComposeParsingTests {
         let minioIndex = try #require(order.firstIndex(of: "minio"))
         #expect(postgresIndex < minioIndex)
     }
+
+    static let buildSample = """
+    name: container-desktop-test-build
+    services:
+      api:
+        build: ./api
+        ports:
+          - "3000:3000"
+      worker:
+        build:
+          context: ./worker
+          dockerfile: Dockerfile.worker
+          target: runtime
+          args:
+            - VERSION=${VER:-1.2}
+            - MODE=fast
+        depends_on:
+          - api
+      cache:
+        image: valkey/valkey:8-alpine
+      tagged:
+        image: registry.example.com/team/app:2
+        build:
+          context: .
+    """
+
+    @Test func parsesShorthandAndMappingBuild() throws {
+        let project = try #require(ComposeProject.parse(Self.buildSample, defaultName: "x"))
+        let api = try #require(project.services.first { $0.name == "api" })
+        #expect(api.build == ComposeBuild(context: "./api", dockerfile: nil, args: [], target: nil))
+        let worker = try #require(project.services.first { $0.name == "worker" })
+        #expect(worker.build?.context == "./worker")
+        #expect(worker.build?.dockerfile == "Dockerfile.worker")
+        #expect(worker.build?.target == "runtime")
+        #expect(worker.build?.args == ["VERSION=1.2", "MODE=fast"])
+        let cache = try #require(project.services.first { $0.name == "cache" })
+        #expect(cache.build == nil)
+    }
+
+    @Test func buildArgsInterpolateFromEnvironment() throws {
+        let project = try #require(ComposeProject.parse(Self.buildSample, defaultName: "x", environment: ["VER": "9.9"]))
+        let worker = try #require(project.services.first { $0.name == "worker" })
+        #expect(worker.build?.args.first == "VERSION=9.9")
+    }
+
+    @Test func imageTagFollowsComposeNamingConvention() throws {
+        let project = try #require(ComposeProject.parse(Self.buildSample, defaultName: "x"))
+        let api = try #require(project.services.first { $0.name == "api" })
+        #expect(api.imageTag(in: project) == "container-desktop-test-build-api")
+        let tagged = try #require(project.services.first { $0.name == "tagged" })
+        #expect(tagged.imageTag(in: project) == "registry.example.com/team/app:2")
+        let cache = try #require(project.services.first { $0.name == "cache" })
+        #expect(cache.imageTag(in: project) == "valkey/valkey:8-alpine")
+    }
+
+    @Test func buildArgumentsResolvePathsAgainstComposeDirectory() throws {
+        let directory = URL(fileURLWithPath: "/tmp/container-desktop-test-build", isDirectory: true)
+        let project = try #require(ComposeProject.parse(Self.buildSample, defaultName: "x", directory: directory))
+        let worker = try #require(project.services.first { $0.name == "worker" })
+        let args = try #require(worker.buildArguments(in: project))
+        #expect(args.first == "build")
+        #expect(args.contains("--progress"))
+        let tagIndex = try #require(args.firstIndex(of: "-t"))
+        #expect(args[tagIndex + 1] == "container-desktop-test-build-worker")
+        let fileIndex = try #require(args.firstIndex(of: "-f"))
+        #expect(args[fileIndex + 1] == "/tmp/container-desktop-test-build/worker/Dockerfile.worker")
+        let targetIndex = try #require(args.firstIndex(of: "--target"))
+        #expect(args[targetIndex + 1] == "runtime")
+        #expect(args.last == "/tmp/container-desktop-test-build/worker")
+        #expect(args.contains("--build-arg"))
+    }
+
+    @Test func builtServiceRunsItsBuiltTag() throws {
+        let project = try #require(ComposeProject.parse(Self.buildSample, defaultName: "x"))
+        let api = try #require(project.services.first { $0.name == "api" })
+        let run = api.runArguments(in: project)
+        #expect(run.contains("container-desktop-test-build-api"))
+    }
 }

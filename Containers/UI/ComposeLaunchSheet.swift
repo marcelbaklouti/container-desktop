@@ -16,6 +16,8 @@ struct ComposeLaunchSheet: View {
                     }
                 }
 
+                preparationSection
+
                 Section {
                     ForEach(rows) { row in
                         ComposeServiceRow(row: row, service: service(named: row.id))
@@ -59,6 +61,46 @@ struct ComposeLaunchSheet: View {
         }
         .frame(minWidth: 480, minHeight: 460)
         .interactiveDismissDisabled(launcher.isLaunching)
+    }
+
+    @ViewBuilder
+    private var preparationSection: some View {
+        switch launcher.preparation {
+        case .none, .ready:
+            EmptyView()
+        case .checkingBuilder:
+            Section {
+                HStack(spacing: 10) {
+                    ProgressView().controlSize(.small)
+                    Text("Checking the builder…")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        case .startingBuilder(let detail):
+            Section {
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 10) {
+                        ProgressView().controlSize(.small)
+                        Text("Preparing the builder…")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                    if let detail {
+                        Text(detail)
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                    }
+                }
+            }
+        case .failed(let message):
+            Section {
+                Label(message, systemImage: "exclamationmark.triangle")
+                    .font(.callout)
+                    .foregroundStyle(.red)
+            }
+        }
     }
 
     private var rows: [ComposeLauncher.ServiceProgress] {
@@ -111,6 +153,12 @@ private struct ComposeServiceRow: View {
                 Text(statusText)
                     .font(.caption)
                     .foregroundStyle(statusColor)
+                if case let .building(detail) = row.phase, let detail {
+                    Text(detail)
+                        .font(.caption2.monospaced())
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
                 if case let .failed(message) = row.phase {
                     Text(message)
                         .font(.caption2)
@@ -128,7 +176,8 @@ private struct ComposeServiceRow: View {
 
     private var statusText: String {
         switch row.phase {
-        case .waiting: service?.image.map(ImageName.short) ?? String(localized: "Waiting")
+        case .waiting: service?.image.map(ImageName.short) ?? (service?.build != nil ? String(localized: "Builds locally") : String(localized: "Waiting"))
+        case .building: String(localized: "Building image…")
         case .pulling: String(localized: "Pulling image…")
         case .starting: String(localized: "Starting…")
         case .running: String(localized: "Running")
@@ -138,7 +187,7 @@ private struct ComposeServiceRow: View {
 
     private var statusColor: Color {
         switch row.phase {
-        case .waiting, .pulling, .starting: .secondary
+        case .waiting, .building, .pulling, .starting: .secondary
         case .running: .green
         case .failed: .red
         }
@@ -149,7 +198,7 @@ private struct ComposeServiceRow: View {
         switch row.phase {
         case .waiting:
             Image(systemName: "circle.dotted").foregroundStyle(.tertiary)
-        case .pulling, .starting:
+        case .building, .pulling, .starting:
             ProgressView().controlSize(.small)
         case .running:
             Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
