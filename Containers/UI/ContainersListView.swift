@@ -15,7 +15,14 @@ struct ContainersListView: View {
     @State private var launchProject: ComposeProject?
     @State private var showMigration = false
     @State private var confirmingPrune = false
+    @State private var duplication: DuplicationPayload?
     @Environment(\.openURL) private var openURL
+
+    private struct DuplicationPayload: Identifiable {
+        let id = UUID()
+        let configuration: RunConfiguration
+        let notes: [String]
+    }
 
     private var visibleContainers: [Container] {
         let base = runningOnly ? store.containers.filter { $0.status?.state == "running" } : store.containers
@@ -72,6 +79,9 @@ struct ContainersListView: View {
             }
             .sheet(isPresented: $showMigration) {
                 MigrationSheet()
+            }
+            .sheet(item: $duplication) { payload in
+                RunContainerSheet(store: store, configuration: payload.configuration, footnotes: payload.notes)
             }
             .inspector(isPresented: $showInspector) {
                 inspectorContent
@@ -225,6 +235,13 @@ struct ContainersListView: View {
                     Label("Show in Stacks", systemImage: "rectangle.3.group")
                 }
             }
+            Divider()
+            Button { Task { await duplicate(container) } } label: {
+                Label("Duplicate…", systemImage: "plus.square.on.square")
+            }
+            Button { Task { await copyRunCommand(container) } } label: {
+                Label("Copy Run Command", systemImage: "terminal")
+            }
             if !container.configuration.publishedPorts.isEmpty {
                 Divider()
                 ForEach(container.configuration.publishedPorts, id: \.self) { port in
@@ -368,6 +385,31 @@ struct ContainersListView: View {
             return
         }
         launchProject = project
+    }
+
+    private func imageRuntimeConfig(for container: Container) async -> ImageRuntimeConfig? {
+        let reference = container.configuration.image.reference
+        let client = ContainerCLI()
+        return (try? await client.decode([ContainerImage].self, from: ["image", "inspect", reference]))?.first?.runtimeConfig
+    }
+
+    private func duplicate(_ container: Container) async {
+        let imageConfig = await imageRuntimeConfig(for: container)
+        var notes: [String] = []
+        let configuration = RunConfiguration(
+            duplicating: container,
+            imageConfig: imageConfig,
+            existingIDs: Set(store.containers.map(\.id)),
+            notes: &notes
+        )
+        duplication = DuplicationPayload(configuration: configuration, notes: notes)
+    }
+
+    private func copyRunCommand(_ container: Container) async {
+        let imageConfig = await imageRuntimeConfig(for: container)
+        let command = RunCommandFormatter.command(for: container, imageConfig: imageConfig)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(command, forType: .string)
     }
 
     private func exportFilesystem(_ container: Container) {

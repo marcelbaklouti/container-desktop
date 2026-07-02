@@ -3,13 +3,20 @@ import SwiftUI
 struct RunContainerSheet: View {
     @Environment(\.dismiss) private var dismiss
     let store: ContainerStore
-    @State private var config = RunConfiguration()
+    let footnotes: [String]
+    @State private var config: RunConfiguration
     @State private var advancedExpanded = false
     @State private var isRunning = false
     @State private var error: String?
     @State private var dnsDomains: [String] = []
     @AppStorage("defaultCPUs") private var defaultCPUs = ""
     @AppStorage("defaultMemory") private var defaultMemory = ""
+
+    init(store: ContainerStore, configuration: RunConfiguration = RunConfiguration(), footnotes: [String] = []) {
+        self.store = store
+        self.footnotes = footnotes
+        _config = State(initialValue: configuration)
+    }
 
     var body: some View {
         NavigationStack {
@@ -119,6 +126,17 @@ struct RunContainerSheet: View {
                         Text("Lets the container use your Mac’s SSH keys — for example to clone private repositories — without copying them in.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                    }
+                }
+
+                if !footnotes.isEmpty {
+                    Section {
+                        ForEach(footnotes, id: \.self) { note in
+                            Label(note, systemImage: "info.circle")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
 

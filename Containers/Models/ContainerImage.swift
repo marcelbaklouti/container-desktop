@@ -25,6 +25,10 @@ nonisolated struct ContainerImage: Codable, Sendable, Identifiable, Hashable {
     var hostHistory: [ImageHistoryEntry] {
         hostVariant?.config?.history ?? []
     }
+
+    var runtimeConfig: ImageRuntimeConfig? {
+        hostVariant?.config?.config
+    }
 }
 
 nonisolated struct ImageConfiguration: Codable, Sendable, Hashable {
@@ -42,6 +46,25 @@ nonisolated struct ImageVariant: Codable, Sendable, Hashable {
 
 nonisolated struct ImageVariantConfig: Codable, Sendable, Hashable {
     let history: [ImageHistoryEntry]?
+    let config: ImageRuntimeConfig?
+}
+
+nonisolated struct ImageRuntimeConfig: Codable, Sendable, Hashable {
+    let env: [String]?
+    let cmd: [String]?
+    let entrypoint: [String]?
+    let workingDir: String?
+    let user: String?
+    let labels: [String: String]?
+
+    enum CodingKeys: String, CodingKey {
+        case env = "Env"
+        case cmd = "Cmd"
+        case entrypoint = "Entrypoint"
+        case workingDir = "WorkingDir"
+        case user = "User"
+        case labels = "Labels"
+    }
 }
 
 nonisolated struct ImageHistoryEntry: Codable, Sendable, Hashable {
