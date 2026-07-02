@@ -40,8 +40,8 @@ export const hero = {
   screenshot: {
     src: "/screens/Container.png",
     label: "Containers",
-    width: 2314,
-    height: 1440,
+    width: 2312,
+    height: 1304,
   } as Screenshot,
 };
 
@@ -61,7 +61,7 @@ export const highlights: Highlight[] = [
     body: "One click moves your containers over: images, settings, and the data in your volumes. The originals stay in Docker, stopped but never deleted.",
   },
   {
-    icon: "layers",
+    icon: "stack",
     title: "Stacks that feel like one thing",
     body: "Your compose project is one unit here. Start it, stop it, relaunch it, and watch every service's logs stream together in color.",
   },
@@ -91,7 +91,7 @@ export const features: FeatureSection[] = [
   {
     id: "stacks",
     eyebrow: "Stacks",
-    icon: "layers",
+    icon: "stack",
     title: "Run your whole app as one unit.",
     body: "You do not think in five containers. You think in one app. The Stacks area works the same way: every Compose project appears as a single thing with live status, resource use, and controls for the whole stack or any single service. The combined log view streams every service together, each line colored by where it came from, searchable, filterable, and ready to pop out into its own window. No other app does this for Apple's runtime.",
     bullets: [
@@ -99,7 +99,7 @@ export const features: FeatureSection[] = [
       "Start, stop, and restart the stack or one service",
       "Relaunch any time from the remembered compose file",
     ],
-    screenshot: { src: "/screens/Stacks.png", label: "Stacks", width: 2178, height: 1304 },
+    screenshot: { src: "/screens/Stacks.png", label: "Stacks", width: 2312, height: 1304 },
   },
   {
     id: "migrate",
@@ -112,12 +112,12 @@ export const features: FeatureSection[] = [
       "Compose groups and labels carry over",
       "Originals are stopped, never deleted",
     ],
-    screenshot: { src: "/screens/Migration.png", label: "Migrate from Docker", width: 1920, height: 1304 },
+    screenshot: { src: "/screens/Migration.png", label: "Migrate from Docker", width: 2312, height: 1328 },
   },
   {
     id: "images",
     eyebrow: "Images",
-    icon: "box",
+    icon: "layers",
     title: "Images, from pull to push.",
     body: "Pull by reference, build straight from a Dockerfile with the output streaming live, tag, push to any registry you are signed into, and import or export as tar archives. Every image shows its real size, its build history, and whether a container is actually using it, so pruning is a decision instead of a gamble.",
     bullets: [
@@ -125,7 +125,7 @@ export const features: FeatureSection[] = [
       "Push and pull private images with saved logins",
       "See what is in use before you prune",
     ],
-    screenshot: { src: "/screens/Images.png", label: "Images", width: 2178, height: 1304 },
+    screenshot: { src: "/screens/Images.png", label: "Images", width: 2312, height: 1304 },
   },
   {
     id: "machines",
@@ -151,7 +151,7 @@ export const features: FeatureSection[] = [
       "Background app updates with one click to apply",
       "Local DNS domains for container hostnames",
     ],
-    screenshot: { src: "/screens/System.png", label: "System", width: 2178, height: 1304 },
+    screenshot: { src: "/screens/System.png", label: "System", width: 2312, height: 1304 },
   },
 ];
 
@@ -222,25 +222,25 @@ export const bento: BentoCard[] = [
     icon: "network",
     title: "Networks",
     body: "Give related containers their own network so they find each other by name. The built in one stays protected.",
-    screenshot: { src: "/screens/Networks.png", label: "Networks", width: 2178, height: 1304 },
+    screenshot: { src: "/screens/Networks.png", label: "Networks", width: 2312, height: 1304 },
   },
   {
     icon: "drive",
     title: "Volumes",
     body: "See the real disk usage of every volume and exactly which containers mount it, one click away.",
-    screenshot: { src: "/screens/Volumes.png", label: "Volumes", width: 2178, height: 1304 },
+    screenshot: { src: "/screens/Volumes.png", label: "Volumes", width: 2312, height: 1304 },
   },
   {
     icon: "key",
     title: "Registries",
     body: "Sign in once to pull and push private images. Your password goes to the keychain, never the command line.",
-    screenshot: { src: "/screens/Registries.png", label: "Registries", width: 2178, height: 1304 },
+    screenshot: { src: "/screens/Registries.png", label: "Registries", width: 2312, height: 1304 },
   },
   {
     icon: "hammer",
     title: "Builder",
     body: "The build service starts itself when a build needs it. Watch it, stop it, or forget it exists.",
-    screenshot: { src: "/screens/Builder.png", label: "Builder", width: 2178, height: 1304 },
+    screenshot: { src: "/screens/Builder.png", label: "Builder", width: 2312, height: 1304 },
   },
 ];
 
@@ -250,7 +250,7 @@ export const capabilities: Capability[] = [
   { icon: "bolt", title: "Getting started", body: "Install the runtime, start the system, and run your first container." },
   { icon: "arrow-right", title: "Migrate from Docker", body: "Move containers over in one click: images, settings, and volume data." },
   { icon: "box", title: "Containers", body: "Run, inspect, duplicate, copy as a command; searchable logs, stats, shell, ports." },
-  { icon: "layers", title: "Stacks", body: "Manage Compose projects as one unit with combined logs and per service controls." },
+  { icon: "stack", title: "Stacks", body: "Manage Compose projects as one unit with combined logs and per service controls." },
   { icon: "network", title: "Networks & volumes", body: "Isolate containers, store data that outlives them, and see what uses what." },
   { icon: "server", title: "Machines", body: "Manage the Linux VMs, set a default, and open an interactive shell." },
   { icon: "globe", title: "DNS & hostnames", body: "Create local DNS domains and reach containers at name.domain." },

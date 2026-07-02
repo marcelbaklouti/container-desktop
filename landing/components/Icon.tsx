@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 export type IconName =
   | "bolt"
   | "layers"
+  | "stack"
   | "activity"
   | "terminal"
   | "box"
@@ -26,6 +27,13 @@ const strokeIcons: Partial<Record<IconName, ReactNode>> = {
       <path d="m12 3 9 5-9 5-9-5 9-5Z" />
       <path d="m3 13 9 5 9-5" />
       <path d="m3 17.5 9 5 9-5" />
+    </>
+  ),
+  stack: (
+    <>
+      <rect x="3" y="4.5" width="9.5" height="6.5" rx="1.75" />
+      <rect x="4.75" y="14" width="8" height="5.5" rx="1.6" />
+      <rect x="15.25" y="5.5" width="5.75" height="14" rx="1.75" />
     </>
   ),
   activity: <path d="M3 12h4l3 8 4-17 3 9h4" />,
