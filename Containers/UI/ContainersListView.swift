@@ -13,6 +13,7 @@ struct ContainersListView: View {
     @State private var showInspector = false
     @State private var pendingCopy: Container?
     @State private var launchProject: ComposeProject?
+    @State private var showMigration = false
     @Environment(\.openURL) private var openURL
 
     private var visibleContainers: [Container] {
@@ -67,6 +68,9 @@ struct ContainersListView: View {
             }
             .sheet(item: $launchProject) { project in
                 ComposeLaunchSheet(project: project)
+            }
+            .sheet(isPresented: $showMigration) {
+                MigrationSheet()
             }
             .inspector(isPresented: $showInspector) {
                 inspectorContent
@@ -169,6 +173,8 @@ struct ContainersListView: View {
                 secondaryLabel: "Launch Stack",
                 secondaryIcon: "square.stack.3d.up",
                 secondaryAction: { pickComposeFile() },
+                tertiaryLabel: appModel.dockerAvailability != .notInstalled ? "Migrate from Docker" : nil,
+                tertiaryAction: appModel.dockerAvailability != .notInstalled ? { showMigration = true } : nil,
                 shortcuts: [
                     KeyboardHint(label: "Run a container", keys: "⌘N"),
                     KeyboardHint(label: "Launch a Compose stack", keys: "⇧⌘N"),
@@ -239,6 +245,15 @@ struct ContainersListView: View {
             .help("Refresh")
         }
         ToolbarItemGroup {
+            if appModel.dockerAvailability != .notInstalled {
+                Button {
+                    showMigration = true
+                } label: {
+                    Label("Migrate from Docker", systemImage: "shippingbox.and.arrow.backward")
+                }
+                .help("Migrate from Docker…")
+            }
+
             Button {
                 pickComposeFile()
             } label: {

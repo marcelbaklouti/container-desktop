@@ -18,6 +18,9 @@ struct EmptyStateGuide: View {
     var secondaryLabel: String? = nil
     var secondaryIcon: String = "square.stack.3d.up"
     var secondaryAction: (() -> Void)? = nil
+    var tertiaryLabel: String? = nil
+    var tertiaryIcon: String = "shippingbox.and.arrow.backward"
+    var tertiaryAction: (() -> Void)? = nil
     var shortcuts: [KeyboardHint] = []
 
     var body: some View {
@@ -37,7 +40,7 @@ struct EmptyStateGuide: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            if primaryLabel != nil || secondaryLabel != nil {
+            if primaryLabel != nil || secondaryLabel != nil || tertiaryLabel != nil {
                 HStack(spacing: 10) {
                     if let primaryLabel, let primaryAction {
                         Button(action: primaryAction) {
@@ -48,6 +51,12 @@ struct EmptyStateGuide: View {
                     if let secondaryLabel, let secondaryAction {
                         Button(action: secondaryAction) {
                             Label(secondaryLabel, systemImage: secondaryIcon)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    if let tertiaryLabel, let tertiaryAction {
+                        Button(action: tertiaryAction) {
+                            Label(tertiaryLabel, systemImage: tertiaryIcon)
                         }
                         .buttonStyle(.bordered)
                     }

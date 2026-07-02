@@ -18,6 +18,7 @@ struct ContainersApp: App {
                     await appModel.system.refresh()
                     appModel.startPolling()
                     appModel.startUpdateCycle()
+                    await appModel.refreshDockerAvailability()
                 }
         }
         .windowStyle(.titleBar)

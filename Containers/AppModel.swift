@@ -17,6 +17,7 @@ final class AppModel {
     let installer: ContainerInstaller
     let updater = AppUpdater()
     let navigator = Navigator()
+    private(set) var dockerAvailability: DockerAvailability = .notInstalled
 
     private var pollTask: Task<Void, Never>?
     private var updateTask: Task<Void, Never>?
@@ -42,6 +43,12 @@ final class AppModel {
     var daemonRunning: Bool {
         if case .running = system.state { return true }
         return false
+    }
+
+    /// One probe at launch — the migration entry points only appear when Docker exists, and
+    /// there is no reason to keep polling someone else's daemon.
+    func refreshDockerAvailability() async {
+        dockerAvailability = await DockerCLI().availability()
     }
 
     /// Checks for an app update on launch and daily after that: notify once per version, stage
