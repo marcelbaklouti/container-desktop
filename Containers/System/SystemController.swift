@@ -11,7 +11,13 @@ final class SystemController {
         case running(version: String)
     }
 
+    nonisolated enum DaemonTransition: Sendable, Equatable {
+        case starting
+        case stopping
+    }
+
     private(set) var state: RuntimeState = .unknown
+    private(set) var transition: DaemonTransition?
     private(set) var status: SystemStatus?
     private(set) var diskUsage: DiskUsage?
     private(set) var cliVersion: String?
@@ -66,13 +72,37 @@ final class SystemController {
         }
     }
 
+    /// `system start` returns while the daemon is still booting, so poll until it reports
+    /// running before declaring success — surfacing an error any earlier is a false alarm.
     func start() async throws {
+        transition = .starting
+        defer { transition = nil }
         _ = try await client.data(for: ["system", "start"])
+        let deadline = ContinuousClock.now + .seconds(15)
+        while ContinuousClock.now < deadline {
+            await refresh()
+            if case .running = state { return }
+            try await Task.sleep(for: .milliseconds(500))
+        }
         await refresh()
+        if case .running = state { return }
+        throw RuntimeError.commandFailed(
+            arguments: ["system", "start"],
+            exitCode: 0,
+            message: String(localized: "The container system didn’t report ready in time.")
+        )
     }
 
     func stop() async throws {
+        transition = .stopping
+        defer { transition = nil }
         _ = try await client.data(for: ["system", "stop"])
+        let deadline = ContinuousClock.now + .seconds(5)
+        while ContinuousClock.now < deadline {
+            await refresh()
+            guard case .running = state else { return }
+            try await Task.sleep(for: .milliseconds(500))
+        }
         await refresh()
     }
 

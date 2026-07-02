@@ -185,7 +185,7 @@ struct ContainersListView: View {
     /// target set, so the same menu serves single-click and multi-select.
     @ViewBuilder
     private func bulkMenu(_ ids: Set<String>) -> some View {
-        let selected = store.containers.filter { ids.contains($0.id) }
+        let selected = store.containers.filter { ids.contains($0.id) && store.pendingTransitions[$0.id] == nil }
         let running = selected.filter { $0.status?.state == "running" }
         let stopped = selected.filter { $0.status?.state != "running" }
         if !stopped.isEmpty {
@@ -281,8 +281,9 @@ struct ContainersListView: View {
     @ViewBuilder
     private func groupActions(_ group: ContainerGroup) -> some View {
         if group.id != "__standalone__" {
-            let running = group.containers.filter { $0.status?.state == "running" }.map(\.id)
-            let stopped = group.containers.filter { $0.status?.state != "running" }.map(\.id)
+            let settled = group.containers.filter { store.pendingTransitions[$0.id] == nil }
+            let running = settled.filter { $0.status?.state == "running" }.map(\.id)
+            let stopped = settled.filter { $0.status?.state != "running" }.map(\.id)
             HStack(spacing: 8) {
                 if !stopped.isEmpty {
                     Button { Task { await store.start(stopped) } } label: { Image(systemName: "play.fill") }
@@ -341,6 +342,7 @@ struct ContainersListView: View {
 
 struct ContainerRow: View {
     let container: Container
+    @Environment(ContainerStore.self) private var store
     @Environment(ContainerStatsStore.self) private var stats
 
     var body: some View {
@@ -371,7 +373,14 @@ struct ContainerRow: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            StatusBadge(text: stateText, tint: stateTint)
+            if let transition {
+                ProgressView()
+                    .controlSize(.small)
+                    .accessibilityHidden(true)
+                StatusBadge(text: transitionText(transition), tint: transitionTint(transition))
+            } else {
+                StatusBadge(text: stateText, tint: stateTint)
+            }
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .ignore)
@@ -379,10 +388,35 @@ struct ContainerRow: View {
         .accessibilityValue(accessibilityValue)
     }
 
+    private var transition: ContainerTransition? {
+        store.pendingTransitions[container.id]
+    }
+
+    private func transitionText(_ transition: ContainerTransition) -> LocalizedStringKey {
+        switch transition {
+        case .starting: "Starting…"
+        case .stopping: "Stopping…"
+        case .restarting: "Restarting…"
+        }
+    }
+
+    private func transitionTint(_ transition: ContainerTransition) -> Color {
+        transition == .stopping ? .orange : .blue
+    }
+
     private var accessibilityValue: String {
-        var parts = [state.capitalized, ImageName.short(container.configuration.image.reference)]
+        var parts = [transition != nil ? transitionDescription : state.capitalized, ImageName.short(container.configuration.image.reference)]
         if let liveStats { parts.append(liveStats) }
         return parts.joined(separator: ", ")
+    }
+
+    private var transitionDescription: String {
+        switch transition {
+        case .starting: String(localized: "Starting")
+        case .stopping: String(localized: "Stopping")
+        case .restarting: String(localized: "Restarting")
+        case nil: ""
+        }
     }
 
     private var subtitle: String {

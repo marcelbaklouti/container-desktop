@@ -47,7 +47,7 @@ struct MachinesListView: View {
     private var decoratedList: some View {
         List(selection: $selection) {
             ForEach(store.machines.filter { searchText.isEmpty || $0.id.localizedCaseInsensitiveContains(searchText) }) { machine in
-                MachineRow(machine: machine)
+                MachineRow(machine: machine, isStopping: store.pendingStops.contains(machine.id))
                     .tag(machine.id)
             }
         }
@@ -91,7 +91,7 @@ struct MachinesListView: View {
             }
             Button { reconfiguring = machine } label: { Label("Edit Settings…", systemImage: "gearshape") }
         }
-        let running = selected.filter { $0.isRunning }
+        let running = selected.filter { $0.isRunning && !store.pendingStops.contains($0.id) }
         if !running.isEmpty {
             Button {
                 Task { for machine in running { await store.stop(machine) } }
@@ -146,6 +146,7 @@ func machineStatusLabel(_ status: String) -> LocalizedStringKey {
 
 struct MachineRow: View {
     let machine: Machine
+    var isStopping = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -166,7 +167,14 @@ struct MachineRow: View {
             if let ip = machine.ipAddress {
                 Text(ip).font(.caption.monospaced()).foregroundStyle(.secondary)
             }
-            StatusBadge(text: machineStatusLabel(machine.status), tint: machine.isRunning ? .green : .gray)
+            if isStopping {
+                ProgressView()
+                    .controlSize(.small)
+                    .accessibilityHidden(true)
+                StatusBadge(text: "Stopping…", tint: .orange)
+            } else {
+                StatusBadge(text: machineStatusLabel(machine.status), tint: machine.isRunning ? .green : .gray)
+            }
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .ignore)
@@ -176,7 +184,8 @@ struct MachineRow: View {
 
     private var accessibilityValue: String {
         let mem = ByteCountFormatStyle(style: .memory).format(Int64(machine.memory))
-        return "\(machine.status.capitalized), \(machine.cpus) CPU, \(mem)"
+        let status = isStopping ? String(localized: "Stopping") : machine.status.capitalized
+        return "\(status), \(machine.cpus) CPU, \(mem)"
     }
 }
 

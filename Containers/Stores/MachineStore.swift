@@ -7,6 +7,8 @@ final class MachineStore {
     private(set) var machines: [Machine] = []
     private(set) var hasLoaded = false
     var errorMessage: String?
+    private(set) var pendingStops: Set<String> = []
+    private var stopDeadlines: [String: ContinuousClock.Instant] = [:]
 
     private let client: any RuntimeClient
 
@@ -24,7 +26,28 @@ final class MachineStore {
         } catch {
             if surfacingErrors { errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription }
         }
+        reconcileStops()
         hasLoaded = true
+    }
+
+    private func reconcileStops() {
+        for id in pendingStops {
+            guard let machine = machines.first(where: { $0.id == id }) else {
+                clearStop(id)
+                continue
+            }
+            if !machine.isRunning {
+                clearStop(id)
+            } else if let deadline = stopDeadlines[id], deadline < ContinuousClock.now {
+                clearStop(id)
+                errorMessage = String(localized: "\(id) didn’t finish stopping.")
+            }
+        }
+    }
+
+    private func clearStop(_ id: String) {
+        pendingStops.remove(id)
+        stopDeadlines.removeValue(forKey: id)
     }
 
     func poll(every interval: Duration) async {
@@ -56,7 +79,13 @@ final class MachineStore {
     }
 
     func setDefault(_ machine: Machine) async { await perform(["machine", "set-default", machine.id]) }
-    func stop(_ machine: Machine) async { await perform(["machine", "stop", machine.id]) }
+
+    func stop(_ machine: Machine) async {
+        pendingStops.insert(machine.id)
+        stopDeadlines[machine.id] = ContinuousClock.now + .seconds(30)
+        await perform(["machine", "stop", machine.id], stopping: machine.id)
+    }
+
     func delete(_ machine: Machine) async { await perform(["machine", "delete", machine.id]) }
     func delete(_ ids: [String]) async { await performBulk(ids.map { ["machine", "delete", $0] }) }
 
@@ -70,11 +99,12 @@ final class MachineStore {
         await refresh()
     }
 
-    private func perform(_ arguments: [String]) async {
+    private func perform(_ arguments: [String], stopping id: String? = nil) async {
         do {
             _ = try await client.data(for: arguments)
             await refresh()
         } catch {
+            if let id { clearStop(id) }
             errorMessage = (error as? RuntimeError)?.localizedMessage ?? error.localizedDescription
         }
     }

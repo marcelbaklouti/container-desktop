@@ -45,6 +45,11 @@ struct MenuBarContentView: View {
     }
 
     private var statusText: String {
+        switch system.transition {
+        case .starting: return String(localized: "Starting the container system…")
+        case .stopping: return String(localized: "Stopping the container system…")
+        case nil: break
+        }
         switch system.state {
         case .running:
             let running = appModel.runningContainers.map(\.id)
@@ -62,16 +67,21 @@ struct MenuBarContentView: View {
 
     @ViewBuilder
     private var daemonButton: some View {
-        switch system.state {
-        case .running:
-            Button("Stop") { Task { try? await system.stop() } }
+        if system.transition != nil {
+            ProgressView()
                 .controlSize(.small)
-        case .daemonStopped:
-            Button("Start") { Task { try? await system.start() } }
-                .controlSize(.small)
-                .buttonStyle(.borderedProminent)
-        default:
-            EmptyView()
+        } else {
+            switch system.state {
+            case .running:
+                Button("Stop") { Task { try? await system.stop() } }
+                    .controlSize(.small)
+            case .daemonStopped:
+                Button("Start") { Task { try? await system.start() } }
+                    .controlSize(.small)
+                    .buttonStyle(.borderedProminent)
+            default:
+                EmptyView()
+            }
         }
     }
 
@@ -79,11 +89,19 @@ struct MenuBarContentView: View {
     private var content: some View {
         if !appModel.daemonRunning {
             VStack(spacing: 10) {
-                Label("The container system is stopped.", systemImage: "stop.circle")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                Button("Start") { Task { try? await system.start() } }
-                    .buttonStyle(.borderedProminent)
+                if system.transition == .starting {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Starting the container system…")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Label("The container system is stopped.", systemImage: "stop.circle")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Button("Start") { Task { try? await system.start() } }
+                        .buttonStyle(.borderedProminent)
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
@@ -148,34 +166,49 @@ private struct MenuBarContainerRow: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
-            if let port = container.configuration.publishedPorts.first {
+            if store.pendingTransitions[container.id] != nil {
+                ProgressView()
+                    .controlSize(.small)
+                    .accessibilityLabel(transitionLabel)
+            } else {
+                if let port = container.configuration.publishedPorts.first {
+                    Button {
+                        if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
+                    } label: {
+                        Image(systemName: "arrow.up.right")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Open localhost:\(String(port.hostPort))")
+                    .accessibilityLabel("Open port \(String(port.hostPort)) in browser")
+                }
                 Button {
-                    if let url = URL(string: "http://localhost:\(port.hostPort)") { openURL(url) }
+                    Task { await store.restart(container) }
                 } label: {
-                    Image(systemName: "arrow.up.right")
+                    Image(systemName: "arrow.clockwise")
                 }
                 .buttonStyle(.borderless)
-                .help("Open localhost:\(String(port.hostPort))")
-                .accessibilityLabel("Open port \(String(port.hostPort)) in browser")
+                .help("Restart")
+                .accessibilityLabel("Restart \(container.id)")
+                Button {
+                    Task { await store.stop(container) }
+                } label: {
+                    Image(systemName: "stop.fill")
+                }
+                .buttonStyle(.borderless)
+                .help("Stop")
+                .accessibilityLabel("Stop \(container.id)")
             }
-            Button {
-                Task { await store.restart(container) }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
-            .buttonStyle(.borderless)
-            .help("Restart")
-            .accessibilityLabel("Restart \(container.id)")
-            Button {
-                Task { await store.stop(container) }
-            } label: {
-                Image(systemName: "stop.fill")
-            }
-            .buttonStyle(.borderless)
-            .help("Stop")
-            .accessibilityLabel("Stop \(container.id)")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
+    }
+
+    private var transitionLabel: String {
+        switch store.pendingTransitions[container.id] {
+        case .starting: String(localized: "Starting \(container.id)")
+        case .stopping: String(localized: "Stopping \(container.id)")
+        case .restarting: String(localized: "Restarting \(container.id)")
+        case nil: ""
+        }
     }
 }

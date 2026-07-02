@@ -3,7 +3,6 @@ import SwiftUI
 struct RuntimeUnavailableView: View {
     @Environment(SystemController.self) private var system
     @Environment(ContainerInstaller.self) private var installer
-    @State private var isWorking = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -32,13 +31,22 @@ struct RuntimeUnavailableView: View {
     private var action: some View {
         switch system.state {
         case .daemonStopped:
-            Button {
-                Task { await start() }
-            } label: {
-                Label(isWorking ? "Starting…" : "Start Container System", systemImage: "play.fill")
+            if system.transition == .starting {
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Starting the container system…")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Button {
+                    Task { await start() }
+                } label: {
+                    Label("Start Container System", systemImage: "play.fill")
+                }
+                .buttonStyle(.glassProminent)
             }
-            .buttonStyle(.glassProminent)
-            .disabled(isWorking)
         case .binaryMissing:
             VStack(spacing: 10) {
                 installAction
@@ -116,13 +124,12 @@ struct RuntimeUnavailableView: View {
     }
 
     private func start() async {
-        isWorking = true
         errorMessage = nil
         do {
             try await system.start()
         } catch {
-            errorMessage = String(localized: "Couldn’t start the container system.")
+            errorMessage = (error as? RuntimeError)?.localizedMessage
+                ?? String(localized: "Couldn’t start the container system.")
         }
-        isWorking = false
     }
 }
