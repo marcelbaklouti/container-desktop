@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { ScrollProgress } from "@/components/ScrollProgress";
 import { site } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -50,6 +51,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-dvh">
+        <ScrollProgress />
         <Nav />
         <main>{children}</main>
         <Footer />

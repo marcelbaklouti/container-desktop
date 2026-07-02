@@ -4,28 +4,34 @@ import { Reveal } from "@/components/Reveal";
 import { HeroGlow } from "@/components/HeroGlow";
 import { ScreenshotFrame } from "@/components/ScreenshotFrame";
 import { TerminalTease } from "@/components/TerminalTease";
+import { HeroScene } from "@/components/three/HeroScene";
+import { SplitReveal } from "@/components/SplitReveal";
 
 export function Hero() {
   return (
     <section id="top" className="relative overflow-hidden px-5 pt-20 pb-16 sm:pt-28">
       <HeroGlow />
+      <HeroScene />
       <div className="mx-auto max-w-4xl text-center">
         <Reveal>
           <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-fg-muted">
             {hero.badge}
           </span>
         </Reveal>
-        <Reveal delay={0.06}>
-          <h1 className="mt-6 text-balance text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-            {hero.title}
-          </h1>
-        </Reveal>
-        <Reveal delay={0.12}>
+        <SplitReveal
+          as="h1"
+          scroll={false}
+          delay={0.15}
+          className="mt-6 text-balance text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl"
+        >
+          {hero.title}
+        </SplitReveal>
+        <Reveal delay={0.45}>
           <p className="mx-auto mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-fg-muted">
             {hero.subtitle}
           </p>
         </Reveal>
-        <Reveal delay={0.18}>
+        <Reveal delay={0.6}>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button href={site.releases} icon="download" external>
               Download for macOS
@@ -38,7 +44,7 @@ export function Hero() {
             {site.requirements} · Free &amp; open source
           </p>
         </Reveal>
-        <Reveal delay={0.24}>
+        <Reveal delay={0.75}>
           <TerminalTease />
         </Reveal>
       </div>

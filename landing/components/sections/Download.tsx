@@ -1,6 +1,7 @@
 import { site, legal, download } from "@/lib/content";
 import { Button } from "@/components/Button";
 import { Reveal } from "@/components/Reveal";
+import { SplitReveal } from "@/components/SplitReveal";
 
 export function Download() {
   return (
@@ -18,10 +19,13 @@ export function Download() {
         }}
       />
       <div className="mx-auto max-w-3xl text-center">
-        <Reveal>
-          <h2 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-            {download.title}
-          </h2>
+        <SplitReveal
+          as="h2"
+          className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl"
+        >
+          {download.title}
+        </SplitReveal>
+        <Reveal delay={0.15}>
           <p className="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
             {download.subtitle}
           </p>

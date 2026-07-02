@@ -1,5 +1,6 @@
 import { compare } from "@/lib/content";
 import { Reveal } from "@/components/Reveal";
+import { SplitReveal } from "@/components/SplitReveal";
 
 function Cell({ value }: { value: boolean | null }) {
   if (value === null) {
@@ -28,9 +29,14 @@ export function Compare() {
           <p className="text-sm font-medium uppercase tracking-widest text-accent-soft">
             Compare
           </p>
-          <h2 className="mt-2 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-            {compare.title}
-          </h2>
+        </Reveal>
+        <SplitReveal
+          as="h2"
+          className="mt-2 text-balance text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          {compare.title}
+        </SplitReveal>
+        <Reveal delay={0.1}>
           <p className="mt-3 max-w-2xl text-lg text-fg-muted">{compare.subtitle}</p>
         </Reveal>
 

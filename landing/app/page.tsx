@@ -9,6 +9,7 @@ import { WhatYouCanDo } from "@/components/sections/WhatYouCanDo";
 import { FAQ } from "@/components/sections/FAQ";
 import { Download } from "@/components/sections/Download";
 import { StructuredData } from "@/components/StructuredData";
+import { Marquee } from "@/components/Marquee";
 import { features } from "@/lib/content";
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
       <StructuredData />
       <Hero />
       <RequirementStrip />
+      <Marquee />
       <Highlights />
       <HowItWorks />
       {features.map((feature, i) => (

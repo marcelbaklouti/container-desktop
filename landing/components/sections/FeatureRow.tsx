@@ -2,6 +2,8 @@ import type { FeatureSection } from "@/lib/content";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { ScreenshotFrame } from "@/components/ScreenshotFrame";
+import { ParallaxShot } from "@/components/ParallaxShot";
+import { SplitReveal } from "@/components/SplitReveal";
 
 export function FeatureRow({
   feature,
@@ -18,9 +20,12 @@ export function FeatureRow({
           <Icon name={feature.icon} size={15} />
           {feature.eyebrow}
         </div>
-        <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+        <SplitReveal
+          as="h2"
+          className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
           {feature.title}
-        </h2>
+        </SplitReveal>
         <p className="mt-4 text-lg leading-relaxed text-fg-muted">{feature.body}</p>
         <ul className="mt-6 space-y-2.5">
           {feature.bullets.map((b) => (
@@ -32,7 +37,7 @@ export function FeatureRow({
         </ul>
       </Reveal>
 
-      <Reveal delay={0.08} className={flip ? "lg:order-1" : ""}>
+      <ParallaxShot className={flip ? "lg:order-1" : ""}>
         <ScreenshotFrame
           label={feature.screenshot.label}
           alt={feature.title}
@@ -41,7 +46,7 @@ export function FeatureRow({
           height={feature.screenshot.height}
           sizes="(min-width: 1024px) 560px, 100vw"
         />
-      </Reveal>
+      </ParallaxShot>
     </div>
   );
 }
