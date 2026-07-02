@@ -1,0 +1,83 @@
+name: meridian
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-meridian}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-meridian-dev}
+      POSTGRES_DB: ${POSTGRES_DB:-meridian}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    command: valkey-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache-data:/data
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-meridian}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-meridian-dev}
+    volumes:
+      - queue-data:/var/lib/rabbitmq
+    networks:
+      - backend
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-meridian-dev-master-key}
+    volumes:
+      - search-data:/meili_data
+    networks:
+      - backend
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-meridian}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-meridian-dev}
+    volumes:
+      - storage-data:/data
+    networks:
+      - frontend
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - frontend
+
+volumes:
+  db-data:
+  cache-data:
+  queue-data:
+  search-data:
+  storage-data:
+
+networks:
+  backend:
+  frontend:
