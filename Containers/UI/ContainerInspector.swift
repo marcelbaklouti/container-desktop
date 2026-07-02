@@ -21,7 +21,7 @@ struct ContainerInspector: View {
             case .details:
                 ContainerDetailView(container: container)
             case .logs:
-                ContainerLogsView(containerID: container.id)
+                ContainerLogsView(containerID: container.id, isRunning: container.status?.state == "running")
             case .stats:
                 ContainerStatsView(containerID: container.id)
             case .terminal:
