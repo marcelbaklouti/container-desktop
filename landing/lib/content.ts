@@ -87,7 +87,7 @@ export const features: FeatureSection[] = [
       "Images and volume data move with them",
       "Originals are stopped, never deleted",
     ],
-    screenshot: { label: "Migrate from Docker", width: 2402, height: 1528 },
+    screenshot: { src: "/screens/Migration.png", label: "Migrate from Docker", width: 2144, height: 1528 },
   },
   {
     id: "images",

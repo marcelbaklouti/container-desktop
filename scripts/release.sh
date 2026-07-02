@@ -184,12 +184,23 @@ if [ "$PUBLISH" -eq 1 ]; then
     printf '%s\n' "Container Desktop $VERSION. Apple Silicon, macOS 26+." > "$NOTES_FILE"
     echo "WARNING: no CHANGELOG.md section for $VERSION — using a generic note."
   fi
+  DMG_SHA=$(/usr/bin/shasum -a 256 "$DMG" | cut -d' ' -f1)
+  PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
   cat >> "$NOTES_FILE" <<EOF
 
 ---
 
 **Install:** Download the DMG below, open it, drag **Container Desktop** to **Applications**, then launch it. The app is Developer ID-signed and notarized by Apple, so it opens without a Gatekeeper warning. Apple Silicon, macOS 26+.
+
+**SHA-256** — \`$(basename "$DMG")\`
+
+\`\`\`
+$DMG_SHA
+\`\`\`
 EOF
+  if [ -n "$PREVIOUS_TAG" ]; then
+    printf '\n**Full Changelog:** https://github.com/%s/compare/%s...v%s\n' "$REPO" "$PREVIOUS_TAG" "$VERSION" >> "$NOTES_FILE"
+  fi
   gh release create "v$VERSION" "$DMG" \
     --repo "$REPO" \
     --title "$PRODUCT $VERSION" \

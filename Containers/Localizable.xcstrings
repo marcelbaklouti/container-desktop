@@ -64,6 +64,16 @@
         }
       }
     },
+    "%lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld"
+          }
+        }
+      }
+    },
     "%lld of %lld migrated" : {
       "localizations" : {
         "en" : {
@@ -184,6 +194,16 @@
     },
     "Authorization was cancelled." : {
 
+    },
+    "Bind mount to %@ was skipped — %@ doesn’t exist on this Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bind mount to %1$@ was skipped — %2$@ doesn’t exist on this Mac."
+          }
+        }
+      }
     },
     "Block read" : {
 
